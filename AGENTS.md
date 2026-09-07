@@ -27,17 +27,23 @@ npm create vite@latest dsl-teacher-dashboard -- --template react-ts
 cd dsl-teacher-dashboard
 npm install
 npm install react-router-dom
-npm install -D tailwindcss postcss autoprefixer
-npx tailwindcss init -p
+npm install tailwindcss @tailwindcss/vite
 npx shadcn@latest init
 git init
 ```
+
+Notes on the above, learned the hard way in subtask 1:
+
+- `npx tailwindcss init -p` (the old Tailwind v3 setup) **does not exist in Tailwind v4** — there's no `init` subcommand anymore. Install `tailwindcss` + `@tailwindcss/vite`, add `tailwindcss()` to the `plugins` array in `vite.config.ts`, and use `@import "tailwindcss";` at the top of `src/index.css` instead of `@tailwind base/components/utilities` directives or a `tailwind.config.js` file.
+- The `shadcn@latest init` CLI (current major version) generates CSS that imports `shadcn/tailwind.css` for keyframes/utility helpers, but that preset does **not** include the `--color-*` token mapping Tailwind v4 needs to resolve utilities like `border-border` or `bg-background`. You have to hand-add an `@theme inline { --color-background: var(--background); ... }` block to `src/index.css` yourself, mapping every CSS variable the generator put under `:root`/`.dark` to its `--color-*` (and `--radius-*`) equivalent — otherwise the dev server throws `Cannot apply unknown utility class` at build time.
 
 ### Environment variables (`.env`, gitignored — commit `.env.example` with blank values)
 
 ```
 VITE_API_URL=http://localhost:5000/api
 ```
+
+**Vite's default `.gitignore` does NOT cover `.env`** — it only ignores `*.local` (e.g. `.env.local`), not plain `.env`. Add `.env` explicitly (and `!.env.example` to un-ignore the example file) or it will get committed. Verify with `git check-ignore -v .env`, don't assume.
 
 ---
 
@@ -193,7 +199,7 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
 
 - [x] 1. **Scaffolding** — Vite + React + TS, Tailwind, shadcn init, one
       fetch to `dsl-backend`'s `/api/health` on load
-- [ ] 2. **Auth** — Login page, `AuthContext` (JWT in localStorage),
+- [x] 2. **Auth** — Login page, `AuthContext` (JWT in localStorage),
       protected route wrapper, logout
 - [ ] 3. **App shell & navigation** — Persistent sidebar/topbar, route
       structure for every page below, empty placeholders wired into routing

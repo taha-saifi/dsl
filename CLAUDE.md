@@ -31,7 +31,7 @@ don't re-litigate it per-subtask.
 
 - [x] 1. **Scaffolding** — Vite + React + TS, Tailwind, shadcn init, one
       fetch to `dsl-backend`'s `/api/health` on load
-- [ ] 2. **Auth** — Login page, `AuthContext` (JWT in localStorage),
+- [x] 2. **Auth** — Login page, `AuthContext` (JWT in localStorage),
       protected route wrapper, logout
 - [ ] 3. **App shell & navigation** — Persistent sidebar/topbar, route
       structure for every page below, empty placeholders wired into routing

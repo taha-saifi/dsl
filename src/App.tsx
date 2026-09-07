@@ -1,50 +1,70 @@
-import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { apiRequest } from "@/lib/api";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import LoginPage from "@/pages/LoginPage";
 
-type ConnectionStatus = "checking" | "connected" | "disconnected";
+function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
+  const { user, loading } = useAuth();
 
-function App() {
-  const [status, setStatus] = useState<ConnectionStatus>("checking");
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-slate-500">
+        Loading...
+      </div>
+    );
+  }
 
-  useEffect(() => {
-    let cancelled = false;
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
-    apiRequest<{ status: string }>("/health")
-      .then(() => {
-        if (!cancelled) setStatus("connected");
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("disconnected");
-      });
+  return <>{children}</>;
+}
 
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+function HomePage() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    logout();
+    navigate("/login");
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50">
-      <h1 className="text-2xl font-semibold text-slate-900">
-        DSL Teacher Dashboard
-      </h1>
-      <p
-        className={
-          status === "connected"
-            ? "font-medium text-emerald-600"
-            : status === "disconnected"
-              ? "font-medium text-red-600"
-              : "font-medium text-slate-500"
-        }
-      >
-        {status === "checking"
-          ? "Checking connection..."
-          : status === "connected"
-            ? "Connected"
-            : "Not connected"}
-      </p>
-      <Button>Sample Button</Button>
+      <p className="text-slate-900">Logged in as {user?.email}</p>
+      <Button onClick={handleLogout}>Log out</Button>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <RedirectIfAuthenticated>
+                <LoginPage />
+              </RedirectIfAuthenticated>
+            }
+          />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<HomePage />} />
+          </Route>
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
