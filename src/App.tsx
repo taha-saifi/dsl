@@ -5,6 +5,7 @@ import PlaceholderPage from "@/components/PlaceholderPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/toast";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
+import CoursesPage from "@/pages/CoursesPage";
 import LoginPage from "@/pages/LoginPage";
 import SpecializationsPage from "@/pages/SpecializationsPage";
 
@@ -46,7 +47,7 @@ function App() {
               <Route path="/specializations" element={<SpecializationsPage />} />
               <Route
                 path="/specializations/:specializationId/courses"
-                element={<PlaceholderPage title="Courses" />}
+                element={<CoursesPage />}
               />
               <Route
                 path="/courses/:courseId/units"

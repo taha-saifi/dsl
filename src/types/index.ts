@@ -12,3 +12,14 @@ export interface Specialization {
   slug: string;
   iconUrl?: string;
 }
+
+export interface Course {
+  _id: string;
+  specializationId: string;
+  thumbnailMediaId?: string;
+  name: string;
+  sourceLanguage: string;
+  targetLanguage: string;
+  description?: string;
+  isPublished: boolean;
+}

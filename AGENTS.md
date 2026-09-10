@@ -205,7 +205,7 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
       structure for every page below, empty placeholders wired into routing
 - [x] 4. **Specializations UI** — List, create/edit, delete with
       confirmation, surfaces the backend's 409 dependent-delete error
-- [ ] 5. **Courses UI** — List filtered by specialization, create/edit
+- [x] 5. **Courses UI** — List filtered by specialization, create/edit
       (languages, description), delete
 - [ ] 6. **Units UI** — List filtered by course, create/edit,
       drag-and-drop reorder wired to the reorder endpoint, delete
