@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import CoursesPage from "@/pages/CoursesPage";
 import LoginPage from "@/pages/LoginPage";
 import SpecializationsPage from "@/pages/SpecializationsPage";
+import UnitsPage from "@/pages/UnitsPage";
 
 function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -49,10 +50,7 @@ function App() {
                 path="/specializations/:specializationId/courses"
                 element={<CoursesPage />}
               />
-              <Route
-                path="/courses/:courseId/units"
-                element={<PlaceholderPage title="Units" />}
-              />
+              <Route path="/courses/:courseId/units" element={<UnitsPage />} />
               <Route
                 path="/units/:unitId"
                 element={<PlaceholderPage title="Unit Detail" />}

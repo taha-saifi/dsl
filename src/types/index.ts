@@ -23,3 +23,12 @@ export interface Course {
   description?: string;
   isPublished: boolean;
 }
+
+export interface Unit {
+  _id: string;
+  courseId: string;
+  name: string;
+  orderIndex: number;
+  isPublished: boolean;
+  learningItems: { learningItemId: string; order: number }[];
+}

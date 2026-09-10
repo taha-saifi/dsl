@@ -39,7 +39,7 @@ don't re-litigate it per-subtask.
       confirmation, surfaces the backend's 409 dependent-delete error
 - [x] 5. **Courses UI** — List filtered by specialization, create/edit
       (languages, description), delete
-- [ ] 6. **Units UI** — List filtered by course, create/edit,
+- [x] 6. **Units UI** — List filtered by course, create/edit,
       drag-and-drop reorder wired to the reorder endpoint, delete
 - [ ] 7. **Media upload & picker component** — Reusable upload widget +
       picker modal for images/audio, previews; used by subtasks 8-9
