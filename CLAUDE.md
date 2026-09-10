@@ -33,7 +33,7 @@ don't re-litigate it per-subtask.
       fetch to `dsl-backend`'s `/api/health` on load
 - [x] 2. **Auth** — Login page, `AuthContext` (JWT in localStorage),
       protected route wrapper, logout
-- [ ] 3. **App shell & navigation** — Persistent sidebar/topbar, route
+- [x] 3. **App shell & navigation** — Persistent sidebar/topbar, route
       structure for every page below, empty placeholders wired into routing
 - [ ] 4. **Specializations UI** — List, create/edit, delete with
       confirmation, surfaces the backend's 409 dependent-delete error

@@ -1,12 +1,7 @@
 import type { ReactNode } from "react";
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useNavigate,
-} from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import AppShell from "@/components/layout/AppShell";
+import PlaceholderPage from "@/components/PlaceholderPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import LoginPage from "@/pages/LoginPage";
@@ -29,23 +24,6 @@ function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-function HomePage() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  function handleLogout() {
-    logout();
-    navigate("/login");
-  }
-
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50">
-      <p className="text-slate-900">Logged in as {user?.email}</p>
-      <Button onClick={handleLogout}>Log out</Button>
-    </div>
-  );
-}
-
 function App() {
   return (
     <BrowserRouter>
@@ -60,7 +38,37 @@ function App() {
             }
           />
           <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<HomePage />} />
+            <Route element={<AppShell />}>
+              <Route index element={<PlaceholderPage title="Dashboard" />} />
+              <Route
+                path="/specializations"
+                element={<PlaceholderPage title="Specializations" />}
+              />
+              <Route
+                path="/specializations/:specializationId/courses"
+                element={<PlaceholderPage title="Courses" />}
+              />
+              <Route
+                path="/courses/:courseId/units"
+                element={<PlaceholderPage title="Units" />}
+              />
+              <Route
+                path="/units/:unitId"
+                element={<PlaceholderPage title="Unit Detail" />}
+              />
+              <Route
+                path="/learning-items"
+                element={<PlaceholderPage title="Learning Items" />}
+              />
+              <Route
+                path="/learning-items/:learningItemId"
+                element={<PlaceholderPage title="Learning Item Detail" />}
+              />
+              <Route
+                path="/exercises/:exerciseId"
+                element={<PlaceholderPage title="Exercise Detail" />}
+              />
+            </Route>
           </Route>
         </Routes>
       </AuthProvider>
