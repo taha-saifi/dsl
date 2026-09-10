@@ -8,6 +8,15 @@ export class ApiError extends Error {
   }
 }
 
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new ApiError(res.status, err?.error?.message || "Request failed");
+  }
+  const json = await res.json();
+  return json.data as T;
+}
+
 export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem("dsl_token");
   let res: Response;
@@ -23,10 +32,26 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   } catch {
     throw new Error("Network error: could not reach the server.");
   }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, err?.error?.message || "Request failed");
+  return handleResponse<T>(res);
+}
+
+/**
+ * Like apiRequest, but for multipart/form-data uploads. No Content-Type header
+ * is set — the browser needs to add its own multipart boundary automatically.
+ */
+export async function apiUpload<T>(path: string, formData: FormData): Promise<T> {
+  const token = localStorage.getItem("dsl_token");
+  let res: Response;
+  try {
+    res = await fetch(`${import.meta.env.VITE_API_URL}${path}`, {
+      method: "POST",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: formData,
+    });
+  } catch {
+    throw new Error("Network error: could not reach the server.");
   }
-  const json = await res.json();
-  return json.data as T;
+  return handleResponse<T>(res);
 }

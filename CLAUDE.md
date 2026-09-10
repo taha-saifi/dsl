@@ -41,7 +41,7 @@ don't re-litigate it per-subtask.
       (languages, description), delete
 - [x] 6. **Units UI** — List filtered by course, create/edit,
       drag-and-drop reorder wired to the reorder endpoint, delete
-- [ ] 7. **Media upload & picker component** — Reusable upload widget +
+- [x] 7. **Media upload & picker component** — Reusable upload widget +
       picker modal for images/audio, previews; used by subtasks 8-9
 - [ ] 8. **Learning Items UI** — List with type/search filters,
       create/edit, image attach via the picker, delete

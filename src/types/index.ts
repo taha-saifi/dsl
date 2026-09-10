@@ -32,3 +32,13 @@ export interface Unit {
   isPublished: boolean;
   learningItems: { learningItemId: string; order: number }[];
 }
+
+export interface Media {
+  _id: string;
+  type: "image" | "audio" | "video";
+  url: string;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
