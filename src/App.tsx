@@ -3,8 +3,10 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import PlaceholderPage from "@/components/PlaceholderPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { Toaster } from "@/components/ui/toast";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import LoginPage from "@/pages/LoginPage";
+import SpecializationsPage from "@/pages/SpecializationsPage";
 
 function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -28,6 +30,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster />
         <Routes>
           <Route
             path="/login"
@@ -40,10 +43,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route element={<AppShell />}>
               <Route index element={<PlaceholderPage title="Dashboard" />} />
-              <Route
-                path="/specializations"
-                element={<PlaceholderPage title="Specializations" />}
-              />
+              <Route path="/specializations" element={<SpecializationsPage />} />
               <Route
                 path="/specializations/:specializationId/courses"
                 element={<PlaceholderPage title="Courses" />}

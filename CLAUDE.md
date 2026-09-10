@@ -35,7 +35,7 @@ don't re-litigate it per-subtask.
       protected route wrapper, logout
 - [x] 3. **App shell & navigation** — Persistent sidebar/topbar, route
       structure for every page below, empty placeholders wired into routing
-- [ ] 4. **Specializations UI** — List, create/edit, delete with
+- [x] 4. **Specializations UI** — List, create/edit, delete with
       confirmation, surfaces the backend's 409 dependent-delete error
 - [ ] 5. **Courses UI** — List filtered by specialization, create/edit
       (languages, description), delete

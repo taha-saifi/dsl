@@ -5,3 +5,10 @@ export interface User {
   firstName: string;
   lastName: string;
 }
+
+export interface Specialization {
+  _id: string;
+  name: string;
+  slug: string;
+  iconUrl?: string;
+}
