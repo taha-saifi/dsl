@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
+import TargetItemField from "@/components/questions/TargetItemField";
 import type { LearningItem, QuestionItem, QuestionType } from "@/types";
 
 export const REFERENCE_TYPES = [
@@ -21,7 +22,7 @@ export function isReferenceType(
   return (REFERENCE_TYPES as readonly string[]).includes(type);
 }
 
-interface ConfigFieldSpec {
+export interface ConfigFieldSpec {
   field: string;
   label: string;
 }
@@ -63,8 +64,8 @@ export const REFERENCE_TYPE_ALLOWS_DISTRACTORS: Record<
 
 interface ReferenceTypeQuestionFieldsProps {
   type: ReferenceQuestionType;
-  config: Record<string, string>;
-  onConfigChange: (config: Record<string, string>) => void;
+  config: Record<string, unknown>;
+  onConfigChange: (config: Record<string, unknown>) => void;
   items: QuestionItem[];
   itemsById: Record<string, LearningItem>;
   onItemsChange: (items: QuestionItem[]) => void;
@@ -80,9 +81,7 @@ export default function ReferenceTypeQuestionFields({
   onItemsChange,
   onItemResolved,
 }: ReferenceTypeQuestionFieldsProps) {
-  const [pickerMode, setPickerMode] = useState<"target" | "distractor" | null>(
-    null,
-  );
+  const [distractorPickerOpen, setDistractorPickerOpen] = useState(false);
 
   const target = items.find((it) => it.role === "target");
   const distractors = items.filter((it) => it.role === "distractor");
@@ -95,24 +94,25 @@ export default function ReferenceTypeQuestionFields({
     return firstTranslation ? firstTranslation.text : "(no translations yet)";
   }
 
-  function handlePickerSelect(selected: LearningItem) {
-    if (pickerMode === "target") {
-      onItemsChange([
-        { learningItemId: selected._id, role: "target", displayOrder: 0 },
-        ...distractors,
-      ]);
-    } else if (pickerMode === "distractor") {
-      onItemsChange([
-        ...items,
-        {
-          learningItemId: selected._id,
-          role: "distractor",
-          displayOrder: items.length,
-        },
-      ]);
-    }
+  function handleTargetSelect(selected: LearningItem) {
+    onItemsChange([
+      { learningItemId: selected._id, role: "target", displayOrder: 0 },
+      ...distractors,
+    ]);
     onItemResolved(selected);
-    setPickerMode(null);
+  }
+
+  function handleDistractorSelect(selected: LearningItem) {
+    onItemsChange([
+      ...items,
+      {
+        learningItemId: selected._id,
+        role: "distractor",
+        displayOrder: items.length,
+      },
+    ]);
+    onItemResolved(selected);
+    setDistractorPickerOpen(false);
   }
 
   function handleRemoveDistractor(learningItemId: string) {
@@ -137,7 +137,7 @@ export default function ReferenceTypeQuestionFields({
               required
               maxLength={2}
               placeholder="en"
-              value={config[spec.field] ?? ""}
+              value={String(config[spec.field] ?? "")}
               onChange={(e) =>
                 onConfigChange({ ...config, [spec.field]: e.target.value })
               }
@@ -146,33 +146,11 @@ export default function ReferenceTypeQuestionFields({
         ))}
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>Target</Label>
-        {target ? (
-          <div className="flex items-center justify-between rounded-md border border-slate-200 p-2">
-            <span className="text-sm text-slate-900">
-              {itemLabel(target.learningItemId)}
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPickerMode("target")}
-            >
-              Change
-            </Button>
-          </div>
-        ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setPickerMode("target")}
-          >
-            Select target item
-          </Button>
-        )}
-      </div>
+      <TargetItemField
+        learningItem={target ? itemsById[target.learningItemId] : undefined}
+        excludeIds={excludeIds}
+        onSelect={handleTargetSelect}
+      />
 
       {allowsDistractors && (
         <div className="flex flex-col gap-1.5">
@@ -182,7 +160,7 @@ export default function ReferenceTypeQuestionFields({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setPickerMode("distractor")}
+              onClick={() => setDistractorPickerOpen(true)}
             >
               Add distractor
             </Button>
@@ -214,19 +192,17 @@ export default function ReferenceTypeQuestionFields({
               ))}
             </div>
           )}
+
+          <AttachLearningItemDialog
+            open={distractorPickerOpen}
+            onOpenChange={setDistractorPickerOpen}
+            excludeIds={excludeIds}
+            onSelect={handleDistractorSelect}
+            title="Add Distractor"
+            alreadyUsedLabel="used in this question"
+          />
         </div>
       )}
-
-      <AttachLearningItemDialog
-        open={pickerMode !== null}
-        onOpenChange={(open) => {
-          if (!open) setPickerMode(null);
-        }}
-        excludeIds={excludeIds}
-        onSelect={handlePickerSelect}
-        title={pickerMode === "target" ? "Select Target Item" : "Add Distractor"}
-        alreadyUsedLabel="used in this question"
-      />
     </div>
   );
 }

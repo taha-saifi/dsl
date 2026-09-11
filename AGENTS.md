@@ -227,9 +227,12 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
        listening_select, typing; surface the backend's specific validation
        error codes clearly (e.g. `ITEM_MISSING_IMAGE`,
        `ITEM_MISSING_TRANSLATION`)
-- [ ] 14. **Question forms — structural types** — Dedicated forms for
+- [x] 14. **Question forms — structural types** — Dedicated forms for
        fill_blank (pick the blank word from the sentence), arrange_sentence
-       (word-block builder with distractors), matching (pair builder)
+       (word-block builder with distractors), matching (pair builder).
+       Completes the full question builder (subtasks 12-14): every one of
+       the 8 question types now has a friendly form, no raw-JSON fallback
+       remains.
 - [ ] 15. **Publish workflow UI + polish** — Publish/unpublish toggles on
        Course/Unit/Exercise wired to the backend's readiness gating with
        clear blocked-reason messaging, role-based UI guards, a dashboard
