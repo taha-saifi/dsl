@@ -1,6 +1,21 @@
 import { apiRequest } from "@/lib/api";
 import type { LearningItem } from "@/types";
 
+export interface TranslationInput {
+  language: string;
+  text: string;
+  pronunciation?: string;
+  ipa?: string;
+  audioMediaId?: string;
+}
+
+export interface TranslationUpdateInput {
+  text?: string;
+  pronunciation?: string;
+  ipa?: string;
+  audioMediaId?: string;
+}
+
 export interface LearningItemInput {
   type: LearningItem["type"];
   imageMediaId?: string;
@@ -46,4 +61,34 @@ export function deleteLearningItem(id: string) {
   return apiRequest<{ id: string }>(`/learning-items/${id}`, {
     method: "DELETE",
   });
+}
+
+export function addTranslation(itemId: string, input: TranslationInput) {
+  return apiRequest<LearningItem>(`/learning-items/${itemId}/translations`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function updateTranslation(
+  itemId: string,
+  language: string,
+  input: TranslationUpdateInput,
+) {
+  return apiRequest<LearningItem>(
+    `/learning-items/${itemId}/translations/${encodeURIComponent(language)}`,
+    {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function removeTranslation(itemId: string, language: string) {
+  return apiRequest<LearningItem>(
+    `/learning-items/${itemId}/translations/${encodeURIComponent(language)}`,
+    {
+      method: "DELETE",
+    },
+  );
 }

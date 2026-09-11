@@ -45,7 +45,7 @@ don't re-litigate it per-subtask.
       picker modal for images/audio, previews; used by subtasks 8-9
 - [x] 8. **Learning Items UI** — List with type/search filters,
       create/edit, image attach via the picker, delete
-- [ ] 9. **Translations UI** — Per-item translation management (add/edit/
+- [x] 9. **Translations UI** — Per-item translation management (add/edit/
       remove by language), audio attach via the picker
 - [ ] 10. **Unit ↔ Learning Item attachment UI** — Attach/detach existing
        learning items on a unit's detail page, drag-and-drop reorder
