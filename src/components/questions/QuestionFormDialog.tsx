@@ -30,8 +30,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
+import ReferenceTypeQuestionFields, {
+  REFERENCE_TYPE_CONFIG_FIELDS,
+  isReferenceType,
+} from "@/components/questions/ReferenceTypeQuestionFields";
 import SortableQuestionItemRow from "@/components/questions/SortableQuestionItemRow";
+import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
 import { getLearningItem } from "@/lib/resources/learningItems";
 import { createQuestion, updateQuestion } from "@/lib/resources/questions";
 import type { LearningItem, Question, QuestionItem, QuestionType } from "@/types";
@@ -46,6 +50,8 @@ const QUESTION_TYPES: QuestionType[] = [
   "arrange_sentence",
   "matching",
 ];
+
+const LANGUAGE_PATTERN = /^[a-z]{2}$/i;
 
 interface QuestionFormDialogProps {
   open: boolean;
@@ -67,7 +73,14 @@ export default function QuestionFormDialog({
   const isEdit = Boolean(question);
   const [type, setType] = useState<QuestionType>("typing");
   const [points, setPoints] = useState(10);
+
+  // Structural types (fill_blank/arrange_sentence/matching): raw JSON textarea.
   const [configText, setConfigText] = useState("{}");
+  // Reference types: one plain string per config field (see the table).
+  const [structuredConfig, setStructuredConfig] = useState<
+    Record<string, string>
+  >({});
+
   const [configError, setConfigError] = useState<string | null>(null);
   const [items, setItems] = useState<QuestionItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -83,19 +96,33 @@ export default function QuestionFormDialog({
     }),
   );
 
+  // Populate everything from the existing question (or blank defaults) each
+  // time the dialog opens — this is initialization, distinct from the
+  // mid-session type-switch reset in handleTypeSelect below.
   useEffect(() => {
     if (!open) return;
-    setType(question?.type ?? "typing");
+    const initialType = question?.type ?? "typing";
+    setType(initialType);
     setPoints(question?.points ?? 10);
-    setConfigText(
-      question ? JSON.stringify(question.config, null, 2) : "{}",
-    );
-    setConfigError(null);
     setItems(
       question
         ? [...question.items].sort((a, b) => a.displayOrder - b.displayOrder)
         : [],
     );
+    if (question && isReferenceType(initialType)) {
+      const fields = REFERENCE_TYPE_CONFIG_FIELDS[initialType];
+      const initial: Record<string, string> = {};
+      for (const spec of fields) {
+        const value = question.config[spec.field];
+        initial[spec.field] = typeof value === "string" ? value : "";
+      }
+      setStructuredConfig(initial);
+      setConfigText("{}");
+    } else {
+      setStructuredConfig({});
+      setConfigText(question ? JSON.stringify(question.config, null, 2) : "{}");
+    }
+    setConfigError(null);
     setError(null);
     setSubmitting(false);
   }, [open, question]);
@@ -125,6 +152,21 @@ export default function QuestionFormDialog({
     });
   }, [items]);
 
+  // A user-driven type switch mid-session: reset items/config rather than
+  // carrying over a shape that may no longer be valid for the new type
+  // (e.g. choose_picture's distractors have no home in "typing").
+  function handleTypeSelect(newType: QuestionType) {
+    setType(newType);
+    setItems([]);
+    setStructuredConfig({});
+    setConfigText("{}");
+    setConfigError(null);
+  }
+
+  function handleItemResolved(item: LearningItem) {
+    setItemsById((prev) => ({ ...prev, [item._id]: item }));
+  }
+
   function handleAddItem(learningItem: LearningItem) {
     setItems((prev) => [
       ...prev,
@@ -134,7 +176,7 @@ export default function QuestionFormDialog({
         displayOrder: prev.length,
       },
     ]);
-    setItemsById((prev) => ({ ...prev, [learningItem._id]: learningItem }));
+    handleItemResolved(learningItem);
     setPickerOpen(false);
   }
 
@@ -167,11 +209,29 @@ export default function QuestionFormDialog({
     setConfigError(null);
 
     let parsedConfig: Record<string, unknown>;
-    try {
-      parsedConfig = JSON.parse(configText);
-    } catch {
-      setConfigError("Invalid JSON");
-      return;
+
+    if (isReferenceType(type)) {
+      const fields = REFERENCE_TYPE_CONFIG_FIELDS[type];
+      for (const spec of fields) {
+        const value = structuredConfig[spec.field] ?? "";
+        if (!LANGUAGE_PATTERN.test(value)) {
+          setConfigError(`${spec.label} must be a 2-letter code (e.g. en).`);
+          return;
+        }
+      }
+      parsedConfig = Object.fromEntries(
+        fields.map((spec) => [
+          spec.field,
+          structuredConfig[spec.field].toLowerCase(),
+        ]),
+      );
+    } else {
+      try {
+        parsedConfig = JSON.parse(configText);
+      } catch {
+        setConfigError("Invalid JSON");
+        return;
+      }
     }
 
     const itemsPayload: QuestionItem[] = items.map((it, index) => ({
@@ -217,20 +277,22 @@ export default function QuestionFormDialog({
                 {isEdit ? "Edit Question" : "New Question"}
               </DialogTitle>
             </DialogHeader>
-  
+
             {error && (
               <div className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-600">
                 {error}
               </div>
             )}
-  
+
             <div className="flex max-h-[70vh] flex-col gap-4 overflow-y-auto py-2">
               <div className="flex gap-4">
                 <div className="flex flex-1 flex-col gap-1.5">
                   <Label htmlFor="question-type">Type</Label>
                   <Select
                     value={type}
-                    onValueChange={(value) => setType(value as QuestionType)}
+                    onValueChange={(value) =>
+                      handleTypeSelect(value as QuestionType)
+                    }
                   >
                     <SelectTrigger id="question-type" className="w-full">
                       <SelectValue />
@@ -255,70 +317,87 @@ export default function QuestionFormDialog({
                   />
                 </div>
               </div>
-  
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="question-config">Config (JSON)</Label>
-                <Textarea
-                  id="question-config"
-                  rows={5}
-                  className="font-mono text-xs"
-                  value={configText}
-                  onChange={(e) => {
-                    setConfigText(e.target.value);
-                    setConfigError(null);
-                  }}
+
+              {configError && (
+                <p className="text-sm text-red-600">{configError}</p>
+              )}
+
+              {isReferenceType(type) ? (
+                <ReferenceTypeQuestionFields
+                  type={type}
+                  config={structuredConfig}
+                  onConfigChange={setStructuredConfig}
+                  items={items}
+                  itemsById={itemsById}
+                  onItemsChange={setItems}
+                  onItemResolved={handleItemResolved}
                 />
-                {configError && (
-                  <p className="text-sm text-red-600">{configError}</p>
-                )}
-              </div>
-  
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <Label>Items</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPickerOpen(true)}
-                  >
-                    Add Item
-                  </Button>
-                </div>
-  
-                {items.length === 0 && (
-                  <p className="text-sm text-slate-500">No items yet.</p>
-                )}
-  
-                {items.length > 0 && (
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragEnd={handleItemDragEnd}
-                  >
-                    <div className="rounded-md border border-slate-200">
-                      <SortableContext
-                        items={items.map((it) => it.learningItemId)}
-                        strategy={verticalListSortingStrategy}
+              ) : (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="question-config">Config (JSON)</Label>
+                    <Textarea
+                      id="question-config"
+                      rows={5}
+                      className="font-mono text-xs"
+                      value={configText}
+                      onChange={(e) => {
+                        setConfigText(e.target.value);
+                        setConfigError(null);
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between">
+                      <Label>Items</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPickerOpen(true)}
                       >
-                        {items.map((it) => (
-                          <SortableQuestionItemRow
-                            key={it.learningItemId}
-                            item={it}
-                            learningItem={itemsById[it.learningItemId]}
-                            onRoleChange={(role) =>
-                              handleRoleChange(it.learningItemId, role)
-                            }
-                            onRemove={() => handleRemoveItem(it.learningItemId)}
-                          />
-                        ))}
-                      </SortableContext>
+                        Add Item
+                      </Button>
                     </div>
-                  </DndContext>
-                )}
-              </div>
+
+                    {items.length === 0 && (
+                      <p className="text-sm text-slate-500">No items yet.</p>
+                    )}
+
+                    {items.length > 0 && (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleItemDragEnd}
+                      >
+                        <div className="rounded-md border border-slate-200">
+                          <SortableContext
+                            items={items.map((it) => it.learningItemId)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {items.map((it) => (
+                              <SortableQuestionItemRow
+                                key={it.learningItemId}
+                                item={it}
+                                learningItem={itemsById[it.learningItemId]}
+                                onRoleChange={(role) =>
+                                  handleRoleChange(it.learningItemId, role)
+                                }
+                                onRemove={() =>
+                                  handleRemoveItem(it.learningItemId)
+                                }
+                              />
+                            ))}
+                          </SortableContext>
+                        </div>
+                      </DndContext>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
-  
+
             <DialogFooter>
               <Button type="submit" disabled={submitting}>
                 {submitting ? "Saving..." : "Save"}
@@ -328,14 +407,16 @@ export default function QuestionFormDialog({
         </DialogContent>
       </Dialog>
 
-      <AttachLearningItemDialog
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        excludeIds={items.map((it) => it.learningItemId)}
-        onSelect={handleAddItem}
-        title="Add Item"
-        alreadyUsedLabel="added to this question"
-      />
+      {!isReferenceType(type) && (
+        <AttachLearningItemDialog
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          excludeIds={items.map((it) => it.learningItemId)}
+          onSelect={handleAddItem}
+          title="Add Item"
+          alreadyUsedLabel="added to this question"
+        />
+      )}
     </Fragment>
   );
 }

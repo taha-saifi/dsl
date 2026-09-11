@@ -54,7 +54,7 @@ don't re-litigate it per-subtask.
 - [x] 12. **Question builder foundation** — List questions under an
        exercise, generic create/edit shell (type selector + shared fields),
        reorder, delete — no type-specific forms yet
-- [ ] 13. **Question forms — reference types** — Dedicated forms for
+- [x] 13. **Question forms — reference types** — Dedicated forms for
        choose_picture, multiple_choice, listening_transcribe,
        listening_select, typing; surface the backend's specific validation
        error codes clearly (e.g. `ITEM_MISSING_IMAGE`,
