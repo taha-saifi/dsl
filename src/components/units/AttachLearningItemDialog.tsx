@@ -27,6 +27,9 @@ interface AttachLearningItemDialogProps {
   onOpenChange: (open: boolean) => void;
   excludeIds: string[];
   onSelect: (item: LearningItem) => void;
+  title?: string;
+  /** Slots into "Every learning item [matching your filter] is already {alreadyUsedLabel}." */
+  alreadyUsedLabel?: string;
 }
 
 export default function AttachLearningItemDialog({
@@ -34,6 +37,8 @@ export default function AttachLearningItemDialog({
   onOpenChange,
   excludeIds,
   onSelect,
+  title = "Attach Learning Item",
+  alreadyUsedLabel = "attached to this unit",
 }: AttachLearningItemDialogProps) {
   const [items, setItems] = useState<LearningItem[]>([]);
   const [status, setStatus] = useState<Status>("loading");
@@ -125,7 +130,7 @@ export default function AttachLearningItemDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Attach Learning Item</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
         <div className="flex items-center gap-3">
@@ -180,7 +185,7 @@ export default function AttachLearningItemDialog({
         {status === "ready" && items.length > 0 && visibleItems.length === 0 && (
           <p className="text-sm text-slate-500">
             Every learning item{filtersActive ? " matching your filter" : ""}{" "}
-            is already attached to this unit.
+            is already {alreadyUsedLabel}.
           </p>
         )}
 

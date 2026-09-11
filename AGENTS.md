@@ -219,7 +219,7 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
        learning items on a unit's detail page, drag-and-drop reorder
 - [x] 11. **Exercises UI** — List under a unit, create/edit, reorder,
        delete
-- [ ] 12. **Question builder foundation** — List questions under an
+- [x] 12. **Question builder foundation** — List questions under an
        exercise, generic create/edit shell (type selector + shared fields),
        reorder, delete — no type-specific forms yet
 - [ ] 13. **Question forms — reference types** — Dedicated forms for

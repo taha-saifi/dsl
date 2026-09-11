@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { Toaster } from "@/components/ui/toast";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import CoursesPage from "@/pages/CoursesPage";
+import ExerciseDetailPage from "@/pages/ExerciseDetailPage";
 import LearningItemDetailPage from "@/pages/LearningItemDetailPage";
 import LearningItemsPage from "@/pages/LearningItemsPage";
 import LoginPage from "@/pages/LoginPage";
@@ -62,7 +63,7 @@ function App() {
               />
               <Route
                 path="/exercises/:exerciseId"
-                element={<PlaceholderPage title="Exercise Detail" />}
+                element={<ExerciseDetailPage />}
               />
             </Route>
           </Route>

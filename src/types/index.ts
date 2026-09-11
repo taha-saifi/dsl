@@ -65,3 +65,29 @@ export interface Exercise {
   orderIndex: number;
   isPublished: boolean;
 }
+
+export type QuestionType =
+  | "choose_picture"
+  | "multiple_choice"
+  | "listening_transcribe"
+  | "listening_select"
+  | "typing"
+  | "fill_blank"
+  | "arrange_sentence"
+  | "matching";
+
+export interface QuestionItem {
+  learningItemId: string;
+  role: "target" | "distractor" | "pair";
+  displayOrder: number;
+}
+
+export interface Question {
+  _id: string;
+  exerciseId: string;
+  type: QuestionType;
+  orderIndex: number;
+  config: Record<string, unknown>;
+  points: number;
+  items: QuestionItem[];
+}
