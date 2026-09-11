@@ -25,11 +25,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
+import ExerciseFormDialog from "@/components/exercises/ExerciseFormDialog";
+import SortableExerciseRow from "@/components/exercises/SortableExerciseRow";
 import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
 import SortableAttachedItemRow from "@/components/units/SortableAttachedItemRow";
 import UnitFormDialog from "@/components/units/UnitFormDialog";
 import { ApiError } from "@/lib/api";
 import { getCourse } from "@/lib/resources/courses";
+import {
+  deleteExercise,
+  listExercises,
+  reorderExercises,
+} from "@/lib/resources/exercises";
 import { getLearningItem } from "@/lib/resources/learningItems";
 import { getMedia } from "@/lib/resources/media";
 import {
@@ -39,7 +46,7 @@ import {
   getUnit,
   reorderUnitLearningItems,
 } from "@/lib/resources/units";
-import type { Course, LearningItem, Unit } from "@/types";
+import type { Course, Exercise, LearningItem, Unit } from "@/types";
 
 type Status = "loading" | "not-found" | "error" | "ready";
 
@@ -49,6 +56,7 @@ export default function UnitDetailPage() {
 
   const [unit, setUnit] = useState<Unit | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
   const [status, setStatus] = useState<Status>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -66,6 +74,14 @@ export default function UnitDetailPage() {
   const [detachTarget, setDetachTarget] = useState<LearningItem | null>(null);
   const [detaching, setDetaching] = useState(false);
 
+  const [exerciseFormOpen, setExerciseFormOpen] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | undefined>(
+    undefined,
+  );
+  const [deleteExerciseTarget, setDeleteExerciseTarget] =
+    useState<Exercise | null>(null);
+  const [deletingExercise, setDeletingExercise] = useState(false);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -78,9 +94,13 @@ export default function UnitDetailPage() {
     setErrorMessage(null);
     getUnit(unitId)
       .then((unitData) =>
-        getCourse(unitData.courseId).then((courseData) => {
+        Promise.all([
+          getCourse(unitData.courseId),
+          listExercises({ unitId: unitData._id }),
+        ]).then(([courseData, exerciseList]) => {
           setUnit(unitData);
           setCourse(courseData);
+          setExercises(exerciseList);
           setStatus("ready");
         }),
       )
@@ -265,6 +285,74 @@ export default function UnitDetailPage() {
     }
   }
 
+  function openCreateExerciseDialog() {
+    setEditingExercise(undefined);
+    setExerciseFormOpen(true);
+  }
+
+  function openEditExerciseDialog(exercise: Exercise) {
+    setEditingExercise(exercise);
+    setExerciseFormOpen(true);
+  }
+
+  function handleExerciseSaved(saved: Exercise) {
+    setExercises((prev) => {
+      const exists = prev.some((e) => e._id === saved._id);
+      if (exists) {
+        return prev.map((e) => (e._id === saved._id ? saved : e));
+      }
+      return [...prev, saved].sort((a, b) => a.orderIndex - b.orderIndex);
+    });
+  }
+
+  async function handleConfirmDeleteExercise() {
+    if (!deleteExerciseTarget) return;
+    const target = deleteExerciseTarget;
+    setDeletingExercise(true);
+    try {
+      await deleteExercise(target._id);
+      setExercises((prev) => prev.filter((e) => e._id !== target._id));
+    } catch (err) {
+      toast.add({
+        type: "error",
+        title: "Could not delete exercise",
+        description: err instanceof Error ? err.message : "Request failed",
+      });
+    } finally {
+      setDeletingExercise(false);
+      setDeleteExerciseTarget(null);
+    }
+  }
+
+  async function handleExerciseDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = exercises.findIndex((e) => e._id === active.id);
+    const newIndex = exercises.findIndex((e) => e._id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const previousExercises = exercises;
+    const reordered = arrayMove(exercises, oldIndex, newIndex).map(
+      (e, index) => ({ ...e, orderIndex: index }),
+    );
+    setExercises(reordered);
+
+    try {
+      const updatedExercises = await reorderExercises(
+        reordered.map((e) => ({ id: e._id, orderIndex: e.orderIndex })),
+      );
+      setExercises([...updatedExercises].sort((a, b) => a.orderIndex - b.orderIndex));
+    } catch (err) {
+      setExercises(previousExercises);
+      toast.add({
+        type: "error",
+        title: "Could not reorder exercises",
+        description: err instanceof Error ? err.message : "Request failed",
+      });
+    }
+  }
+
   if (status === "loading") {
     return <p className="text-sm text-slate-500">Loading unit...</p>;
   }
@@ -319,6 +407,11 @@ export default function UnitDetailPage() {
     .map((li) => itemsById[li.learningItemId])
     .filter((item): item is LearningItem => Boolean(item));
   const allResolved = resolvedAttached.length === attachedSorted.length;
+
+  const nextExerciseOrderIndex =
+    exercises.length > 0
+      ? Math.max(...exercises.map((e) => e.orderIndex)) + 1
+      : 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -400,6 +493,43 @@ export default function UnitDetailPage() {
         )}
       </div>
 
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Exercises</h2>
+          <Button size="sm" onClick={openCreateExerciseDialog}>
+            New Exercise
+          </Button>
+        </div>
+
+        {exercises.length === 0 && (
+          <p className="text-sm text-slate-500">No exercises yet.</p>
+        )}
+
+        {exercises.length > 0 && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleExerciseDragEnd}
+          >
+            <div className="rounded-md border border-slate-200">
+              <SortableContext
+                items={exercises.map((e) => e._id)}
+                strategy={verticalListSortingStrategy}
+              >
+                {exercises.map((exercise) => (
+                  <SortableExerciseRow
+                    key={exercise._id}
+                    exercise={exercise}
+                    onEdit={openEditExerciseDialog}
+                    onDelete={setDeleteExerciseTarget}
+                  />
+                ))}
+              </SortableContext>
+            </div>
+          </DndContext>
+        )}
+      </div>
+
       <UnitFormDialog
         open={editUnitOpen}
         onOpenChange={setEditUnitOpen}
@@ -414,6 +544,15 @@ export default function UnitDetailPage() {
         onOpenChange={setAttachDialogOpen}
         excludeIds={attachedIds}
         onSelect={handleAttachSelect}
+      />
+
+      <ExerciseFormDialog
+        open={exerciseFormOpen}
+        onOpenChange={setExerciseFormOpen}
+        unitId={unit._id}
+        exercise={editingExercise}
+        nextOrderIndex={nextExerciseOrderIndex}
+        onSaved={handleExerciseSaved}
       />
 
       <AlertDialog open={deleteUnitOpen} onOpenChange={setDeleteUnitOpen}>
@@ -460,6 +599,34 @@ export default function UnitDetailPage() {
               onClick={handleConfirmDetach}
             >
               {detaching ? "Detaching..." : "Detach"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteExerciseTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteExerciseTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete exercise?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{deleteExerciseTarget?.name}".
+              This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingExercise}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingExercise}
+              onClick={handleConfirmDeleteExercise}
+            >
+              {deletingExercise ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

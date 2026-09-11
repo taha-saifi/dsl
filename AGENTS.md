@@ -217,7 +217,7 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
       remove by language), audio attach via the picker
 - [x] 10. **Unit ↔ Learning Item attachment UI** — Attach/detach existing
        learning items on a unit's detail page, drag-and-drop reorder
-- [ ] 11. **Exercises UI** — List under a unit, create/edit, reorder,
+- [x] 11. **Exercises UI** — List under a unit, create/edit, reorder,
        delete
 - [ ] 12. **Question builder foundation** — List questions under an
        exercise, generic create/edit shell (type selector + shared fields),

@@ -57,3 +57,11 @@ export interface LearningItem {
   type: "word" | "phrase" | "sentence";
   translations: Translation[];
 }
+
+export interface Exercise {
+  _id: string;
+  unitId: string;
+  name: string;
+  orderIndex: number;
+  isPublished: boolean;
+}
