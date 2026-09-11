@@ -42,3 +42,18 @@ export interface Media {
   sizeBytes: number;
   createdAt: string;
 }
+
+export interface Translation {
+  language: string;
+  text: string;
+  pronunciation?: string;
+  ipa?: string;
+  audioMediaId?: string;
+}
+
+export interface LearningItem {
+  _id: string;
+  imageMediaId?: string;
+  type: "word" | "phrase" | "sentence";
+  translations: Translation[];
+}

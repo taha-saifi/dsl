@@ -43,7 +43,7 @@ don't re-litigate it per-subtask.
       drag-and-drop reorder wired to the reorder endpoint, delete
 - [x] 7. **Media upload & picker component** — Reusable upload widget +
       picker modal for images/audio, previews; used by subtasks 8-9
-- [ ] 8. **Learning Items UI** — List with type/search filters,
+- [x] 8. **Learning Items UI** — List with type/search filters,
       create/edit, image attach via the picker, delete
 - [ ] 9. **Translations UI** — Per-item translation management (add/edit/
       remove by language), audio attach via the picker
