@@ -10,6 +10,7 @@ import LearningItemDetailPage from "@/pages/LearningItemDetailPage";
 import LearningItemsPage from "@/pages/LearningItemsPage";
 import LoginPage from "@/pages/LoginPage";
 import SpecializationsPage from "@/pages/SpecializationsPage";
+import UnitDetailPage from "@/pages/UnitDetailPage";
 import UnitsPage from "@/pages/UnitsPage";
 
 function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
@@ -53,10 +54,7 @@ function App() {
                 element={<CoursesPage />}
               />
               <Route path="/courses/:courseId/units" element={<UnitsPage />} />
-              <Route
-                path="/units/:unitId"
-                element={<PlaceholderPage title="Unit Detail" />}
-              />
+              <Route path="/units/:unitId" element={<UnitDetailPage />} />
               <Route path="/learning-items" element={<LearningItemsPage />} />
               <Route
                 path="/learning-items/:learningItemId"

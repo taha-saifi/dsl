@@ -86,7 +86,9 @@ export default function LearningItemDetailPage() {
     if (uniqueIds.length === 0) return;
     uniqueIds.forEach((id) => resolvedOrPendingIds.current.add(id));
 
-    let cancelled = false;
+    // Always apply the result, even if a later effect invocation (e.g. React
+    // StrictMode's dev-only double-invoke on mount) has since re-run this —
+    // it's a pure additive id->url cache, so a "late" write is never wrong.
     Promise.all(
       uniqueIds.map((id) =>
         getMedia(id)
@@ -94,7 +96,6 @@ export default function LearningItemDetailPage() {
           .catch(() => null),
       ),
     ).then((results) => {
-      if (cancelled) return;
       setMediaUrls((prev) => {
         const next = { ...prev };
         for (const entry of results) {
@@ -103,10 +104,6 @@ export default function LearningItemDetailPage() {
         return next;
       });
     });
-
-    return () => {
-      cancelled = true;
-    };
   }, [item]);
 
   function handleItemSaved() {

@@ -74,7 +74,9 @@ export default function LearningItemsPage() {
     if (idsToResolve.length === 0) return;
     idsToResolve.forEach((id) => resolvedOrPendingIds.current.add(id));
 
-    let cancelled = false;
+    // Always apply the result, even if a later effect invocation (e.g. React
+    // StrictMode's dev-only double-invoke on mount) has since re-run this —
+    // it's a pure additive id->url cache, so a "late" write is never wrong.
     Promise.all(
       idsToResolve.map((id) =>
         getMedia(id)
@@ -82,7 +84,6 @@ export default function LearningItemsPage() {
           .catch(() => null),
       ),
     ).then((results) => {
-      if (cancelled) return;
       setImageUrls((prev) => {
         const next = { ...prev };
         for (const entry of results) {
@@ -91,10 +92,6 @@ export default function LearningItemsPage() {
         return next;
       });
     });
-
-    return () => {
-      cancelled = true;
-    };
   }, [items]);
 
   useEffect(() => {

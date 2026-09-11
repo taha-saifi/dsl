@@ -50,3 +50,30 @@ export function reorderUnits(courseId: string, units: ReorderUnitEntry[]) {
     body: JSON.stringify({ courseId, units }),
   });
 }
+
+export function attachLearningItem(
+  unitId: string,
+  input: { learningItemId: string; order: number },
+) {
+  return apiRequest<Unit>(`/units/${unitId}/learning-items`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export function detachLearningItem(unitId: string, learningItemId: string) {
+  return apiRequest<Unit>(
+    `/units/${unitId}/learning-items/${learningItemId}`,
+    { method: "DELETE" },
+  );
+}
+
+export function reorderUnitLearningItems(
+  unitId: string,
+  items: { learningItemId: string; order: number }[],
+) {
+  return apiRequest<Unit>(`/units/${unitId}/learning-items/reorder`, {
+    method: "PATCH",
+    body: JSON.stringify(items),
+  });
+}

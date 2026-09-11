@@ -215,7 +215,7 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
       create/edit, image attach via the picker, delete
 - [x] 9. **Translations UI** — Per-item translation management (add/edit/
       remove by language), audio attach via the picker
-- [ ] 10. **Unit ↔ Learning Item attachment UI** — Attach/detach existing
+- [x] 10. **Unit ↔ Learning Item attachment UI** — Attach/detach existing
        learning items on a unit's detail page, drag-and-drop reorder
 - [ ] 11. **Exercises UI** — List under a unit, create/edit, reorder,
        delete
