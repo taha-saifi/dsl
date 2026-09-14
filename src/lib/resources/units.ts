@@ -17,8 +17,10 @@ export interface ReorderUnitEntry {
   orderIndex: number;
 }
 
-export function listUnits({ courseId }: { courseId: string }) {
-  return apiRequest<Unit[]>(`/units?courseId=${encodeURIComponent(courseId)}`);
+export function listUnits({ courseId }: { courseId?: string } = {}) {
+  return apiRequest<Unit[]>(
+    courseId ? `/units?courseId=${encodeURIComponent(courseId)}` : "/units",
+  );
 }
 
 export function getUnit(id: string) {

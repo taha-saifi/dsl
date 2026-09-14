@@ -2,21 +2,27 @@
 
 ## Claude Code — current mission
 
-This repo has AGENTS.md but nothing else yet — no scaffolding exists. You
-are starting Phase 7: building this dashboard from scratch and wiring it to
-`dsl-backend`, which is fully built and verified through its own Phase 6
-(Auth, Specializations/Courses/Units CRUD, Media, Learning Items +
-Translations, Exercises + all 8 Question types, and publish-readiness
-gating). Treat `dsl-backend` as a finished, read-only API from this repo —
-don't modify anything there. If you need to confirm exact request/response
-shapes or error codes, its AGENTS.md documents every endpoint's behavior.
+All 15 subtasks below are complete and verified against the real running
+`dsl-backend` API. The dashboard is feature-complete for its originally
+scoped roadmap: full CRUD across Specializations → Courses → Units →
+Exercises → Questions (all 8 types with friendly forms), Learning Items +
+Translations + Media, the publish workflow with real backend readiness
+gating, role-based UI guards, and a dashboard home page. `dsl-backend`
+remains a finished, read-only API from this repo — don't modify anything
+there. If you need to confirm exact request/response shapes or error
+codes, its AGENTS.md documents every endpoint's behavior.
 
-The original coarse roadmap in AGENTS.md (Phase 0 through Phase 6) has been
-replaced by a 15-subtask breakdown below, sequenced to match how the
+**Known outstanding item:** Google Sign-In was designed (in the original
+auth flow discussion) but never implemented — it's blocked on the user not
+yet having a Google account to test against. Don't rediscover this from
+scratch in a future session; pick it up only if the user brings a Google
+account and asks for it.
+
+The original coarse roadmap in AGENTS.md (Phase 0 through Phase 6) was
+replaced by the 15-subtask breakdown below, sequenced to match how the
 backend was actually built and to avoid the same prompt-truncation problem
-`dsl-backend`'s Phase 4/5 hit. **The first subtask you're given should also
-update AGENTS.md's Roadmap section to replace its old Phase 0-6 list with
-this one**, so both files describe the same plan going forward.
+`dsl-backend`'s Phase 4/5 hit. Both this file and AGENTS.md mirror the same
+completed plan.
 
 ### Design direction — now finalized
 
@@ -65,15 +71,18 @@ don't re-litigate it per-subtask.
        Completes the full question builder (subtasks 12-14): every one of
        the 8 question types now has a friendly form, no raw-JSON fallback
        remains.
-- [x] 15a. **Publish workflow UI** — `PublishToggle` shared component
-       (badge + control, non-optimistic) wired into CoursesPage, UnitsPage,
-       UnitDetailPage's header and Exercises rows, and ExerciseDetailPage's
-       header; publish attempts surface the backend's real Phase 6 gating
-       messages verbatim on 409 (`EXERCISE_HAS_NO_QUESTIONS`,
-       `UNIT_HAS_NO_PUBLISHED_EXERCISE`, `COURSE_HAS_NO_PUBLISHED_UNIT`);
-       unpublish is ungated
-- [ ] 15b. **Role-based UI guards + dashboard home page** — role-aware UI
-       guards and a dashboard home page tying navigation together
+- [x] 15. **Publish workflow UI + polish** — `PublishToggle` shared
+       component (badge + control, non-optimistic) wired into CoursesPage,
+       UnitsPage, UnitDetailPage's header and Exercises rows, and
+       ExerciseDetailPage's header; publish attempts surface the backend's
+       real Phase 6 gating messages verbatim on 409
+       (`EXERCISE_HAS_NO_QUESTIONS`, `UNIT_HAS_NO_PUBLISHED_EXERCISE`,
+       `COURSE_HAS_NO_PUBLISHED_UNIT`), unpublish is ungated;
+       `RequireTeacherRole` gates the whole authenticated route tree to
+       teacher/admin roles (reading the live role from `/me` on every
+       load, not a cached value); `DashboardHomePage` replaces the
+       placeholder at "/" with an empty-state CTA or stat cards across
+       all four resources
 
 ### Rules for this build
 

@@ -233,15 +233,18 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
        Completes the full question builder (subtasks 12-14): every one of
        the 8 question types now has a friendly form, no raw-JSON fallback
        remains.
-- [x] 15a. **Publish workflow UI** — `PublishToggle` shared component
-       (badge + control, non-optimistic) wired into CoursesPage, UnitsPage,
-       UnitDetailPage's header and Exercises rows, and ExerciseDetailPage's
-       header; publish attempts surface the backend's real Phase 6 gating
-       messages verbatim on 409 (`EXERCISE_HAS_NO_QUESTIONS`,
-       `UNIT_HAS_NO_PUBLISHED_EXERCISE`, `COURSE_HAS_NO_PUBLISHED_UNIT`);
-       unpublish is ungated
-- [ ] 15b. **Role-based UI guards + dashboard home page** — role-aware UI
-       guards and a dashboard home page tying navigation together
+- [x] 15. **Publish workflow UI + polish** — `PublishToggle` shared
+       component (badge + control, non-optimistic) wired into CoursesPage,
+       UnitsPage, UnitDetailPage's header and Exercises rows, and
+       ExerciseDetailPage's header; publish attempts surface the backend's
+       real Phase 6 gating messages verbatim on 409
+       (`EXERCISE_HAS_NO_QUESTIONS`, `UNIT_HAS_NO_PUBLISHED_EXERCISE`,
+       `COURSE_HAS_NO_PUBLISHED_UNIT`), unpublish is ungated;
+       `RequireTeacherRole` gates the whole authenticated route tree to
+       teacher/admin roles (reading the live role from `/me` on every
+       load, not a cached value); `DashboardHomePage` replaces the
+       placeholder at "/" with an empty-state CTA or stat cards across
+       all four resources
 
 ---
 

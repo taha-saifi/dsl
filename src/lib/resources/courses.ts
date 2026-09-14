@@ -17,9 +17,13 @@ export interface CourseUpdateInput {
   isPublished?: boolean;
 }
 
-export function listCourses({ specializationId }: { specializationId: string }) {
+export function listCourses({
+  specializationId,
+}: { specializationId?: string } = {}) {
   return apiRequest<Course[]>(
-    `/courses?specializationId=${encodeURIComponent(specializationId)}`,
+    specializationId
+      ? `/courses?specializationId=${encodeURIComponent(specializationId)}`
+      : "/courses",
   );
 }
 

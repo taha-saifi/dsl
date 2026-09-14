@@ -17,8 +17,10 @@ export interface ReorderExerciseEntry {
   orderIndex: number;
 }
 
-export function listExercises({ unitId }: { unitId: string }) {
-  return apiRequest<Exercise[]>(`/exercises?unitId=${encodeURIComponent(unitId)}`);
+export function listExercises({ unitId }: { unitId?: string } = {}) {
+  return apiRequest<Exercise[]>(
+    unitId ? `/exercises?unitId=${encodeURIComponent(unitId)}` : "/exercises",
+  );
 }
 
 export function getExercise(id: string) {
