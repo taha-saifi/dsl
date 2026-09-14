@@ -193,6 +193,14 @@ JWT is stored in `localStorage` for Phase 0/1 simplicity, read by `AuthContext` 
 
 ---
 
+## Docker
+
+This repo has its own multi-stage `Dockerfile` (builder runs `npm run build` to produce a static `dist/`; runner is `nginx:alpine` serving that `dist/` with a `try_files $uri /index.html` fallback so React Router's client-side routes don't 404). Unlike `dsl-backend`'s runtime environment variables, `VITE_API_URL` must be supplied as a Docker **build argument** (`--build-arg VITE_API_URL=...`), not a runtime env var — Vite inlines `VITE_*` values into the JS bundle at build time, so setting it after the image is built has no effect.
+
+Critically, `VITE_API_URL` must be a **browser-reachable** address (e.g. `http://localhost:5000/api`), never an internal Docker service name (e.g. `http://backend:5000/api`) — the built JavaScript runs in the user's browser, not inside the container network, so a Compose-internal hostname would resolve nowhere for them. `.dockerignore` excludes `node_modules`, `dist`, `.env`, and `.git`.
+
+---
+
 ## Roadmap (this repo's slice of each phase)
 
 ### 15-subtask roadmap
