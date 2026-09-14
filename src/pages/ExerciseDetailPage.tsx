@@ -23,14 +23,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import ExerciseFormDialog from "@/components/exercises/ExerciseFormDialog";
 import QuestionFormDialog from "@/components/questions/QuestionFormDialog";
 import SortableQuestionRow from "@/components/questions/SortableQuestionRow";
+import PublishToggle from "@/components/PublishToggle";
 import { ApiError } from "@/lib/api";
-import { deleteExercise, getExercise } from "@/lib/resources/exercises";
+import {
+  deleteExercise,
+  getExercise,
+  updateExercise,
+} from "@/lib/resources/exercises";
 import {
   deleteQuestion,
   listQuestions,
@@ -103,6 +107,14 @@ export default function ExerciseDetailPage() {
 
   function handleExerciseSaved() {
     fetchData();
+  }
+
+  async function handleToggleExercisePublish() {
+    if (!exercise) return;
+    const updated = await updateExercise(exercise._id, {
+      isPublished: !exercise.isPublished,
+    });
+    setExercise(updated);
   }
 
   async function handleConfirmDeleteExercise() {
@@ -259,15 +271,10 @@ export default function ExerciseDetailPage() {
             <h1 className="text-xl font-semibold text-slate-900">
               {exercise.name}
             </h1>
-            <Badge
-              className={
-                exercise.isPublished
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-slate-100 text-slate-500"
-              }
-            >
-              {exercise.isPublished ? "Published" : "Draft"}
-            </Badge>
+            <PublishToggle
+              isPublished={exercise.isPublished}
+              onToggle={handleToggleExercisePublish}
+            />
           </div>
           <div className="flex gap-2">
             <Button

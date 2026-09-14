@@ -21,8 +21,9 @@ import {
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/toast";
 import CourseFormDialog from "@/components/courses/CourseFormDialog";
+import PublishToggle from "@/components/PublishToggle";
 import { ApiError } from "@/lib/api";
-import { deleteCourse, listCourses } from "@/lib/resources/courses";
+import { deleteCourse, listCourses, updateCourse } from "@/lib/resources/courses";
 import { getSpecialization } from "@/lib/resources/specializations";
 import type { Course, Specialization } from "@/types";
 
@@ -93,6 +94,13 @@ export default function CoursesPage() {
       }
       return [...prev, saved];
     });
+  }
+
+  async function handleTogglePublish(course: Course) {
+    const updated = await updateCourse(course._id, {
+      isPublished: !course.isPublished,
+    });
+    setCourses((prev) => prev.map((c) => (c._id === updated._id ? updated : c)));
   }
 
   async function handleConfirmDelete() {
@@ -185,6 +193,7 @@ export default function CoursesPage() {
               <TableHead>Name</TableHead>
               <TableHead>Languages</TableHead>
               <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -207,6 +216,12 @@ export default function CoursesPage() {
                   title={course.description}
                 >
                   {course.description || "—"}
+                </TableCell>
+                <TableCell>
+                  <PublishToggle
+                    isPublished={course.isPublished}
+                    onToggle={() => handleTogglePublish(course)}
+                  />
                 </TableCell>
                 <TableCell className="text-right">
                   <Button

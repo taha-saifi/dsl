@@ -9,6 +9,7 @@ export interface UnitInput {
 
 export interface UnitUpdateInput {
   name?: string;
+  isPublished?: boolean;
 }
 
 export interface ReorderUnitEntry {

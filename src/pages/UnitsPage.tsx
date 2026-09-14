@@ -36,7 +36,12 @@ import SortableUnitRow from "@/components/units/SortableUnitRow";
 import UnitFormDialog from "@/components/units/UnitFormDialog";
 import { ApiError } from "@/lib/api";
 import { getCourse } from "@/lib/resources/courses";
-import { deleteUnit, listUnits, reorderUnits } from "@/lib/resources/units";
+import {
+  deleteUnit,
+  listUnits,
+  reorderUnits,
+  updateUnit,
+} from "@/lib/resources/units";
 import type { Course, Unit } from "@/types";
 
 type Status = "loading" | "not-found" | "error" | "ready";
@@ -105,6 +110,13 @@ export default function UnitsPage() {
       }
       return [...prev, saved].sort((a, b) => a.orderIndex - b.orderIndex);
     });
+  }
+
+  async function handleTogglePublish(unit: Unit) {
+    const updated = await updateUnit(unit._id, {
+      isPublished: !unit.isPublished,
+    });
+    setUnits((prev) => prev.map((u) => (u._id === updated._id ? updated : u)));
   }
 
   async function handleConfirmDelete() {
@@ -239,6 +251,7 @@ export default function UnitsPage() {
               <TableRow>
                 <TableHead className="w-8" />
                 <TableHead>Name</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -253,6 +266,7 @@ export default function UnitsPage() {
                     unit={unit}
                     onEdit={openEditDialog}
                     onDelete={setDeleteTarget}
+                    onTogglePublish={handleTogglePublish}
                   />
                 ))}
               </SortableContext>

@@ -9,6 +9,7 @@ export interface ExerciseInput {
 
 export interface ExerciseUpdateInput {
   name?: string;
+  isPublished?: boolean;
 }
 
 export interface ReorderExerciseEntry {

@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import ExerciseFormDialog from "@/components/exercises/ExerciseFormDialog";
 import SortableExerciseRow from "@/components/exercises/SortableExerciseRow";
+import PublishToggle from "@/components/PublishToggle";
 import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
 import SortableAttachedItemRow from "@/components/units/SortableAttachedItemRow";
 import UnitFormDialog from "@/components/units/UnitFormDialog";
@@ -36,6 +37,7 @@ import {
   deleteExercise,
   listExercises,
   reorderExercises,
+  updateExercise,
 } from "@/lib/resources/exercises";
 import { getLearningItem } from "@/lib/resources/learningItems";
 import { getMedia } from "@/lib/resources/media";
@@ -45,6 +47,7 @@ import {
   detachLearningItem,
   getUnit,
   reorderUnitLearningItems,
+  updateUnit,
 } from "@/lib/resources/units";
 import type { Course, Exercise, LearningItem, Unit } from "@/types";
 
@@ -189,6 +192,23 @@ export default function UnitDetailPage() {
 
   function handleUnitSaved() {
     fetchData();
+  }
+
+  async function handleToggleUnitPublish() {
+    if (!unit) return;
+    const updated = await updateUnit(unit._id, {
+      isPublished: !unit.isPublished,
+    });
+    setUnit(updated);
+  }
+
+  async function handleToggleExercisePublish(exercise: Exercise) {
+    const updated = await updateExercise(exercise._id, {
+      isPublished: !exercise.isPublished,
+    });
+    setExercises((prev) =>
+      prev.map((e) => (e._id === updated._id ? updated : e)),
+    );
   }
 
   async function handleConfirmDeleteUnit() {
@@ -426,9 +446,15 @@ export default function UnitDetailPage() {
         )}
 
         <div className="mt-2 flex items-center justify-between">
-          <h1 className="text-xl font-semibold text-slate-900">
-            {unit.name}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold text-slate-900">
+              {unit.name}
+            </h1>
+            <PublishToggle
+              isPublished={unit.isPublished}
+              onToggle={handleToggleUnitPublish}
+            />
+          </div>
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -522,6 +548,7 @@ export default function UnitDetailPage() {
                     exercise={exercise}
                     onEdit={openEditExerciseDialog}
                     onDelete={setDeleteExerciseTarget}
+                    onTogglePublish={handleToggleExercisePublish}
                   />
                 ))}
               </SortableContext>

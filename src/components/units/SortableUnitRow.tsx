@@ -2,6 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { Link } from "react-router-dom";
+import PublishToggle from "@/components/PublishToggle";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import type { Unit } from "@/types";
@@ -10,12 +11,14 @@ interface SortableUnitRowProps {
   unit: Unit;
   onEdit: (unit: Unit) => void;
   onDelete: (unit: Unit) => void;
+  onTogglePublish: (unit: Unit) => Promise<void>;
 }
 
 export default function SortableUnitRow({
   unit,
   onEdit,
   onDelete,
+  onTogglePublish,
 }: SortableUnitRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: unit._id });
@@ -46,6 +49,12 @@ export default function SortableUnitRow({
         >
           {unit.name}
         </Link>
+      </TableCell>
+      <TableCell>
+        <PublishToggle
+          isPublished={unit.isPublished}
+          onToggle={() => onTogglePublish(unit)}
+        />
       </TableCell>
       <TableCell className="text-right">
         <Button

@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
+import PublishToggle from "@/components/PublishToggle";
 import { Button } from "@/components/ui/button";
 import type { Exercise } from "@/types";
 
@@ -10,12 +10,14 @@ interface SortableExerciseRowProps {
   exercise: Exercise;
   onEdit: (exercise: Exercise) => void;
   onDelete: (exercise: Exercise) => void;
+  onTogglePublish: (exercise: Exercise) => Promise<void>;
 }
 
 export default function SortableExerciseRow({
   exercise,
   onEdit,
   onDelete,
+  onTogglePublish,
 }: SortableExerciseRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: exercise._id });
@@ -49,15 +51,10 @@ export default function SortableExerciseRow({
         >
           {exercise.name}
         </Link>
-        <Badge
-          className={
-            exercise.isPublished
-              ? "bg-emerald-100 text-emerald-700"
-              : "bg-slate-100 text-slate-500"
-          }
-        >
-          {exercise.isPublished ? "Published" : "Draft"}
-        </Badge>
+        <PublishToggle
+          isPublished={exercise.isPublished}
+          onToggle={() => onTogglePublish(exercise)}
+        />
       </div>
 
       <Button variant="outline" size="sm" onClick={() => onEdit(exercise)}>

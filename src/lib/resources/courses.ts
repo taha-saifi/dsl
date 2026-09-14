@@ -14,6 +14,7 @@ export interface CourseUpdateInput {
   sourceLanguage?: string;
   targetLanguage?: string;
   description?: string;
+  isPublished?: boolean;
 }
 
 export function listCourses({ specializationId }: { specializationId: string }) {
