@@ -68,35 +68,59 @@ export default function MediaAttachField({
   return (
     <div>
       {media ? (
-        <div className="flex items-center gap-3">
-          {mediaType === "image" ? (
+        mediaType === "image" ? (
+          <div className="flex items-center gap-3">
             <img
               src={media.url}
               alt={media.filename}
               className="size-16 rounded-md border border-slate-200 object-cover"
             />
-          ) : (
-            <audio controls src={media.url} className="h-8" />
-          )}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPickerOpen(true)}
-            >
-              Change
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handleRemove}
-            >
-              Remove
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPickerOpen(true)}
+              >
+                Change
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRemove}
+              >
+                Remove
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          // The native audio player has a fixed minimum intrinsic width that
+          // won't shrink to fit a narrow dialog, so it gets its own full-width
+          // row instead of sitting inline next to the buttons — otherwise the
+          // buttons get pushed past the dialog's edge.
+          <div className="flex flex-col gap-2">
+            <audio controls src={media.url} className="h-8 w-full min-w-0" />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setPickerOpen(true)}
+              >
+                Change
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRemove}
+              >
+                Remove
+              </Button>
+            </div>
+          </div>
+        )
       ) : (
         <Button
           type="button"
