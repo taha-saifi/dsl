@@ -9,14 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import LanguageSelect from "@/components/LanguageSelect";
 import MediaAttachField from "@/components/media/MediaAttachField";
 import {
   addTranslation,
   updateTranslation,
 } from "@/lib/resources/learningItems";
 import type { LearningItem, Translation } from "@/types";
-
-const LANGUAGE_PATTERN = /^[a-z]{2}$/i;
 
 interface TranslationFormDialogProps {
   open: boolean;
@@ -60,8 +59,8 @@ export default function TranslationFormDialog({
     e.preventDefault();
     setError(null);
 
-    if (!isEdit && !LANGUAGE_PATTERN.test(language)) {
-      setError("Language must be a 2-letter code (e.g. en).");
+    if (!isEdit && !language) {
+      setError("Select a language.");
       return;
     }
 
@@ -110,14 +109,11 @@ export default function TranslationFormDialog({
           <div className="flex flex-col gap-4 py-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="translation-language">Language</Label>
-              <Input
+              <LanguageSelect
                 id="translation-language"
-                required
-                maxLength={2}
-                placeholder="en"
                 disabled={isEdit}
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
+                onChange={setLanguage}
               />
             </div>
             <div className="flex flex-col gap-1.5">

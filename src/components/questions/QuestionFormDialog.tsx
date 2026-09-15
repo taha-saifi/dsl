@@ -24,6 +24,7 @@ import StructuralTypeQuestionFields, {
   STRUCTURAL_TYPE_LANGUAGE_FIELDS,
   isStructuralType,
 } from "@/components/questions/StructuralTypeQuestionFields";
+import type { LanguageOption } from "@/lib/languages";
 import { getLearningItem } from "@/lib/resources/learningItems";
 import { createQuestion, updateQuestion } from "@/lib/resources/questions";
 import type { LearningItem, Question, QuestionItem, QuestionType } from "@/types";
@@ -39,8 +40,6 @@ const QUESTION_TYPES: QuestionType[] = [
   "matching",
 ];
 
-const LANGUAGE_PATTERN = /^[a-z]{2}$/i;
-
 interface QuestionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -48,6 +47,9 @@ interface QuestionFormDialogProps {
   question?: Question;
   nextOrderIndex: number;
   onSaved: (question: Question) => void;
+  /** Restricts every language field in the form to the parent course's own
+   * source/target languages, per the course's data model. */
+  languageOptions: LanguageOption[];
 }
 
 export default function QuestionFormDialog({
@@ -57,6 +59,7 @@ export default function QuestionFormDialog({
   question,
   nextOrderIndex,
   onSaved,
+  languageOptions,
 }: QuestionFormDialogProps) {
   const isEdit = Boolean(question);
   const [type, setType] = useState<QuestionType>("typing");
@@ -144,8 +147,8 @@ export default function QuestionFormDialog({
     const parsedConfig: Record<string, unknown> = { ...config };
     for (const spec of languageFields) {
       const value = String(config[spec.field] ?? "");
-      if (!LANGUAGE_PATTERN.test(value)) {
-        setConfigError(`${spec.label} must be a 2-letter code (e.g. en).`);
+      if (!value) {
+        setConfigError(`Select a ${spec.label.toLowerCase()}.`);
         return;
       }
       parsedConfig[spec.field] = value.toLowerCase();
@@ -241,6 +244,7 @@ export default function QuestionFormDialog({
                 itemsById={itemsById}
                 onItemsChange={setItems}
                 onItemResolved={handleItemResolved}
+                languageOptions={languageOptions}
               />
             ) : (
               isStructuralType(type) && (
@@ -252,6 +256,7 @@ export default function QuestionFormDialog({
                   itemsById={itemsById}
                   onItemsChange={setItems}
                   onItemResolved={handleItemResolved}
+                  languageOptions={languageOptions}
                 />
               )
             )}

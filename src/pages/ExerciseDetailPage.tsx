@@ -30,6 +30,8 @@ import QuestionFormDialog from "@/components/questions/QuestionFormDialog";
 import SortableQuestionRow from "@/components/questions/SortableQuestionRow";
 import PublishToggle from "@/components/PublishToggle";
 import { ApiError } from "@/lib/api";
+import { languageOptionsFromCodes } from "@/lib/languages";
+import { getCourse } from "@/lib/resources/courses";
 import {
   deleteExercise,
   getExercise,
@@ -41,7 +43,7 @@ import {
   reorderQuestions,
 } from "@/lib/resources/questions";
 import { getUnit } from "@/lib/resources/units";
-import type { Exercise, Question, Unit } from "@/types";
+import type { Course, Exercise, Question, Unit } from "@/types";
 
 type Status = "loading" | "not-found" | "error" | "ready";
 
@@ -51,6 +53,7 @@ export default function ExerciseDetailPage() {
 
   const [exercise, setExercise] = useState<Exercise | null>(null);
   const [unit, setUnit] = useState<Unit | null>(null);
+  const [course, setCourse] = useState<Course | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [status, setStatus] = useState<Status>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,15 +82,18 @@ export default function ExerciseDetailPage() {
     setErrorMessage(null);
     getExercise(exerciseId)
       .then((exerciseData) =>
-        Promise.all([
-          getUnit(exerciseData.unitId),
-          listQuestions({ exerciseId: exerciseData._id }),
-        ]).then(([unitData, questionList]) => {
-          setExercise(exerciseData);
-          setUnit(unitData);
-          setQuestions(questionList);
-          setStatus("ready");
-        }),
+        getUnit(exerciseData.unitId).then((unitData) =>
+          Promise.all([
+            getCourse(unitData.courseId),
+            listQuestions({ exerciseId: exerciseData._id }),
+          ]).then(([courseData, questionList]) => {
+            setExercise(exerciseData);
+            setUnit(unitData);
+            setCourse(courseData);
+            setQuestions(questionList);
+            setStatus("ready");
+          }),
+        ),
       )
       .catch((err) => {
         if (err instanceof ApiError && err.status === 404) {
@@ -249,12 +255,17 @@ export default function ExerciseDetailPage() {
     );
   }
 
-  if (!exercise) return null;
+  if (!exercise || !course) return null;
 
   const nextQuestionOrderIndex =
     questions.length > 0
       ? Math.max(...questions.map((q) => q.orderIndex)) + 1
       : 0;
+
+  const questionLanguageOptions = languageOptionsFromCodes([
+    course.sourceLanguage,
+    course.targetLanguage,
+  ]);
 
   return (
     <div className="flex flex-col gap-8">
@@ -350,6 +361,7 @@ export default function ExerciseDetailPage() {
         question={editingQuestion}
         nextOrderIndex={nextQuestionOrderIndex}
         onSaved={handleQuestionSaved}
+        languageOptions={questionLanguageOptions}
       />
 
       <AlertDialog

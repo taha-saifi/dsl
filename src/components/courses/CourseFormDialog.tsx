@@ -10,10 +10,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import LanguageSelect from "@/components/LanguageSelect";
 import { createCourse, updateCourse } from "@/lib/resources/courses";
 import type { Course } from "@/types";
-
-const LANGUAGE_PATTERN = /^[a-z]{2}$/i;
 
 interface CourseFormDialogProps {
   open: boolean;
@@ -53,12 +52,12 @@ export default function CourseFormDialog({
     e.preventDefault();
     setError(null);
 
-    if (!LANGUAGE_PATTERN.test(sourceLanguage)) {
-      setError("Source language must be a 2-letter code (e.g. en).");
+    if (!sourceLanguage) {
+      setError("Select a source language.");
       return;
     }
-    if (!LANGUAGE_PATTERN.test(targetLanguage)) {
-      setError("Target language must be a 2-letter code (e.g. fr).");
+    if (!targetLanguage) {
+      setError("Select a target language.");
       return;
     }
 
@@ -116,24 +115,18 @@ export default function CourseFormDialog({
             <div className="flex gap-4">
               <div className="flex flex-1 flex-col gap-1.5">
                 <Label htmlFor="course-source-language">Source language</Label>
-                <Input
+                <LanguageSelect
                   id="course-source-language"
-                  required
-                  maxLength={2}
-                  placeholder="en"
                   value={sourceLanguage}
-                  onChange={(e) => setSourceLanguage(e.target.value)}
+                  onChange={setSourceLanguage}
                 />
               </div>
               <div className="flex flex-1 flex-col gap-1.5">
                 <Label htmlFor="course-target-language">Target language</Label>
-                <Input
+                <LanguageSelect
                   id="course-target-language"
-                  required
-                  maxLength={2}
-                  placeholder="fr"
                   value={targetLanguage}
-                  onChange={(e) => setTargetLanguage(e.target.value)}
+                  onChange={setTargetLanguage}
                 />
               </div>
             </div>

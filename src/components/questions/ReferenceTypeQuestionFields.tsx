@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
+import LanguageSelect from "@/components/LanguageSelect";
 import TargetItemField from "@/components/questions/TargetItemField";
+import type { LanguageOption } from "@/lib/languages";
 import type { LearningItem, QuestionItem, QuestionType } from "@/types";
 
 export const REFERENCE_TYPES = [
@@ -70,6 +71,7 @@ interface ReferenceTypeQuestionFieldsProps {
   itemsById: Record<string, LearningItem>;
   onItemsChange: (items: QuestionItem[]) => void;
   onItemResolved: (item: LearningItem) => void;
+  languageOptions: LanguageOption[];
 }
 
 export default function ReferenceTypeQuestionFields({
@@ -80,6 +82,7 @@ export default function ReferenceTypeQuestionFields({
   itemsById,
   onItemsChange,
   onItemResolved,
+  languageOptions,
 }: ReferenceTypeQuestionFieldsProps) {
   const [distractorPickerOpen, setDistractorPickerOpen] = useState(false);
 
@@ -132,14 +135,12 @@ export default function ReferenceTypeQuestionFields({
             <Label htmlFor={`question-config-${spec.field}`}>
               {spec.label}
             </Label>
-            <Input
+            <LanguageSelect
               id={`question-config-${spec.field}`}
-              required
-              maxLength={2}
-              placeholder="en"
+              options={languageOptions}
               value={String(config[spec.field] ?? "")}
-              onChange={(e) =>
-                onConfigChange({ ...config, [spec.field]: e.target.value })
+              onChange={(value) =>
+                onConfigChange({ ...config, [spec.field]: value })
               }
             />
           </div>

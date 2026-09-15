@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import AttachLearningItemDialog from "@/components/units/AttachLearningItemDialog";
+import LanguageSelect from "@/components/LanguageSelect";
 import TargetItemField from "@/components/questions/TargetItemField";
 import type { ConfigFieldSpec } from "@/components/questions/ReferenceTypeQuestionFields";
+import type { LanguageOption } from "@/lib/languages";
 import { tokenize } from "@/lib/sentenceWords";
 import type { LearningItem, QuestionItem, QuestionType, Translation } from "@/types";
 
@@ -49,6 +51,7 @@ interface StructuralTypeQuestionFieldsProps {
   itemsById: Record<string, LearningItem>;
   onItemsChange: (items: QuestionItem[]) => void;
   onItemResolved: (item: LearningItem) => void;
+  languageOptions: LanguageOption[];
 }
 
 export default function StructuralTypeQuestionFields(
@@ -69,22 +72,22 @@ function LanguageField({
   label,
   config,
   onConfigChange,
+  languageOptions,
 }: {
   field: string;
   label: string;
   config: Record<string, unknown>;
   onConfigChange: (config: Record<string, unknown>) => void;
+  languageOptions: LanguageOption[];
 }) {
   return (
     <div className="flex flex-1 flex-col gap-1.5">
       <Label htmlFor={`question-config-${field}`}>{label}</Label>
-      <Input
+      <LanguageSelect
         id={`question-config-${field}`}
-        required
-        maxLength={2}
-        placeholder="en"
+        options={languageOptions}
         value={String(config[field] ?? "")}
-        onChange={(e) => onConfigChange({ ...config, [field]: e.target.value })}
+        onChange={(value) => onConfigChange({ ...config, [field]: value })}
       />
     </div>
   );
@@ -111,6 +114,7 @@ function FillBlankFields({
   itemsById,
   onItemsChange,
   onItemResolved,
+  languageOptions,
 }: StructuralTypeQuestionFieldsProps) {
   const target = items.find((it) => it.role === "target");
   const targetItem = target ? itemsById[target.learningItemId] : undefined;
@@ -141,12 +145,14 @@ function FillBlankFields({
           label="Prompt language"
           config={config}
           onConfigChange={onConfigChange}
+          languageOptions={languageOptions}
         />
         <LanguageField
           field="sentenceLanguage"
           label="Sentence language"
           config={config}
           onConfigChange={onConfigChange}
+          languageOptions={languageOptions}
         />
       </div>
 
@@ -160,7 +166,7 @@ function FillBlankFields({
         <p className="text-sm text-slate-500">
           {sentenceLanguage
             ? `Select a target item with a "${sentenceLanguage}" translation.`
-            : "Enter a sentence language and select a target item to pick the blank word."}
+            : "Select a sentence language and a target item to pick the blank word."}
         </p>
       )}
 
@@ -226,6 +232,7 @@ function ArrangeSentenceFields({
   itemsById,
   onItemsChange,
   onItemResolved,
+  languageOptions,
 }: StructuralTypeQuestionFieldsProps) {
   const target = items.find((it) => it.role === "target");
   const targetItem = target ? itemsById[target.learningItemId] : undefined;
@@ -293,12 +300,14 @@ function ArrangeSentenceFields({
           label="Prompt language"
           config={config}
           onConfigChange={onConfigChange}
+          languageOptions={languageOptions}
         />
         <LanguageField
           field="sentenceLanguage"
           label="Sentence language"
           config={config}
           onConfigChange={onConfigChange}
+          languageOptions={languageOptions}
         />
       </div>
 
@@ -312,7 +321,7 @@ function ArrangeSentenceFields({
         <p className="text-sm text-slate-500">
           {sentenceLanguage
             ? `Select a target item with a "${sentenceLanguage}" translation.`
-            : "Enter a sentence language and select a target item to build word blocks."}
+            : "Select a sentence language and a target item to build word blocks."}
         </p>
       )}
 
@@ -396,6 +405,7 @@ function MatchingFields({
   itemsById,
   onItemsChange,
   onItemResolved,
+  languageOptions,
 }: StructuralTypeQuestionFieldsProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const sourceLanguage = String(config.sourceLanguage ?? "");
@@ -428,12 +438,14 @@ function MatchingFields({
           label="Source language"
           config={config}
           onConfigChange={onConfigChange}
+          languageOptions={languageOptions}
         />
         <LanguageField
           field="targetLanguage"
           label="Target language"
           config={config}
           onConfigChange={onConfigChange}
+          languageOptions={languageOptions}
         />
       </div>
 
