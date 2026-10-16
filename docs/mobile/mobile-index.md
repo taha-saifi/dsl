@@ -26,6 +26,8 @@ A Flutter student app. **It doesn't exist yet.** When it's added it gets its own
 
 > [!todo] Unverified: Flutter state management, offline caching, and how tokens are stored on the device haven't been decided.
 
-Design reference: the brand (dark navy, Electric Cyan `#06B8D4`, Gold Amber `#F5B02A`, Inter) comes from the mobile Figma design, per `dsl-teacher-dashboard/AGENTS.md`.
+Design reference: the brand (Electric Cyan `#06B8D4`, Gold Amber `#F5B02A`, Inter) comes from the mobile Figma design. The question screens use a light Soft Gray surface with Midnight Ink text. Cached tokens, layouts and screenshots: [[figma-question-screens]].
+
+Render each question's `displayText` as its heading ([[adr-question-text]]).
 
 Back to [[00-index]] · [[roadmap]].

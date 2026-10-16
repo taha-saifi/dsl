@@ -25,6 +25,7 @@ export interface IQuestion {
   config: unknown;
   points: number;
   items: IQuestionItem[];
+  questionText?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +42,21 @@ export const questionTypes: QuestionType[] = [
 ];
 
 export const questionItemRoles: QuestionItemRole[] = ["target", "distractor", "pair"];
+
+/** Upper bound for `questionText`, counted in Unicode code points after trimming. */
+export const QUESTION_TEXT_MAX_LENGTH = 300;
+
+/** What a student sees above a question when the teacher wrote no `questionText`. */
+export const defaultQuestionTexts: Record<QuestionType, string> = {
+  choose_picture: "Choose the matching picture",
+  multiple_choice: "Choose the correct translation",
+  listening_transcribe: "Listen and type what you hear",
+  listening_select: "Listen and choose what you hear",
+  typing: "Type the translation",
+  fill_blank: "Complete the sentence",
+  arrange_sentence: "Arrange the words to form the sentence",
+  matching: "Match each word to its translation",
+};
 
 const questionItemSchema = new Schema<IQuestionItem>(
   {
@@ -90,9 +106,22 @@ const questionSchema = new Schema<IQuestion>(
       type: [questionItemSchema],
       default: [],
     },
+    questionText: {
+      type: String,
+      trim: true,
+    },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    // Serialize `displayText` without also adding Mongoose's `id` virtual.
+    id: false,
+    toJSON: { virtuals: true },
+  },
 );
+
+questionSchema.virtual("displayText").get(function (this: IQuestion): string {
+  return this.questionText ?? defaultQuestionTexts[this.type];
+});
 
 const Question = model<IQuestion>("Question", questionSchema);
 

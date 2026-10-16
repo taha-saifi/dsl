@@ -1,5 +1,10 @@
 import { apiRequest } from "@/lib/api";
-import type { Question, QuestionItem, QuestionType } from "@/types";
+import type {
+  Question,
+  QuestionItem,
+  QuestionTextDefaults,
+  QuestionType,
+} from "@/types";
 
 export interface QuestionInput {
   exerciseId: string;
@@ -8,13 +13,17 @@ export interface QuestionInput {
   points: number;
   config: Record<string, unknown>;
   items: QuestionItem[];
+  /** Omit to use the type's default text. */
+  questionText?: string;
 }
 
+/** The type can't change after creation, so it isn't part of an update. */
 export interface QuestionUpdateInput {
-  type?: QuestionType;
   points?: number;
   config?: Record<string, unknown>;
   items?: QuestionItem[];
+  /** `null` clears custom text so the type's default is used again. */
+  questionText?: string | null;
 }
 
 export interface ReorderQuestionEntry {
@@ -26,6 +35,19 @@ export function listQuestions({ exerciseId }: { exerciseId: string }) {
   return apiRequest<Question[]>(
     `/questions?exerciseId=${encodeURIComponent(exerciseId)}`,
   );
+}
+
+let textDefaultsRequest: Promise<QuestionTextDefaults> | null = null;
+
+/** Per-type default question text and the length limit. Fetched once per page load. */
+export function getQuestionTextDefaults() {
+  textDefaultsRequest ??= apiRequest<QuestionTextDefaults>(
+    "/questions/text-defaults",
+  ).catch((err) => {
+    textDefaultsRequest = null;
+    throw err;
+  });
+  return textDefaultsRequest;
 }
 
 export function getQuestion(id: string) {

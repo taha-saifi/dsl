@@ -26,8 +26,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import ExerciseFormDialog from "@/components/exercises/ExerciseFormDialog";
+import { Plus } from "lucide-react";
 import QuestionFormDialog from "@/components/questions/QuestionFormDialog";
+import QuestionPreviewDialog from "@/components/questions/QuestionPreviewDialog";
+import QuestionTypeGlyph from "@/components/questions/QuestionTypeGlyph";
 import SortableQuestionRow from "@/components/questions/SortableQuestionRow";
+import { resetPreviewCache } from "@/components/questions/preview/usePreviewSources";
 import PublishToggle from "@/components/PublishToggle";
 import { ApiError } from "@/lib/api";
 import { languageOptionsFromCodes } from "@/lib/languages";
@@ -69,6 +73,9 @@ export default function ExerciseDetailPage() {
   const [deleteQuestionTarget, setDeleteQuestionTarget] =
     useState<Question | null>(null);
   const [deletingQuestion, setDeletingQuestion] = useState(false);
+  const [previewQuestionId, setPreviewQuestionId] = useState<string | null>(
+    null,
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -108,6 +115,8 @@ export default function ExerciseDetailPage() {
   }
 
   useEffect(() => {
+    // Learning items may have been edited on another page since the last visit.
+    resetPreviewCache();
     fetchData();
   }, [exerciseId]);
 
@@ -212,7 +221,7 @@ export default function ExerciseDetailPage() {
   }
 
   if (status === "loading") {
-    return <p className="text-sm text-slate-500">Loading exercise...</p>;
+    return <ExerciseDetailSkeleton />;
   }
 
   if (status === "not-found") {
@@ -262,6 +271,8 @@ export default function ExerciseDetailPage() {
       ? Math.max(...questions.map((q) => q.orderIndex)) + 1
       : 0;
 
+  const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
+
   const questionLanguageOptions = languageOptionsFromCodes([
     course.sourceLanguage,
     course.targetLanguage,
@@ -306,16 +317,53 @@ export default function ExerciseDetailPage() {
         </div>
       </div>
 
-      <div>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Questions</h2>
-          <Button size="sm" onClick={openCreateQuestionDialog}>
-            New Question
-          </Button>
+      <section aria-labelledby="questions-heading">
+        <div className="mb-3 flex items-end justify-between gap-4">
+          <div>
+            <h2
+              id="questions-heading"
+              className="text-lg font-semibold text-slate-900"
+            >
+              Questions
+            </h2>
+            {questions.length > 0 && (
+              <p className="text-sm text-slate-500">
+                {questions.length}{" "}
+                {questions.length === 1 ? "question" : "questions"}, worth{" "}
+                {totalPoints} points in total. Drag to change the order
+                students see them in.
+              </p>
+            )}
+          </div>
+          {questions.length > 0 && (
+            <Button size="sm" onClick={openCreateQuestionDialog}>
+              <Plus data-icon="inline-start" />
+              New question
+            </Button>
+          )}
         </div>
 
         {questions.length === 0 && (
-          <p className="text-sm text-slate-500">No questions yet.</p>
+          <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
+            <div className="flex gap-2 [--glyph-accent:#06b6d4]" aria-hidden="true">
+              <QuestionTypeGlyph type="multiple_choice" className="text-slate-200" />
+              <QuestionTypeGlyph type="listening_transcribe" className="text-slate-200" />
+              <QuestionTypeGlyph type="matching" className="text-slate-200" />
+            </div>
+            <div className="flex max-w-sm flex-col gap-1">
+              <p className="font-medium text-slate-900">
+                This exercise has no questions yet
+              </p>
+              <p className="text-sm text-slate-500">
+                Add a question to build the exercise. It can be published once
+                it has at least one.
+              </p>
+            </div>
+            <Button onClick={openCreateQuestionDialog}>
+              <Plus data-icon="inline-start" />
+              Add the first question
+            </Button>
+          </div>
         )}
 
         {questions.length > 0 && (
@@ -324,24 +372,26 @@ export default function ExerciseDetailPage() {
             collisionDetection={closestCenter}
             onDragEnd={handleQuestionDragEnd}
           >
-            <div className="rounded-md border border-slate-200">
-              <SortableContext
-                items={questions.map((q) => q._id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {questions.map((question) => (
+            <SortableContext
+              items={questions.map((q) => q._id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <ol className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                {questions.map((question, index) => (
                   <SortableQuestionRow
                     key={question._id}
                     question={question}
+                    position={index + 1}
                     onEdit={openEditQuestionDialog}
+                    onPreview={(q) => setPreviewQuestionId(q._id)}
                     onDelete={setDeleteQuestionTarget}
                   />
                 ))}
-              </SortableContext>
-            </div>
+              </ol>
+            </SortableContext>
           </DndContext>
         )}
-      </div>
+      </section>
 
       {unit && (
         <ExerciseFormDialog
@@ -360,8 +410,16 @@ export default function ExerciseDetailPage() {
         exerciseId={exercise._id}
         question={editingQuestion}
         nextOrderIndex={nextQuestionOrderIndex}
+        questionCount={questions.length}
         onSaved={handleQuestionSaved}
         languageOptions={questionLanguageOptions}
+      />
+
+      <QuestionPreviewDialog
+        questions={questions}
+        questionId={previewQuestionId}
+        onQuestionIdChange={setPreviewQuestionId}
+        onEdit={openEditQuestionDialog}
       />
 
       <AlertDialog
@@ -417,6 +475,32 @@ export default function ExerciseDetailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function ExerciseDetailSkeleton() {
+  return (
+    <div className="flex animate-pulse flex-col gap-8 motion-reduce:animate-none" aria-busy="true">
+      <span className="sr-only">Loading exercise…</span>
+      <div className="flex flex-col gap-3">
+        <div className="h-3.5 w-28 rounded bg-slate-200" />
+        <div className="h-6 w-64 rounded bg-slate-200" />
+      </div>
+      <div className="flex flex-col gap-3">
+        <div className="h-5 w-24 rounded bg-slate-200" />
+        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-center gap-3 border-b border-slate-200 p-3 last:border-b-0">
+              <div className="h-8 w-10 rounded bg-slate-100" />
+              <div className="flex flex-1 flex-col gap-1.5">
+                <div className="h-3.5 w-1/2 rounded bg-slate-200" />
+                <div className="h-3 w-1/4 rounded bg-slate-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

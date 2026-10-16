@@ -1,17 +1,24 @@
 export class ApiError extends Error {
   status: number;
+  /** The backend's machine-readable `error.code`, when it sent one. */
+  code: string | undefined;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.code = code;
   }
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new ApiError(res.status, err?.error?.message || "Request failed");
+    throw new ApiError(
+      res.status,
+      err?.error?.message || "Request failed",
+      typeof err?.error?.code === "string" ? err.error.code : undefined,
+    );
   }
   const json = await res.json();
   return json.data as T;

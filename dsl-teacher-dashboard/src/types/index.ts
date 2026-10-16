@@ -90,4 +90,13 @@ export interface Question {
   config: Record<string, unknown>;
   points: number;
   items: QuestionItem[];
+  /** Teacher-written text. Absent when the question uses its type's default. */
+  questionText?: string;
+  /** Always set by the server: `questionText`, or the type's default text. */
+  displayText: string;
+}
+
+export interface QuestionTextDefaults {
+  maxLength: number;
+  defaults: Record<QuestionType, string>;
 }

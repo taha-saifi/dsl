@@ -7,6 +7,8 @@ import Question, {
   type IQuestionItem,
   type QuestionItemRole,
   type QuestionType,
+  QUESTION_TEXT_MAX_LENGTH,
+  defaultQuestionTexts,
   questionItemRoles,
   questionTypes,
 } from "../models/Question";
@@ -43,6 +45,35 @@ const getQuestionType = (value: unknown): QuestionType => {
   return type as QuestionType;
 };
 
+/**
+ * `questionText` is optional teacher-written copy shown above the question.
+ * Returns `undefined` when absent, `null` when the client asks to clear it
+ * (PATCH only), or the trimmed text.
+ */
+const getQuestionText = (value: unknown): string | null | undefined => {
+  if (value === undefined || value === null) {
+    return value;
+  }
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new ApiError(
+      400,
+      "questionText must be a non-empty string, or null to use the default text.",
+      "INVALID_QUESTION_TEXT",
+    );
+  }
+
+  const text = value.trim();
+  if ([...text].length > QUESTION_TEXT_MAX_LENGTH) {
+    throw new ApiError(
+      400,
+      `questionText must be at most ${QUESTION_TEXT_MAX_LENGTH} characters.`,
+      "INVALID_QUESTION_TEXT",
+    );
+  }
+
+  return text;
+};
+
 const getQuestionItem = async (value: unknown): Promise<IQuestionItem> => {
   const body = getBodyObject(value);
   const learningItemId = getRequiredObjectId(body.learningItemId, "Learning item ID");
@@ -76,7 +107,10 @@ const fetchLearningItemDocs = async (items: IQuestionItem[]): Promise<Map<string
   return new Map(learningItems.map((learningItem) => [learningItem.id, learningItem]));
 };
 
-const getQuestionUpdate = async (body: Record<string, unknown>): Promise<Record<string, unknown>> => {
+const getQuestionUpdate = async (
+  body: Record<string, unknown>,
+  existingType: QuestionType,
+): Promise<Record<string, unknown>> => {
   const update: Record<string, unknown> = {};
   const exerciseId = getOptionalObjectId(body.exerciseId, "Exercise ID");
   const orderIndex = getOptionalNumber(body.orderIndex, "orderIndex");
@@ -86,8 +120,14 @@ const getQuestionUpdate = async (body: Record<string, unknown>): Promise<Record<
     await ensureExerciseExists(exerciseId);
     update.exerciseId = exerciseId;
   }
-  if (body.type !== undefined) {
-    update.type = getQuestionType(body.type);
+  // The type is fixed at creation: config and items are shaped for it, so a
+  // different type means a different question. Resending the same type is fine.
+  if (body.type !== undefined && getQuestionType(body.type) !== existingType) {
+    throw new ApiError(
+      400,
+      "A question's type can't be changed. Create a new question instead.",
+      "QUESTION_TYPE_IMMUTABLE",
+    );
   }
   if (orderIndex !== undefined) update.orderIndex = orderIndex;
   if (points !== undefined) update.points = points;
@@ -96,6 +136,12 @@ const getQuestionUpdate = async (body: Record<string, unknown>): Promise<Record<
   }
   if (body.config !== undefined) {
     update.config = body.config;
+  }
+  const questionText = getQuestionText(body.questionText);
+  if (questionText === null) {
+    update.$unset = { questionText: 1 };
+  } else if (questionText !== undefined) {
+    update.questionText = questionText;
   }
 
   return update;
@@ -110,6 +156,12 @@ export const list = async (request: Request, response: Response): Promise<void> 
 
   const questions = await Question.find(filter).sort({ orderIndex: 1 });
   response.status(200).json({ data: questions });
+};
+
+export const textDefaults = async (_request: Request, response: Response): Promise<void> => {
+  response.status(200).json({
+    data: { maxLength: QUESTION_TEXT_MAX_LENGTH, defaults: defaultQuestionTexts },
+  });
 };
 
 export const getById = async (request: Request, response: Response): Promise<void> => {
@@ -131,6 +183,7 @@ export const create = async (request: Request, response: Response): Promise<void
   const orderIndex = getRequiredNumber(body.orderIndex, "orderIndex");
   const points = getOptionalNumber(body.points, "points");
   const items = body.items !== undefined ? await getQuestionItems(body.items) : [];
+  const questionText = getQuestionText(body.questionText);
 
   const learningItemDocsById = await fetchLearningItemDocs(items);
   validateQuestionForType(type, body.config, items, learningItemDocsById);
@@ -142,6 +195,7 @@ export const create = async (request: Request, response: Response): Promise<void
     items,
     ...(points !== undefined ? { points } : {}),
     ...(body.config !== undefined ? { config: body.config } : {}),
+    ...(questionText ? { questionText } : {}),
   });
   response.status(201).json({ data: question });
 };
@@ -153,9 +207,9 @@ export const update = async (request: Request, response: Response): Promise<void
     throw new ApiError(404, "Question not found.", "QUESTION_NOT_FOUND");
   }
 
-  const update = await getQuestionUpdate(getBodyObject(request.body as unknown));
+  const update = await getQuestionUpdate(getBodyObject(request.body as unknown), existing.type);
 
-  const finalType = (update.type as QuestionType | undefined) ?? existing.type;
+  const finalType = existing.type;
   const finalItems = (update.items as IQuestionItem[] | undefined) ?? existing.items;
   const finalConfig = update.config !== undefined ? update.config : existing.config;
 

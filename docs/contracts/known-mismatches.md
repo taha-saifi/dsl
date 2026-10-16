@@ -24,14 +24,13 @@ Found during the 2026-10-16 audit. Remove an entry once it's fixed, in the same 
 9. `DELETE /media/:id` has no client function or UI, so media accumulates.
 10. `Course.thumbnailMediaId` and `Specialization.slug` aren't editable. A rename keeps the old slug.
 11. Moving a unit, exercise, or question to another parent is supported by PATCH but not exposed.
-12. `ApiError` in `dsl-teacher-dashboard/src/lib/api.ts` drops `error.code`. The UI shows messages but can't branch on codes.
 
 ## D. Contract hazards (fix before `dsl-mobile` relies on them)
-13. **Anyone who registers becomes a teacher** (`User.role` defaults to `"teacher"`). See [[auth-and-roles]].
-14. The reorder bodies have three different shapes, and `order` vs `orderIndex` naming is mixed ([[api-contract]]).
-15. Deleting a learning item doesn't check question references. Afterwards, editing the question fails with 404 ([[delete-guards]]).
-16. Deleting media doesn't check references, which leaves broken URLs ([[media-storage-minio]]).
-17. No publish cascade: a published parent can lose all its published children ([[publish-readiness]]).
-18. Question PATCH re-validates everything, so a points-only edit can fail if a referenced item has changed since ([[question-validation]]).
+12. **Anyone who registers becomes a teacher** (`User.role` defaults to `"teacher"`). See [[auth-and-roles]].
+13. The reorder bodies have three different shapes, and `order` vs `orderIndex` naming is mixed ([[api-contract]]).
+14. Deleting a learning item doesn't check question references. Afterwards, editing the question fails with 404 ([[delete-guards]]).
+15. Deleting media doesn't check references, which leaves broken URLs ([[media-storage-minio]]).
+16. No publish cascade: a published parent can lose all its published children ([[publish-readiness]]).
+17. Question PATCH re-validates everything, so a points-only edit can fail if a referenced item has changed since ([[question-validation]]).
 
 Back to [[contracts-index]] · [[roadmap]].

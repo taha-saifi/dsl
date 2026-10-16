@@ -11,7 +11,7 @@ updated: 2026-10-16
 - `apiUpload<T>(path, formData)`: a POST with **no** Content-Type, so the browser sets the multipart boundary itself.
 - Errors:
   - Network failure → plain `Error("Network error: could not reach the server.")`.
-  - Non-2xx → `ApiError(status, error.message || "Request failed")`. **The backend's `error.code` is dropped** ([[known-mismatches]]).
+  - Non-2xx → `ApiError(status, error.message || "Request failed", error.code)`. Branch on `err.code` (e.g. `INVALID_QUESTION_TEXT` in the question form). Only `AuthContext` logs out, and only on a 401 from `/auth/me`.
 - Package rule: every network call goes through this file. No raw `fetch` in components.
 
 ## Resource modules (`src/lib/resources/`)
@@ -25,7 +25,7 @@ One module per backend router. Each wraps `apiRequest` with typed inputs:
 | `media.ts` | `listMedia({type})`, `getMedia`, `uploadMedia(file)` (no delete) |
 | `learningItems.ts` | list (`type?`, `search?`), get, create, update, delete, add/update/remove translation |
 | `exercises.ts` | list (`unitId?`), get, create, update, delete, `reorderExercises` |
-| `questions.ts` | list (`exerciseId`), get, create, update, delete, `reorderQuestions` |
+| `questions.ts` | list (`exerciseId`), get, create, update (no `type`; `questionText: null` clears), delete, `reorderQuestions`, `getQuestionTextDefaults` (memoized per page load) |
 
 ## Gaps compared with the backend
 - Input types leave out fields the backend accepts: `slug`, `thumbnailMediaId`, `orderIndex` on update, moving a resource to a new parent.

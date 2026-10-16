@@ -42,11 +42,14 @@ Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** =
 | POST | `/exercises` | T | `{unitId,name,orderIndex,isPublished?}` | 201 |
 | PATCH | `/exercises/reorder` | T | `[{id,orderIndex}]`, all in one unit | 200 `Exercise[]` of that unit |
 | GET | `/questions` | R | `?exerciseId` (by `orderIndex`) | 200 |
-| GET / PATCH / DELETE | `/questions/:id` | R / T / T | PATCH: `{exerciseId?,type?,orderIndex?,points?,config?,items?}` | 200 |
-| POST | `/questions` | T | `{exerciseId,type,orderIndex,points?,config,items}` | 201 |
+| GET | `/questions/text-defaults` | R | — | 200 `{maxLength, defaults: {<type>: text}}` |
+| GET / PATCH / DELETE | `/questions/:id` | R / T / T | PATCH: `{exerciseId?,type? (must equal current),orderIndex?,points?,config?,items?,questionText? (null clears)}` | 200 |
+| POST | `/questions` | T | `{exerciseId,type,orderIndex,points?,config,items,questionText?}` | 201 |
 | PATCH | `/questions/reorder` | T | `[{id,orderIndex}]`, all in one exercise | 200 `Question[]` of that exercise |
 
-Route order matters: `/reorder` is registered before `/:id` in the unit, exercise, and question routers.
+Route order matters: `/reorder` (and `/questions/text-defaults`) are registered before `/:id` in the unit, exercise, and question routers.
+
+Every question response includes `displayText` (a virtual: `questionText` or the type's default), see [[adr-question-text]].
 
 Not implemented: any student-facing endpoints (progress, sessions, enrollment). See [[student-progress-planned]] and [[mobile-index]].
 

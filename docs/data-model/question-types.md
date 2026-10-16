@@ -21,6 +21,22 @@ Eight types. `config` holds **only** rendering instructions; the correct answer 
 
 No type allows `pair` except `matching`.
 
+## Question text
+Each question may carry a teacher-written `questionText`; otherwise clients show the type's default. Both arrive resolved as `displayText` ([[adr-question-text]]). Defaults (`defaultQuestionTexts` in `dsl-backend/src/models/Question.ts`):
+
+| type | default text |
+|---|---|
+| `choose_picture` | Choose the matching picture |
+| `multiple_choice` | Choose the correct translation |
+| `listening_transcribe` | Listen and type what you hear |
+| `listening_select` | Listen and choose what you hear |
+| `typing` | Type the translation |
+| `fill_blank` | Complete the sentence |
+| `arrange_sentence` | Arrange the words to form the sentence |
+| `matching` | Match each word to its translation |
+
+`fill_blank` needs **no blank marker** in the text: the sentence and its blank come from the target's `sentenceLanguage` translation and `config.blankWord`. The text is only the instruction.
+
 ## How a client derives the answer
 - choose_picture / multiple_choice / listening_select: the target item is correct. Show the distractors' images or `answerLanguage` text as the wrong options.
 - typing / listening_transcribe: expected text = the target's `answerLanguage` translation `text`.

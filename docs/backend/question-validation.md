@@ -35,6 +35,10 @@ Uses the rule table `referenceQuestionTypeRules`:
 ## `matching`
 At least 2 items, **all** `pair` → `INVALID_ITEM_CARDINALITY`. `sourceLanguage` and `targetLanguage` required; every item needs both translations.
 
+## `questionText` and `type` (controller, before the per-type checks)
+- `questionText`: optional; trimmed; must be non-empty and ≤ 300 code points → `INVALID_QUESTION_TEXT`. `null` on PATCH unsets it. It's never needed by validation; no blank marker for `fill_blank` ([[adr-question-text]]).
+- `type` can't change on PATCH → `QUESTION_TYPE_IMMUTABLE`. The merged question is therefore always validated with the stored type.
+
 ## Design rules
 - Correct answers are never stored; clients derive them from translations ([[adr-answers-derived-not-stored]]).
 - `blankWord` and `wordBlocks` store words, not positions ([[adr-values-not-indices]]).

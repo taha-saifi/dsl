@@ -203,6 +203,9 @@ points          number, default 10
 items: [                          // embedded — replaces question_items
   { learningItemId: ObjectId, role: "target" | "distractor" | "pair", displayOrder: number }
 ]
+questionText    string, optional  // teacher-written, trimmed, ≤ 300 code points; null on PATCH clears
+                                  // responses add virtual displayText = questionText ?? per-type default
+                                  // type is immutable after create (QUESTION_TYPE_IMMUTABLE)
 createdAt       Date
 updatedAt       Date
 ```

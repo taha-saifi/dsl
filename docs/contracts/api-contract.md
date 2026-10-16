@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/app.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
 updated: 2026-10-16
 ---
 # API contract
@@ -35,7 +35,11 @@ interface LearningItem { createdBy: string; imageMediaId: string | null; type: "
 interface Exercise { unitId: string; name: string; orderIndex: number; isPublished: boolean; createdAt; updatedAt }
 interface QuestionItem { learningItemId: string; role: "target" | "distractor" | "pair"; displayOrder: number }
 interface Question { exerciseId: string; type: QuestionType; orderIndex: number;
-  config: Record<string, unknown>; points: number; items: QuestionItem[]; createdAt; updatedAt }
+  config: Record<string, unknown>; points: number; items: QuestionItem[];
+  questionText?: string;   // teacher-written, absent when unset
+  displayText: string;     // always sent, never stored: questionText ?? the type's default
+  createdAt; updatedAt }
+interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionType, string> }  // GET /questions/text-defaults
 ```
 `QuestionType` and the per-type `config` shapes are in [[question-types]].
 
@@ -44,6 +48,8 @@ interface Question { exerciseId: string; type: QuestionType; orderIndex: number;
 - Optional strings: omit the key to leave a value unchanged. `""` is **rejected** (400). There's currently no way to clear a field, except `imageMediaId: null` on learning items.
 - `orderIndex`, `order`, `displayOrder`, and `points` must be JSON numbers.
 - `isPublished: true` is gated ([[publish-readiness]]). Creating with `true` always fails.
+- `Question.questionText`: optional, trimmed, 1–300 Unicode code points. On PATCH, `null` clears it (the type's default is used again); `""` or whitespace-only is rejected (`INVALID_QUESTION_TEXT`). Clients render `displayText` ([[adr-question-text]]).
+- `Question.type` is fixed at creation. PATCH with a different `type` → 400 `QUESTION_TYPE_IMMUTABLE`; resending the same type is allowed.
 
 ## Reorder bodies (they differ per endpoint)
 | Endpoint | Body |
