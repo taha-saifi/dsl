@@ -12,6 +12,37 @@ enum UserRole {
   unknown,
 }
 
+enum LearningGoal {
+  professional,
+  academic,
+  certification,
+  @JsonValue('daily_practice')
+  dailyPractice,
+}
+
+enum ExperienceLevel { beginner, intermediate, advanced }
+
+/// Daily targets the API accepts, in minutes.
+const dailyTargetOptions = [5, 10, 15, 20, 30];
+
+/// `User.preferences`, set by onboarding (`PATCH /auth/me`). Goal and level
+/// are informational in the MVP.
+@freezed
+abstract class LearningPreferences with _$LearningPreferences {
+  const factory LearningPreferences({
+    String? specializationId,
+    String? targetLanguage,
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
+    LearningGoal? goal,
+    int? dailyTargetMinutes,
+    @JsonKey(unknownEnumValue: JsonKey.nullForUndefinedEnumValue)
+    ExperienceLevel? experienceLevel,
+  }) = _LearningPreferences;
+
+  factory LearningPreferences.fromJson(Map<String, dynamic> json) =>
+      _$LearningPreferencesFromJson(json);
+}
+
 /// The `User` entity from `docs/contracts/api-contract.md`
 /// (`GET /auth/me`, and `user` in the login/register response).
 @freezed
@@ -22,6 +53,7 @@ abstract class AppUser with _$AppUser {
     @JsonKey(unknownEnumValue: UserRole.unknown) required UserRole role,
     String? firstName,
     String? lastName,
+    LearningPreferences? preferences,
   }) = _AppUser;
 
   const AppUser._();
@@ -30,6 +62,9 @@ abstract class AppUser with _$AppUser {
       _$AppUserFromJson(json);
 
   bool get isStudent => role == UserRole.student;
+
+  /// Onboarding runs until the student has saved preferences once.
+  bool get needsOnboarding => isStudent && preferences == null;
 
   String get displayName {
     final name = [firstName, lastName].whereType<String>().join(' ').trim();

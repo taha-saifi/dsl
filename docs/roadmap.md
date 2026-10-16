@@ -12,6 +12,7 @@ updated: 2026-10-16
 - **Question text + student preview** (2026-10-16): optional `questionText` with per-type defaults, immutable question type, grouped type picker, live phone preview in the question form and a preview modal on the list ([[adr-question-text]], [[question-builder]]).
 - **Mobile Slice 0** (2026-10-16): `dsl-mobile/` scaffold, Figma theme, API client, 4-tab shell ([[mobile-roadmap]]).
 - **Mobile Slice 1** (2026-10-16): student accounts. Register creates students; admin-only `/admin/users` and dashboard Users page; `create-admin` script; app Welcome, Sign In, Sign Up, session restore and logout ([[auth-and-roles]]).
+- **Mobile Slice 2** (2026-10-16): onboarding. `PATCH /auth/me` with `User.preferences`, `GET /learn/specializations` and `/learn/languages`; three app steps shown until preferences are saved ([[feat-onboarding-and-preferences]]).
 - **Monorepo**: compose stack (Mongo, MinIO, backend, frontend); knowledge vault (this folder).
 
 ## Outstanding

@@ -9,7 +9,11 @@ const _sessionRoutes = {
   ..._signedOutRoutes,
 };
 
-/// The one auth guard (docs/decisions/mobile-architecture.md, "Routing").
+bool _isOnboarding(String location) =>
+    location.startsWith(Routes.onboardingDomain);
+
+/// The one auth and onboarding guard (docs/decisions/mobile-architecture.md,
+/// "Routing").
 /// Returns where to go instead of [location], or null to stay.
 String? authRedirect(AuthState auth, String location) {
   // Developer screens work in any state (e.g. System check while offline).
@@ -23,7 +27,12 @@ String? authRedirect(AuthState auth, String location) {
           ? location
           : (sessionEnded ? Routes.signIn : Routes.welcome),
     SignedIn(:final user) when !user.isStudent => Routes.studentsOnly,
-    SignedIn() => _sessionRoutes.contains(location) ? Routes.home : location,
+    SignedIn(:final user) when user.needsOnboarding =>
+      _isOnboarding(location) ? location : Routes.onboardingDomain,
+    SignedIn() =>
+      _sessionRoutes.contains(location) || _isOnboarding(location)
+          ? Routes.home
+          : location,
   };
   return target == location ? null : target;
 }

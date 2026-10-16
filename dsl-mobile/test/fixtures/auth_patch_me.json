@@ -1,0 +1,19 @@
+{
+  "data": {
+    "_id": "6ad26a04d1e164a0f973fd52",
+    "email": "fixture23575@dsl.local",
+    "role": "student",
+    "firstName": "Sara",
+    "lastName": "Lee",
+    "termsAcceptedAt": "2026-10-16T18:16:36.532Z",
+    "createdAt": "2026-10-16T18:16:36.533Z",
+    "updatedAt": "2026-10-16T18:49:20.446Z",
+    "preferences": {
+      "dailyTargetMinutes": 10,
+      "experienceLevel": "beginner",
+      "goal": "daily_practice",
+      "specializationId": "6aa872d4a40b68f11a965014",
+      "targetLanguage": "fr"
+    }
+  }
+}

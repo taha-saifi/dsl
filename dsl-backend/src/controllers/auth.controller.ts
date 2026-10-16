@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config";
 import User, { type UserRole } from "../models/User";
 import { ApiError } from "../middleware/error.middleware";
+import { getPreferencesUpdate } from "../services/learnerPreferences.service";
 import {
   ensureEmailAvailable,
   getValidEmail,
@@ -14,6 +15,7 @@ import {
 import {
   getBodyObject,
   getOptionalBoolean,
+  getOptionalString,
   getRequiredString,
 } from "../utils/requestValidation";
 
@@ -85,4 +87,43 @@ export const me = async (request: Request, response: Response): Promise<void> =>
   }
 
   response.status(200).json({ data: request.user });
+};
+
+/** Students update their own name and learning preferences (onboarding). */
+export const updateMe = async (request: Request, response: Response): Promise<void> => {
+  if (!request.user) {
+    throw new ApiError(401, "Unauthorized.", "UNAUTHORIZED");
+  }
+
+  const body = getBodyObject(request.body as unknown);
+  const set: Record<string, unknown> = {};
+  const unset: string[] = [];
+
+  const firstName = getOptionalString(body.firstName, "First name");
+  const lastName = getOptionalString(body.lastName, "Last name");
+  if (firstName !== undefined) {
+    set.firstName = firstName;
+  }
+  if (lastName !== undefined) {
+    set.lastName = lastName;
+  }
+  if (body.preferences !== undefined) {
+    const preferences = await getPreferencesUpdate(body.preferences);
+    Object.assign(set, preferences.set);
+    unset.push(...preferences.unset);
+  }
+
+  const user = await User.findByIdAndUpdate(
+    request.user._id,
+    {
+      ...(Object.keys(set).length > 0 ? { $set: set } : {}),
+      ...(unset.length > 0 ? { $unset: Object.fromEntries(unset.map((path) => [path, ""])) } : {}),
+    },
+    { new: true, runValidators: true },
+  );
+  if (!user) {
+    throw new ApiError(401, "Unauthorized.", "UNAUTHORIZED");
+  }
+
+  response.status(200).json({ data: user });
 };

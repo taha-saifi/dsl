@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
 updated: 2026-10-16
 ---
 # API contract
@@ -22,7 +22,15 @@ Every entity also has `_id: string` and `__v: number` (User has no `__v`). Dates
 type Role = "admin" | "teacher" | "student";
 interface User { email: string; role: Role; firstName?: string; lastName?: string;
   termsAcceptedAt?: string;   // set when register sent acceptedTerms: true
+  preferences?: LearningPreferences;   // absent until the student finishes onboarding
   createdAt; updatedAt }
+interface LearningPreferences { specializationId?: string; targetLanguage?: string;
+  goal?: "professional" | "academic" | "certification" | "daily_practice";
+  dailyTargetMinutes?: 5 | 10 | 15 | 20 | 30;
+  experienceLevel?: "beginner" | "intermediate" | "advanced" }
+// GET /learn/* (student views; only courses with isPublished: true count until slice 3 tightens it)
+interface SpecializationSummary { _id: string; name: string; slug: string; iconUrl?: string; publishedCourseCount: number }
+interface LanguageSummary { code: string; publishedCourseCount: number }
 interface Specialization { name: string; slug: string; iconUrl?: string; createdAt }
 interface Course { specializationId: string; thumbnailMediaId?: string; name: string;
   sourceLanguage: string; targetLanguage: string; description?: string; isPublished: boolean; createdAt; updatedAt }
@@ -52,6 +60,7 @@ interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionTyp
 - `isPublished: true` is gated ([[publish-readiness]]). Creating with `true` always fails.
 - `Question.questionText`: optional, trimmed, 1–300 Unicode code points. On PATCH, `null` clears it (the type's default is used again); `""` or whitespace-only is rejected (`INVALID_QUESTION_TEXT`). Clients render `displayText` ([[adr-question-text]]).
 - **Accounts:** `POST /auth/register` always creates a `student` (any `role` in the body is ignored) and requires `firstName` and `lastName`. Teachers and admins are created by an admin with `POST /admin/users`. Emails must look like `a@b.c`; passwords are trimmed and must be 8–128 characters (register, admin create, admin reset; login only checks the hash). See [[auth-and-roles]].
+- **`PATCH /auth/me`** (students only): `{firstName?, lastName?, preferences?}`. Each `preferences` key is optional, **`null` clears it**, unknown keys are rejected (400). `specializationId` must exist (404 `SPECIALIZATION_NOT_FOUND`); `targetLanguage` is any 2-letter code; goal, daily target and level must be one of the values above (400 `VALIDATION_ERROR`). Goal and level are informational in the MVP.
 - `Question.type` is fixed at creation. PATCH with a different `type` → 400 `QUESTION_TYPE_IMMUTABLE`; resending the same type is allowed.
 
 ## Reorder bodies (they differ per endpoint)

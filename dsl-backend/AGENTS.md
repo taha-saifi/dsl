@@ -107,6 +107,7 @@ role            "admin" | "teacher" | "student"
 firstName       string
 lastName        string
 termsAcceptedAt Date, optional (register with acceptedTerms: true)
+preferences     { specializationId?, targetLanguage?, goal?, dailyTargetMinutes?, experienceLevel? }, optional, embedded (onboarding)
 createdAt       Date
 updatedAt       Date
 ```
@@ -316,6 +317,9 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
   - `POST /auth/register` always creates a `student` (default role is now `"student"`; existing users keep their stored role), requires first/last name, password 8–128 chars (`services/userAccount.service.ts`), optional `acceptedTerms` → `termsAcceptedAt`.
   - Admin-only `/api/admin/users` (`requireRole("admin")`): list (`?role=`), create teacher/admin, `PATCH /:id/password`. `USER_NOT_FOUND` 404.
   - `npm run create-admin -- --email … --password … --first-name … --last-name …` (`src/scripts/createAdmin.ts`) creates or promotes the first admin.
+- [x] Onboarding preferences (mobile Slice 2, 2026-10-16)
+  - `PATCH /auth/me` (student only) sets name and `preferences` (`services/learnerPreferences.service.ts`; `null` clears a key, unknown keys 400, specialization must exist).
+  - New `/api/learn` router (any signed-in role): `GET /learn/specializations`, `GET /learn/languages?specializationId=`. Visibility lives in `services/studentCatalog.service.ts` (currently `isPublished: true`).
 
 ### Phase 0 definition of done
 

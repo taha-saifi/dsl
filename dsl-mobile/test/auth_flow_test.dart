@@ -47,7 +47,7 @@ ResponseBody _unauthorized() => FakeAdapter.json({
 }, status: 401);
 
 void main() {
-  testWidgets('signed out: welcome → sign up validates, then lands on Home', (
+  testWidgets('signed out: welcome → sign up validates, then onboarding', (
     tester,
   ) async {
     final api = await _launch(
@@ -82,10 +82,11 @@ void main() {
     await tester.tap(find.widgetWithText(InkWell, 'Create Account'));
     await tester.pumpAndSettle();
 
-    expect(api.adapter.requests.single.path, '/auth/register');
+    expect(api.adapter.requests.first.path, '/auth/register');
     expect(api.storage.token, 'fixture-token');
-    expect(find.text('Hi, Sara'), findsOneWidget);
-    expect(find.byType(DslBottomNav), findsOneWidget);
+    // A new student has no preferences yet.
+    expect(find.text('Step 1 of 3'), findsOneWidget);
+    expect(find.byType(DslBottomNav), findsNothing);
   });
 
   testWidgets('sign up shows the server error (email in use)', (tester) async {

@@ -44,11 +44,20 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - `flutter analyze` 0 issues; 50 tests pass. Figma: 1 call (Splash `55:5`, cached as `auth_splash.png`).
 - Bug found on the device and fixed: the keyboard's Next on Password focused the eye toggle instead of Confirm.
 
+## Slice 2: onboarding ✅ done 2026-10-16
+**Gates passed.**
+- curl, 23/23: `PATCH /auth/me` saves all five preferences; it rejects a bad goal, level, daily target (including `"10"` as a string) and language code (400), an unknown specialization (404 `SPECIALIZATION_NOT_FOUND`), unknown keys and a non-object (400). A rejected PATCH changes nothing; `null` clears a key; `role` in the body is ignored; teacher → 403, no token → 401. `/learn/specializations` lists only domains with published courses; `/learn/languages` counts per domain (a drafts-only domain gives `[]`; an unknown id → 404, a bad id → 400).
+- Emulator: a new sign-up goes straight to Step 1; Continue and Get Started stay disabled until there's a choice; saved preferences match in Mongo. After a restart the student lands on Home (no onboarding again) and Profile lists the choices. An existing student without preferences is sent to onboarding at sign-in; Log out on Step 1 works.
+- 66 tests pass (Back keeps the choice, empty catalog can be skipped, load error has a retry, save error is shown). Figma: 1 call (Choose Domain `57:5`, `onboarding_domain.png`).
+- Moved to Slice 4: "choices preselect the catalog filters" (no catalog yet).
+- Fixed while building: grid cards with a fixed height overflowed with large text (now sized to their content); the save error appeared below the fold (now above the button).
+- Brought forward from Slice 3: `GET /learn/specializations` (see [[feat-onboarding-and-preferences]]).
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
 | 1 ✅ | [[feat-student-accounts]] | 📜 | register → student; password ≥ 8; `termsAcceptedAt`; `/admin/users` (create teacher/admin, list, reset password); admin seed script | admin-only Users page and nav entry | Splash, Login, Sign Up, secure token, `/auth/me` bootstrap, logout, "students only" screen |
-| 2 | [[feat-onboarding-and-preferences]] | 📜 | `PATCH /auth/me` with `preferences`; `GET /learn/languages` | — | Domain → Language → Profile Setup; router redirect while preferences are unset |
+| 2 ✅ | [[feat-onboarding-and-preferences]] | 📜 | `PATCH /auth/me` with `preferences`; `GET /learn/languages` | — | Domain → Language → Profile Setup; router redirect while preferences are unset |
 | 3 | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
 | 4 | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
 | 5 | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
@@ -82,6 +91,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
    - Media URLs use the current `MINIO_PUBLIC_ENDPOINT`.
 4. **Catalog and enrollment.**
    - curl: enroll twice → one document; enrolling in a draft → 404.
+   - Emulator: the onboarding domain and language preselect the catalog filters (moved from Slice 2).
    - Emulator: search and chips filter; Enroll → the course appears on Home.
 5. **Unit overview.**
    - curl: the counts and type list match the seeded exercise.

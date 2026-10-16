@@ -17,6 +17,7 @@ What the API gives a student today, checked against the code on 2026-10-16. Scre
 | `POST /auth/login`, `GET /auth/me` | P / R | ✅ as-is |
 | `POST /auth/register` | P | ✅ creates a **student**, password ≥ 8, names required (Slice 1) |
 | `/admin/users` | A | admin-only staff accounts and password resets (Slice 1) |
+| `PATCH /auth/me`, `GET /learn/specializations`, `GET /learn/languages` | S / R / R | ✅ onboarding (Slice 2) |
 | `GET /specializations`, `/:id` | R | ✅ mostly (domain list); 🔶 needs published course counts for Domain/Language cards |
 | `GET /courses`, `/:id` | R | 🔶 needs a student variant: published only, plus enrollment and progress |
 | `GET /units`, `/:id` | R | 🔶 published only, plus progress and lock state; `learningItems[]` is teacher data |
@@ -38,7 +39,7 @@ Only what a Figma screen or the existing model calls for.
 | Student accounts and role | Sign Up `55:68` | ✅ built in Slice 1 ([[auth-and-roles]]) |
 | Google sign-in | Login `55:40` | ❌ designed in `AGENTS.md`, not built |
 | Forgot password | Login | ❌ none |
-| Onboarding profile: domain, language, goal, daily target, level | `57:5` `57:73` `57:132`, Settings | ❌ `User` has none of these |
+| Onboarding profile: domain, language, goal, daily target, level | `57:5` `57:73` `57:132`, Settings | ✅ `User.preferences` (Slice 2); editing from Settings comes later |
 | Enrollment | Catalog "Enroll Now", Home "My Courses" | 📐 designed only (`enrollments`, [[student-progress-planned]]) |
 | Progress per course/unit/exercise (% and n/m) | Home, `87:5`, `87:104`, Certificates | 📐 `unitProgress` and `exerciseSessions` designed; no course-level rollup rule |
 | Locking / unlock order | `87:5` units, `87:104` exercises | 📐 `unitProgress.isUnlocked` designed; no rule for exercise locks |

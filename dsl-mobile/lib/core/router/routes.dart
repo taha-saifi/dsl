@@ -10,6 +10,11 @@ abstract final class Routes {
   static const signIn = '/sign-in';
   static const signUp = '/sign-up';
 
+  // Students without preferences (nested, so the draft survives Back).
+  static const onboardingDomain = '/onboarding';
+  static const onboardingLanguage = '/onboarding/language';
+  static const onboardingProfile = '/onboarding/language/profile';
+
   // Signed-in tabs.
   static const home = '/home';
   static const courses = '/courses';

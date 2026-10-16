@@ -24,4 +24,26 @@ void main() {
     expect(user.isStudent, isFalse);
     expect(user.displayName, 'x@y.z');
   });
+
+  test('parses recorded preferences, including daily_practice', () {
+    final json = fixture('auth_me.json')! as Map<String, dynamic>;
+    final user = AppUser.fromJson(json['data']! as Map<String, dynamic>);
+
+    expect(user.needsOnboarding, isFalse);
+    expect(user.preferences!.goal, LearningGoal.dailyPractice);
+    expect(user.preferences!.experienceLevel, ExperienceLevel.beginner);
+    expect(user.preferences!.dailyTargetMinutes, 10);
+    expect(user.preferences!.targetLanguage, 'fr');
+  });
+
+  test('a student without preferences needs onboarding', () {
+    final json = fixture('auth_me_new_student.json')! as Map<String, dynamic>;
+    final user = AppUser.fromJson(json['data']! as Map<String, dynamic>);
+    expect(user.needsOnboarding, isTrue);
+  });
+
+  test('an unknown goal from a newer API parses as null', () {
+    final prefs = LearningPreferences.fromJson({'goal': 'fun'});
+    expect(prefs.goal, isNull);
+  });
 }

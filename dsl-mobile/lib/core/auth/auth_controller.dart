@@ -103,6 +103,13 @@ class AuthController extends Notifier<AuthState> {
     ),
   );
 
+  /// Saves learning preferences; the router leaves onboarding on success.
+  /// Throws [ApiException] on failure.
+  Future<void> savePreferences(Map<String, Object?> preferences) async {
+    final user = await _repository.updateMe(preferences: preferences);
+    state = SignedIn(user);
+  }
+
   Future<void> signOut() async {
     await _clearQuietly();
     state = const SignedOut();

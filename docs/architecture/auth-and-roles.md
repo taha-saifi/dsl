@@ -38,6 +38,6 @@ Why localStorage: [[adr-jwt-in-localstorage]]. Not built yet: Google Sign-In (se
 - The JWT is in `flutter_secure_storage` (`dsl-mobile/lib/core/storage/token_storage.dart`); `AuthInterceptor` attaches it.
 - `AuthController` (`lib/core/auth/auth_controller.dart`) states: restoring → signed out / signed in / **unverified**. On launch: no token → signed out; `GET /auth/me` OK → signed in; 401 → token cleared, signed out with "Your session has ended"; network/timeout/5xx → unverified, **token kept**, a retry screen with Log out.
 - Unlike the dashboard, **a 401 on any later call also signs out** (the interceptor clears the token and the router goes to Sign In). A 401 on a request sent without a token (wrong password) doesn't.
-- One go_router `redirect` (`lib/core/router/auth_redirect.dart`): signed out → Welcome; teacher/admin → "This app is for students" with Log out; student → Home. Logout clears the token only; nothing is sent to the server.
+- One go_router `redirect` (`lib/core/router/auth_redirect.dart`): signed out → Welcome; teacher/admin → "This app is for students" with Log out; student without `preferences` → onboarding (`/onboarding`, three steps); student → Home. Logout clears the token only; nothing is sent to the server.
 
 Related: [[api-contract]], [[user]], [[error-codes]]. Back to [[architecture-index]].

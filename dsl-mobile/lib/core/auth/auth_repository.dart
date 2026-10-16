@@ -42,6 +42,15 @@ class AuthRepository {
     decode: (data) => AppUser.fromJson(data! as Map<String, dynamic>),
   );
 
+  /// `PATCH /auth/me` (students only). [preferences] is the raw body object:
+  /// a key set to null clears that preference.
+  Future<AppUser> updateMe({Map<String, Object?>? preferences}) =>
+      _client.patch(
+        '/auth/me',
+        decode: (data) => AppUser.fromJson(data! as Map<String, dynamic>),
+        body: {'preferences': ?preferences},
+      );
+
   static AuthSession _session(Object? data) =>
       AuthSession.fromJson(data! as Map<String, dynamic>);
 }

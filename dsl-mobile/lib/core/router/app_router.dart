@@ -12,6 +12,9 @@ import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/dev/presentation/design_system_screen.dart';
 import '../../features/dev/presentation/system_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/onboarding/presentation/domain_step_screen.dart';
+import '../../features/onboarding/presentation/language_step_screen.dart';
+import '../../features/onboarding/presentation/profile_step_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../auth/auth_controller.dart';
 import '../widgets/dsl_bottom_nav.dart';
@@ -67,6 +70,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: Routes.welcome, builder: (_, _) => const WelcomeScreen()),
       GoRoute(path: Routes.signIn, builder: (_, _) => const SignInScreen()),
       GoRoute(path: Routes.signUp, builder: (_, _) => const SignUpScreen()),
+      GoRoute(
+        path: Routes.onboardingDomain,
+        builder: (_, _) => const DomainStepScreen(),
+        routes: [
+          GoRoute(
+            path: 'language',
+            builder: (_, _) => const LanguageStepScreen(),
+            routes: [
+              GoRoute(
+                path: 'profile',
+                builder: (_, _) => const ProfileStepScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => _AppShell(shell: shell),
         branches: [

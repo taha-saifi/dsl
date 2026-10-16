@@ -4,15 +4,23 @@ import 'package:dsl/core/router/auth_redirect.dart';
 import 'package:dsl/core/router/routes.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-AppUser _user(UserRole role) =>
-    AppUser(id: '1', email: 'a@b.co', role: role, firstName: 'A');
+AppUser _user(UserRole role, {bool onboarded = true}) => AppUser(
+  id: '1',
+  email: 'a@b.co',
+  role: role,
+  firstName: 'A',
+  preferences: onboarded
+      ? const LearningPreferences(goal: LearningGoal.academic)
+      : null,
+);
 
 void main() {
   const restoring = AuthRestoring();
   const signedOut = SignedOut();
   const ended = SignedOut(sessionEnded: true);
   final student = SignedIn(_user(UserRole.student));
-  final teacher = SignedIn(_user(UserRole.teacher));
+  final teacher = SignedIn(_user(UserRole.teacher, onboarded: false));
+  final newStudent = SignedIn(_user(UserRole.student, onboarded: false));
   final offline = SessionUnverified(Exception('offline'));
 
   final cases = <(String, AuthState, String, String?)>[
@@ -43,6 +51,36 @@ void main() {
       'unknown role → students only',
       SignedIn(_user(UserRole.unknown)),
       Routes.home,
+      Routes.studentsOnly,
+    ),
+    (
+      'new student → onboarding',
+      newStudent,
+      Routes.home,
+      Routes.onboardingDomain,
+    ),
+    (
+      'new student from sign-up → onboarding',
+      newStudent,
+      Routes.signUp,
+      Routes.onboardingDomain,
+    ),
+    (
+      'new student stays on a later step',
+      newStudent,
+      Routes.onboardingProfile,
+      null,
+    ),
+    (
+      'onboarded student leaves onboarding',
+      student,
+      Routes.onboardingLanguage,
+      Routes.home,
+    ),
+    (
+      'teacher never sees onboarding',
+      teacher,
+      Routes.onboardingDomain,
       Routes.studentsOnly,
     ),
     ('offline → reconnect', offline, Routes.home, Routes.reconnect),

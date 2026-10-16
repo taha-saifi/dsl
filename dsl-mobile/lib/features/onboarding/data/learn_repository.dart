@@ -1,0 +1,49 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/api/api_client.dart';
+import '../../../core/api/api_providers.dart';
+import 'learn_summaries.dart';
+
+/// The `/learn` endpoints onboarding needs. Slice 3 adds courses and units.
+class LearnRepository {
+  const LearnRepository(this._client);
+
+  final ApiClient _client;
+
+  Future<List<SpecializationSummary>> specializations() => _client.get(
+    '/learn/specializations',
+    decode: (data) => _list(data, SpecializationSummary.fromJson),
+  );
+
+  Future<List<LanguageSummary>> languages({String? specializationId}) =>
+      _client.get(
+        '/learn/languages',
+        query: {'specializationId': ?specializationId},
+        decode: (data) => _list(data, LanguageSummary.fromJson),
+      );
+
+  static List<T> _list<T>(
+    Object? data,
+    T Function(Map<String, dynamic>) fromJson,
+  ) => (data! as List<Object?>)
+      .map((item) => fromJson(item! as Map<String, dynamic>))
+      .toList();
+}
+
+final learnRepositoryProvider = Provider<LearnRepository>(
+  (ref) => LearnRepository(ref.watch(apiClientProvider)),
+);
+
+final specializationsProvider =
+    FutureProvider.autoDispose<List<SpecializationSummary>>(
+      (ref) => ref.watch(learnRepositoryProvider).specializations(),
+    );
+
+/// Languages with published courses, in one domain when [specializationId]
+/// is given.
+final languagesProvider = FutureProvider.autoDispose
+    .family<List<LanguageSummary>, String?>(
+      (ref, specializationId) => ref
+          .watch(learnRepositoryProvider)
+          .languages(specializationId: specializationId),
+    );
