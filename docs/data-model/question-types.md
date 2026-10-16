@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/models/Question.ts, dsl-backend/src/services/questionValidation.service.ts, dsl-teacher-dashboard/src/components/questions/ReferenceTypeQuestionFields.tsx, dsl-teacher-dashboard/src/components/questions/StructuralTypeQuestionFields.tsx]
+sources: [dsl-backend/src/models/Question.ts, dsl-backend/src/services/questionContent.service.ts, dsl-backend/src/services/playPayload.service.ts, dsl-backend/src/services/questionValidation.service.ts, dsl-teacher-dashboard/src/components/questions/ReferenceTypeQuestionFields.tsx, dsl-teacher-dashboard/src/components/questions/StructuralTypeQuestionFields.tsx]
 updated: 2026-10-16
 ---
 # Question types
@@ -37,7 +37,10 @@ Each question may carry a teacher-written `questionText`; otherwise clients show
 
 `fill_blank` needs **no blank marker** in the text: the sentence and its blank come from the target's `sentenceLanguage` translation and `config.blankWord`. The text is only the instruction.
 
-## How a client derives the answer
+## Where the derivation lives
+Since Slice 6 the backend derives everything a student sees: `questionContent.service.ts` resolves items, translations and media, and `playPayload.service.ts` builds the answer-free play payload ([[api-contract]]). Slice 7's answer checking reuses the same resolution. The dashboard's preview still derives on the client, for teachers ([[question-preview]]).
+
+## How the answer is derived
 - choose_picture / multiple_choice / listening_select: the target item is correct. Show the distractors' images or `answerLanguage` text as the wrong options.
 - typing / listening_transcribe: expected text = the target's `answerLanguage` translation `text`.
 - fill_blank: the answer is `blankWord`. The sentence is the target's `sentenceLanguage` text.

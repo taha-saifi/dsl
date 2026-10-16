@@ -41,6 +41,22 @@ None.
 ## Dashboard changes
 None required. Optional: point the preview at the same server service later to remove duplicated logic ([[question-preview]]).
 
+## Built (2026-10-16)
+- **Backend:** `GET /learn/exercises/:id/play`.
+  - `questionContent.service.ts` resolves items and media in 3 queries per exercise; `playPayload.service.ts` builds each type with the shapes in [[api-contract]].
+  - Ids are opaque HMACs: stable across plays (so Slice 7 can recompute them instead of storing anything) and never learning-item ids.
+  - Students must be enrolled (403 `NOT_ENROLLED`). Broken questions are skipped.
+  - `typing` and `multiple_choice` also send the target's image when it has one, as a picture of the meaning; `fill_blank` and `arrange_sentence` send the `promptLanguage` translation as `hint`.
+- **App** (`features/player/`):
+  - Full-screen player (`/play/:exerciseId`, above the tabs) on the light Soft Gray lesson surface: top bar (close → Pause, progress, `n/total`), a type badge in that type's Figma colour, then `displayText`.
+  - One renderer per type, props-only.
+  - **Audio** (`just_audio`) plays once when the question appears; tap to replay; "Couldn't play the audio" with retry.
+  - Matching pairs share a colour and number and aren't marked right or wrong (that needs checking).
+  - Arrange: tap to place, tap to remove. Fill blank: the typed word shows inside the sentence.
+  - The bottom button reads "Answer to continue" until there's an answer, then **Next** / **Finish**. Until Slice 7 it moves on without a verdict, and the end shows "You answered all N questions".
+  - Pause: Keep going / Quit. Quit only leaves for now; Slice 7 adds abandoning the session.
+- Hearts are hidden until [[feat-hearts]]. The physical-device check (LAN IP) is still to do; only the emulator was available.
+
 ## Decisions (2026-10-16)
 - Q8 → Set `MINIO_PUBLIC_ENDPOINT` **per environment** (emulator `10.0.2.2`, device LAN IP, production URL). No proxy.
   - Because `Media.url` is stored at upload time, `/learn/*` responses build URLs from `storageKey` and the current `MINIO_PUBLIC_ENDPOINT` ([[mobile-architecture]]).

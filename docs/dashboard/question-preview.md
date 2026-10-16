@@ -31,3 +31,6 @@ A static iPhone 15 Pro mock (393×852 screen, CSS-scaled) showing a question the
 > [!todo] Unverified: the real app's option order (shuffle rule) and answer comparison aren't decided ([[mobile-index]]). The preview's order is illustrative only.
 
 Back to [[dashboard-index]] · [[question-builder]].
+
+> [!note] Student side
+> The mobile app never derives answers: the backend builds its play payload (`dsl-backend/src/services/playPayload.service.ts`) with the same rules as `questionPreview.ts`. Keep the two in step until the preview is moved onto the backend service ([[feat-exercise-player]]).

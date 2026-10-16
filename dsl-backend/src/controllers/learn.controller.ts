@@ -2,10 +2,17 @@ import type { Request, Response } from "express";
 import type { Types } from "mongoose";
 
 import { ApiError } from "../middleware/error.middleware";
-import { enroll as enrollStudent, unenroll as unenrollStudent } from "../services/enrollment.service";
+import {
+  enroll as enrollStudent,
+  ensureEnrolled,
+  unenroll as unenrollStudent,
+} from "../services/enrollment.service";
+import { buildPlayQuestion, type PlayQuestion } from "../services/playPayload.service";
+import { resolveExerciseQuestions } from "../services/questionContent.service";
 import { ensureSpecializationExists } from "../services/resourceDependencies.service";
 import {
   getCourseDetail,
+  getPlayableExercise,
   getUnitDetail,
   listCourseSummaries,
   listEnrolledCourses,
@@ -99,4 +106,30 @@ export const unenroll = async (request: Request, response: Response): Promise<vo
 
 export const myCourses = async (request: Request, response: Response): Promise<void> => {
   response.status(200).json({ data: await listEnrolledCourses(studentIdOf(request)) });
+};
+
+/**
+ * `GET /learn/exercises/:id/play`: the exercise and its questions in order,
+ * without answers. Students must be enrolled in the course.
+ */
+export const play = async (request: Request, response: Response): Promise<void> => {
+  const exerciseId = getRouteObjectId(request.params.id, "Exercise");
+  const exercise = await getPlayableExercise(exerciseId);
+  const viewer = viewerOf(request);
+  if (viewer.studentId) {
+    await ensureEnrolled(viewer.studentId, exercise.courseId);
+  }
+
+  const resolved = await resolveExerciseQuestions(exerciseId);
+  const questions: PlayQuestion[] = [];
+  for (const entry of resolved) {
+    const built = buildPlayQuestion(entry);
+    if (built) {
+      questions.push(built);
+    } else {
+      console.warn(`Play: skipped question ${entry.question._id.toString()} (missing content).`);
+    }
+  }
+
+  response.status(200).json({ data: { exercise: { ...exercise, questionCount: questions.length }, questions } });
 };

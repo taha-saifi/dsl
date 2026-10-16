@@ -90,7 +90,7 @@ void main() {
     ]) {
       expect(find.text(label), findsOneWidget, reason: label);
     }
-    // The player arrives in slice 6.
+    // Start opens the player (covered in player_flow_test).
     await tester.scrollUntilVisible(find.text('Start Exercise'), 200);
     final start = tester.widget<DslButton>(
       find.ancestor(
@@ -98,7 +98,7 @@ void main() {
         matching: find.byType(DslButton),
       ),
     );
-    expect(start.onPressed, isNull);
+    expect(start.onPressed, isNotNull);
 
     await tester.ensureVisible(find.text("I'll do this later"));
     await tester.tap(find.text("I'll do this later"));

@@ -15,13 +15,14 @@ Every error body is `{error:{message, code}}`. Clients should branch on `code`, 
 | `UNAUTHORIZED` | 401 | missing or invalid token, user gone |
 | `INVALID_CREDENTIALS` | 401 | login failed |
 | `FORBIDDEN_ROLE` | 403 | role not allowed ([[auth-and-roles]]) |
+| `NOT_ENROLLED` | 403 | a student opens `/learn/exercises/:id/play` for a course they haven't enrolled in |
 | `EMAIL_IN_USE` | 409 | register or `POST /admin/users` with an existing email |
 | `DUPLICATE_RESOURCE` | 409 | Mongo unique index violated |
 | `CONFIGURATION_ERROR` | 500 | `JWT_SECRET` missing at sign time |
 | `INTERNAL_SERVER_ERROR` | 500 | unhandled |
 
 ## Not found (404)
-`SPECIALIZATION_NOT_FOUND`, `COURSE_NOT_FOUND`, `UNIT_NOT_FOUND` (also: reorder ids not in the course), `EXERCISE_NOT_FOUND`, `QUESTION_NOT_FOUND`, `LEARNING_ITEM_NOT_FOUND`, `MEDIA_NOT_FOUND`, `TRANSLATION_NOT_FOUND`, `USER_NOT_FOUND` (admin password reset).
+`SPECIALIZATION_NOT_FOUND`, `COURSE_NOT_FOUND`, `UNIT_NOT_FOUND` (also: reorder ids not in the course), `EXERCISE_NOT_FOUND`, `QUESTION_NOT_FOUND`, `LEARNING_ITEM_NOT_FOUND`, `MEDIA_NOT_FOUND`, `TRANSLATION_NOT_FOUND`, `USER_NOT_FOUND` (admin password reset). `/learn` reads of hidden content also use `COURSE_NOT_FOUND`, `UNIT_NOT_FOUND`, `EXERCISE_NOT_FOUND`.
 
 ## Conflicts (409)
 | code | Rule |

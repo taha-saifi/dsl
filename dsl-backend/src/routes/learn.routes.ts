@@ -6,6 +6,7 @@ import {
   enroll,
   languages,
   myCourses,
+  play,
   specializations,
   unenroll,
   unit,
@@ -23,6 +24,7 @@ learnRouter.get("/languages", asyncHandler(languages));
 learnRouter.get("/courses", asyncHandler(courses));
 learnRouter.get("/courses/:id", asyncHandler(course));
 learnRouter.get("/units/:id", asyncHandler(unit));
+learnRouter.get("/exercises/:id/play", asyncHandler(play));
 
 // Enrollment is a student concept.
 const studentOnly = requireRole("student");

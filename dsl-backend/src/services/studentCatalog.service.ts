@@ -269,6 +269,36 @@ export const listEnrolledCourses = async (studentId: Types.ObjectId): Promise<Re
   });
 };
 
+export interface PlayableExercise {
+  _id: Types.ObjectId;
+  name: string;
+  unitId: Types.ObjectId;
+  unitName: string;
+  courseId: Types.ObjectId;
+  courseName: string;
+}
+
+/** The exercise if a student can play it (visible all the way up), else 404. */
+export const getPlayableExercise = async (exerciseId: Types.ObjectId): Promise<PlayableExercise> => {
+  const exercise = await Exercise.findById(exerciseId).select("unitId").lean();
+  const unit = exercise ? await Unit.findById(exercise.unitId).select("courseId").lean() : null;
+  const [visible] = unit ? await loadVisibleCourses({ _id: unit.courseId }) : [];
+  for (const visibleUnit of visible?.units ?? []) {
+    const match = visibleUnit.exercises.find((candidate) => candidate._id.equals(exerciseId));
+    if (visible && match) {
+      return {
+        _id: match._id,
+        name: match.name,
+        unitId: visibleUnit._id,
+        unitName: visibleUnit.name,
+        courseId: visible.course._id,
+        courseName: visible.course.name,
+      };
+    }
+  }
+  throw new ApiError(404, "Exercise not found.", "EXERCISE_NOT_FOUND");
+};
+
 export interface SpecializationSummary {
   _id: Types.ObjectId;
   name: string;

@@ -100,6 +100,26 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - Fixed while building: `DslBadge` overflowed with long labels; it now ellipsizes.
 - Start Exercise is shown disabled until the player exists (Slice 6).
 
+## Slice 6: exercise player ✅ done 2026-10-16 (one gate open: physical device)
+**Gates passed.**
+- **No answer material in the play payload**: a script checks it against the truth loaded through the teacher API, 26/26.
+  - No learning-item id appears anywhere, and there are no `config`, `items` or `correct` fields.
+  - The expected text of typing and listening_transcribe is absent, and the fill_blank word is withheld.
+  - Option, word and card ids are opaque, and matching left and right ids never coincide.
+  - All 8 media URLs load.
+  - Choice order differed in 6 of 6 plays while the ids stayed the same.
+  - Not enrolled → 403 `NOT_ENROLLED`; draft or missing exercise → 404; bad id → 400; a teacher can preview; no token → 401.
+- Emulator (media on `10.0.2.2`): the seeded exercise played through all 8 types.
+  - Every image loads, and the audio downloads and plays (ExoPlayer: `AudioTrack` delivered frames, and again on replay).
+  - Next stays disabled until there's an answer; the typed fill_blank word shows in the sentence; arrange leaves the distractor in the bank; matching pairs all 4; Finish shows the end screen.
+  - System Back and the close button open Pause; Keep going resumes; Quit returns to the intro.
+- 93 tests pass. Figma: 0 calls (cached question frames).
+- **Not done:** the physical-device run on a LAN IP. No phone was available; it needs `MINIO_PUBLIC_ENDPOINT=http://<LAN IP>:9000` and `env/device.json`.
+- Fixed after the device run:
+  - the disabled button was Ink on the light lesson surface (now white with muted text, as in Figma);
+  - the status-bar icons were white on Soft Gray (now dark);
+  - matching pair colours included green and red, which will mean right and wrong (removed).
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
@@ -108,7 +128,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 | 3 ✅ | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
 | 4 ✅ | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
 | 5 ✅ | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
-| 6 | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
+| 6 ✅ | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
 | 7 | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
 | 8 | [[feat-learning-progress]] | 📜 | progress, `nextExerciseId`, per-exercise status and best score, computed from sessions | — | progress bars and rings, Done badges, Continue targets |
 | 9 | [[feat-static-screens]] | — | — | — | static Certificates, Leaderboard, achievements, Settings rows; real Profile header and logout |

@@ -6,7 +6,7 @@ updated: 2026-10-16
 ---
 # Mobile (`dsl-mobile/`)
 
-A Flutter (Android) student app. **Slices 0–2 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]), onboarding (domain, language, goal/target/level saved to `User.preferences`; see [[user]]), the published-content API with its app repository (Slice 3), catalog and enrollment: Courses tab, Course Details, Home with My Courses (Slice 4, [[enrollment]]), and Unit Details and Exercise Intro with the type mix (Slice 5). Next is Slice 6, the exercise player ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
+A Flutter (Android) student app. **Slices 0–2 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]), onboarding (domain, language, goal/target/level saved to `User.preferences`; see [[user]]), the published-content API with its app repository (Slice 3), catalog and enrollment: Courses tab, Course Details, Home with My Courses (Slice 4, [[enrollment]]), Unit Details and Exercise Intro with the type mix (Slice 5), and the exercise player with all 8 question types and audio, on an answer-free payload (Slice 6). Next is Slice 7, answer checking and sessions ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
 
 ## Endpoints the app uses
 Students may call only these; every authoring route answers them 403 ([[auth-and-roles]]).
@@ -16,12 +16,13 @@ Students may call only these; every authoring route answers them 403 ([[auth-and
 | Onboarding | `GET /learn/specializations`, `GET /learn/languages` |
 | Browse published content | `GET /learn/courses`, `GET /learn/courses/:id`, `GET /learn/units/:id` |
 | Enrollment | `POST` / `DELETE /learn/courses/:id/enroll`, `GET /learn/me/courses` |
+| Play | `GET /learn/exercises/:id/play` (no answers in it) |
 | Images | `thumbnailUrl` in `/learn` responses, loaded directly |
 
 ## Gaps the backend must fill next
 1. ~~Published-only reads~~ and ~~student accounts~~: done (Slices 1 and 3).
 3. **Progress, XP, hearts, sessions** (enrollment is done): designed but not built ([[student-progress-planned]]).
-4. **Bulk payloads.** Playing one exercise takes N+1 requests (questions → items → media). An endpoint that returns an exercise with its items and media resolved would help.
+4. ~~Bulk payloads~~: one play request per exercise since Slice 6.
 5. **Answer checking.** No comparison rules are defined ([[question-types]]). Business logic belongs in the backend ([[adr-business-logic-backend-only]]).
 6. ~~Media URLs~~: built from the current `MINIO_PUBLIC_ENDPOINT` on every response since Slice 3 ([[media-storage-minio]]).
 

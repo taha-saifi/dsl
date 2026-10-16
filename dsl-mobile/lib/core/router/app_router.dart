@@ -17,6 +17,7 @@ import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/presentation/domain_step_screen.dart';
 import '../../features/onboarding/presentation/language_step_screen.dart';
 import '../../features/onboarding/presentation/profile_step_screen.dart';
+import '../../features/player/presentation/player_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/unit/presentation/exercise_intro_screen.dart';
 import '../../features/unit/presentation/unit_details_screen.dart';
@@ -153,6 +154,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/play/:exerciseId',
+        builder: (_, state) =>
+            PlayerScreen(exerciseId: state.pathParameters['exerciseId']!),
       ),
       if (kDebugMode) ...[
         GoRoute(

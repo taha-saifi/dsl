@@ -1,0 +1,204 @@
+{
+  "data": {
+    "exercise": {
+      "_id": "6ad295274c24c8b9343a5c7f",
+      "name": "Organs: mixed practice",
+      "unitId": "6ad28f21dcbfbc7ecf3f1a96",
+      "unitName": "A1 Published unit",
+      "courseId": "6ad28f21dcbfbc7ecf3f1a95",
+      "courseName": "S3 Full Course 4zjs",
+      "questionCount": 8
+    },
+    "questions": [
+      {
+        "id": "6ad295274c24c8b9343a5c80",
+        "type": "choose_picture",
+        "displayText": "Which image shows the heart?",
+        "points": 10,
+        "prompt": "cœur",
+        "options": [
+          {
+            "id": "O8XlvoCxyB-mVkEH",
+            "imageUrl": "http://localhost:9000/dsl-media/c7037eb5-baa2-445d-9181-b206a4117bfe.png"
+          },
+          {
+            "id": "j8sq8OhDjpiBbkdc",
+            "imageUrl": "http://localhost:9000/dsl-media/f2e2ffd1-c768-415f-b7d7-8ba2bbda9876.png"
+          },
+          {
+            "id": "WHlHFd59s7mHyU3I",
+            "imageUrl": "http://localhost:9000/dsl-media/a16f1ec1-0c96-452d-a13e-c4a8ee4c173a.png"
+          },
+          {
+            "id": "CCUnknYNNMCTzhQS",
+            "imageUrl": "http://localhost:9000/dsl-media/47ff10dc-abdb-45c5-830f-a923def280e5.png"
+          }
+        ]
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c81",
+        "type": "multiple_choice",
+        "displayText": "What does “cœur” mean in English?",
+        "points": 10,
+        "prompt": "cœur",
+        "promptLanguage": "fr",
+        "answerLanguage": "en",
+        "imageUrl": "http://localhost:9000/dsl-media/f2e2ffd1-c768-415f-b7d7-8ba2bbda9876.png",
+        "options": [
+          {
+            "id": "v1a5ElPkRbpk8eRL",
+            "text": "lungs"
+          },
+          {
+            "id": "D6Vmn5XcF6DwbqDJ",
+            "text": "bone"
+          },
+          {
+            "id": "fEGzI7gnuLW4cz9_",
+            "text": "heart"
+          },
+          {
+            "id": "axWQrZTyBtVVqAwF",
+            "text": "brain"
+          }
+        ]
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c82",
+        "type": "listening_transcribe",
+        "displayText": "Listen and type what you hear",
+        "points": 10,
+        "audioUrl": "http://localhost:9000/dsl-media/fe9163c0-42f2-452d-a4ef-1e7e99599cb6.wav",
+        "answerLanguage": "fr"
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c83",
+        "type": "listening_select",
+        "displayText": "Listen, then pick the English word",
+        "points": 10,
+        "audioUrl": "http://localhost:9000/dsl-media/fe9163c0-42f2-452d-a4ef-1e7e99599cb6.wav",
+        "answerLanguage": "en",
+        "options": [
+          {
+            "id": "Fhgzq-uJvPRMy1oM",
+            "text": "brain"
+          },
+          {
+            "id": "FE5x3I7liWoCvm1e",
+            "text": "lungs"
+          },
+          {
+            "id": "arEzu7qxgIXGBjjY",
+            "text": "heart"
+          }
+        ]
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c84",
+        "type": "typing",
+        "displayText": "Type the translation",
+        "points": 15,
+        "prompt": "poumons",
+        "promptLanguage": "fr",
+        "answerLanguage": "en",
+        "imageUrl": "http://localhost:9000/dsl-media/47ff10dc-abdb-45c5-830f-a923def280e5.png"
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c85",
+        "type": "fill_blank",
+        "displayText": "Which word is missing?",
+        "points": 10,
+        "sentenceLanguage": "fr",
+        "before": "Le ",
+        "after": " circule à travers le cœur.",
+        "hint": "Blood flows through the heart."
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c86",
+        "type": "arrange_sentence",
+        "displayText": "Arrange the words to form the sentence",
+        "points": 10,
+        "sentenceLanguage": "fr",
+        "hint": "Blood flows through the heart.",
+        "bank": [
+          {
+            "id": "vrVJaMDuTE1-XAOg",
+            "text": "sang"
+          },
+          {
+            "id": "NkViabkuLF-eQKgJ",
+            "text": "travers"
+          },
+          {
+            "id": "wOhfbsp5d3LNQcla",
+            "text": "à"
+          },
+          {
+            "id": "cM_yiE-z0F0geo8G",
+            "text": "Le"
+          },
+          {
+            "id": "h25gMeLewvwCDpOW",
+            "text": "cœur"
+          },
+          {
+            "id": "W4ir2C_Bp68JE41X",
+            "text": "poumon"
+          },
+          {
+            "id": "hSsjb5yJhxkwKFGS",
+            "text": "le"
+          },
+          {
+            "id": "GixssBlC9MBu9U83",
+            "text": "circule"
+          }
+        ]
+      },
+      {
+        "id": "6ad295274c24c8b9343a5c87",
+        "type": "matching",
+        "displayText": "Match each French term to its English meaning",
+        "points": 10,
+        "sourceLanguage": "fr",
+        "targetLanguage": "en",
+        "left": [
+          {
+            "id": "NfP-Oz7j73XFg_ZK",
+            "text": "cerveau"
+          },
+          {
+            "id": "9mRJV81n8i6ynwK-",
+            "text": "poumons"
+          },
+          {
+            "id": "7AN-8uEK7AqBHPuc",
+            "text": "os"
+          },
+          {
+            "id": "KT_NfPBJvHIYW4dn",
+            "text": "cœur"
+          }
+        ],
+        "right": [
+          {
+            "id": "YXA5SNZXKbKRWTvt",
+            "text": "brain"
+          },
+          {
+            "id": "iCtThhlTOpt3SUqq",
+            "text": "heart"
+          },
+          {
+            "id": "HKtLQJbskF8J3p5l",
+            "text": "lungs"
+          },
+          {
+            "id": "kB64wv9cdrPr7n9o",
+            "text": "bone"
+          }
+        ]
+      }
+    ]
+  }
+}

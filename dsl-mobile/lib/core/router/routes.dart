@@ -34,6 +34,9 @@ abstract final class Routes {
     String exerciseId,
   ) => '${unit(courseId, unitId)}/exercises/$exerciseId';
 
+  /// The exercise player: full screen, above the tabs.
+  static String play(String exerciseId) => '/play/$exerciseId';
+
   // Debug-only developer screens.
   static const systemCheck = '/dev/system-check';
   static const designSystem = '/dev/design-system';

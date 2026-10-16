@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 
+import { ApiError } from "../middleware/error.middleware";
 import Enrollment, { type IEnrollment } from "../models/Enrollment";
 import { ensureCourseVisible } from "./studentCatalog.service";
 
@@ -35,4 +36,12 @@ export const enroll = async (
 /** Idempotent; works even if the course has since been hidden. */
 export const unenroll = async (studentId: Types.ObjectId, courseId: Types.ObjectId): Promise<void> => {
   await Enrollment.deleteOne({ studentId, courseId });
+};
+
+/** Students play only courses they enrolled in (decision Q6). */
+export const ensureEnrolled = async (studentId: Types.ObjectId, courseId: Types.ObjectId): Promise<void> => {
+  const enrolled = await Enrollment.exists({ studentId, courseId });
+  if (!enrolled) {
+    throw new ApiError(403, "Enroll in this course to play its exercises.", "NOT_ENROLLED");
+  }
 };

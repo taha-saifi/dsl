@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/services/enrollment.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/services/enrollment.service.ts, dsl-backend/src/services/playPayload.service.ts, dsl-backend/src/services/questionContent.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
 updated: 2026-10-16
 ---
 # API contract
@@ -36,6 +36,19 @@ interface CourseSummary { _id: string; specializationId: string; specializationN
   isEnrolled: boolean;      // always false for teachers/admins
   enrolledAt?: string }
 interface EnrolledCourse extends CourseSummary { progress: null }   // GET /learn/me/courses; progress arrives with feat-learning-progress
+// GET /learn/exercises/:id/play — never contains an answer
+interface PlayPayload { exercise: { _id; name; unitId; unitName; courseId; courseName; questionCount: number };
+  questions: PlayQuestion[] }   // by question orderIndex
+type Choice = { id: string; text?: string; imageUrl?: string }   // id: opaque, stable, never a learning-item id
+type PlayQuestion = { id: string; type: QuestionType; displayText: string; points: number } & (
+  | { type: "choose_picture"; prompt: string; options: Choice[] /* imageUrl */ }
+  | { type: "multiple_choice"; prompt: string; promptLanguage: string; answerLanguage: string; imageUrl?: string; options: Choice[] /* text */ }
+  | { type: "listening_select"; audioUrl: string; answerLanguage: string; options: Choice[] }
+  | { type: "typing"; prompt: string; promptLanguage: string; answerLanguage: string; imageUrl?: string }
+  | { type: "listening_transcribe"; audioUrl: string; answerLanguage: string }
+  | { type: "fill_blank"; sentenceLanguage: string; before: string; after: string; hint?: string }   // blank word withheld
+  | { type: "arrange_sentence"; sentenceLanguage: string; hint?: string; bank: Choice[] }              // shuffled, includes distractors
+  | { type: "matching"; sourceLanguage: string; targetLanguage: string; left: Choice[]; right: Choice[] } )  // columns shuffled independently
 interface Enrollment { _id: string; studentId: string; courseId: string; enrolledAt: string; completedAt?: string; __v: number }
 interface CourseDetail extends CourseSummary { units: { _id: string; name: string; orderIndex: number; exerciseCount: number }[] }  // by orderIndex
 interface UnitDetail { _id: string; courseId: string; courseName: string; name: string; orderIndex: number;
@@ -73,6 +86,7 @@ interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionTyp
 - **Student visibility (`/learn`):** an exercise is visible when it's published and has ≥1 question; a unit when it's published and has a visible exercise; a course when it's published and has a visible unit; a domain when it has a visible course. Anything else is **404** (`COURSE_NOT_FOUND` / `UNIT_NOT_FOUND`), never 403. `/learn` responses never contain `isPublished`, `Unit.learningItems` or anything that reveals answers. Logic: `dsl-backend/src/services/studentCatalog.service.ts`.
 - **Access:** authoring routes (`/specializations`, `/courses`, `/units`, `/exercises`, `/questions`, `/learning-items`, `/media`) are teacher/admin only for **every** method, GETs included (403 `FORBIDDEN_ROLE` for students).
 - **Media URLs** (`Media.url`, `thumbnailUrl`) are built when responding from `storageKey` and the **current** `MINIO_PUBLIC_ENDPOINT`; the `url` stored at upload is not used ([[media-storage-minio]]).
+- **Play payload:** choices are reshuffled on every request (Q10); none is marked correct; ids are HMACs of question + item (keyed with `JWT_SECRET`), stable across plays, and a matching pair's left and right ids differ. `hint` is the target's `promptLanguage` translation. A question whose content is broken (deleted item, translation or media) is left out and `questionCount` counts what is sent. Students must be enrolled (403 `NOT_ENROLLED`); teachers and admins can open it without enrolling. Hidden exercise → 404 `EXERCISE_NOT_FOUND`.
 - **Enrollment** (students only, 403 otherwise): `POST /learn/courses/:id/enroll` is idempotent (201 created, 200 existing) and needs a visible course (404); `DELETE` is idempotent and returns `{id: courseId}`. A course that stops being visible drops out of `/learn/me/courses` but the enrollment is kept ([[enrollment]]).
 - **`PATCH /auth/me`** (students only): `{firstName?, lastName?, preferences?}`. Each `preferences` key is optional, **`null` clears it**, unknown keys are rejected (400). `specializationId` must exist (404 `SPECIALIZATION_NOT_FOUND`); `targetLanguage` is any 2-letter code; goal, daily target and level must be one of the values above (400 `VALIDATION_ERROR`). Goal and level are informational in the MVP.
 - `Question.type` is fixed at creation. PATCH with a different `type` → 400 `QUESTION_TYPE_IMMUTABLE`; resending the same type is allowed.

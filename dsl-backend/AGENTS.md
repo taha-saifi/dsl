@@ -328,6 +328,7 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
   - `models/Enrollment.ts` (unique `{studentId, courseId}`), `services/enrollment.service.ts` (idempotent enroll/unenroll; visible courses only).
   - Student-only `POST`/`DELETE /api/learn/courses/:id/enroll`, `GET /api/learn/me/courses`. `/learn` course summaries add `specializationName`, `isEnrolled`, `enrolledAt`.
 - [x] Unit overview (mobile Slice 5, 2026-10-16): `/learn/units/:id` exercises add `questionTypes` (distinct, by question `orderIndex`).
+- [x] Exercise player payload (mobile Slice 6, 2026-10-16): `GET /api/learn/exercises/:id/play` (enrolled students; teachers/admins preview). `services/questionContent.service.ts` resolves question content (shared with answer checking next); `services/playPayload.service.ts` builds the answer-free payload (shuffled, HMAC ids keyed with `JWT_SECRET`).
 
 ### Phase 0 definition of done
 

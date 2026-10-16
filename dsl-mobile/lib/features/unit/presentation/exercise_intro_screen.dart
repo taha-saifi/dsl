@@ -15,8 +15,7 @@ import '../data/unit_providers.dart';
 
 /// Figma P2 "Exercise Intro" (`112:370`). Exercises are mixed-type, so the
 /// intro shows every type as a chip instead of one type label. XP, time and
-/// difficulty arrive with their features; Start is wired to the player in
-/// slice 6.
+/// difficulty arrive with their features.
 class ExerciseIntroScreen extends ConsumerWidget {
   const ExerciseIntroScreen({
     required this.courseId,
@@ -165,8 +164,10 @@ class _Body extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
-        // Wired to the exercise player in slice 6.
-        const DslButton(label: 'Start Exercise', onPressed: null),
+        DslButton(
+          label: 'Start Exercise',
+          onPressed: () => context.push(Routes.play(exercise.id)),
+        ),
         const SizedBox(height: AppSpacing.sm),
         TextButton(
           onPressed: onLater,

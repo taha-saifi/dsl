@@ -16,6 +16,7 @@ updated: 2026-10-16
 - **Mobile Slice 3** (2026-10-16): published-content API. `/learn/courses`, `/learn/courses/:id`, `/learn/units/:id` show only content published all the way down; authoring GETs teacher-only; media URLs built from the current endpoint ([[feat-published-content-api]]).
 - **Mobile Slice 4** (2026-10-16): catalog and enrollment. `enrollments` collection, enroll/unenroll and `/learn/me/courses`; app Courses tab, Course Details and Home ([[feat-catalog-and-enrollment]]).
 - **Mobile Slice 5** (2026-10-16): unit overview. `questionTypes` on unit exercises; app Unit Details and Exercise Intro ([[feat-unit-and-exercise-overview]]).
+- **Mobile Slice 6** (2026-10-16): exercise player. `GET /learn/exercises/:id/play` (answer-free, reshuffled, opaque ids); app player for all 8 types with audio and Pause ([[feat-exercise-player]]).
 - **Monorepo**: compose stack (Mongo, MinIO, backend, frontend); knowledge vault (this folder).
 
 ## Outstanding

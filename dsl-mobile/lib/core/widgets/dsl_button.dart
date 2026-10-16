@@ -27,6 +27,7 @@ class DslButton extends StatelessWidget {
     this.loading = false,
     this.expand = true,
     this.icon,
+    this.onLight = false,
   });
 
   final String label;
@@ -36,6 +37,10 @@ class DslButton extends StatelessWidget {
   final bool loading;
   final bool expand;
   final IconData? icon;
+
+  /// On the light lesson surface the Disabled state is white with muted
+  /// text (Figma "Select an answer first"), not Ink.
+  final bool onLight;
 
   @override
   Widget build(BuildContext context) {
@@ -48,6 +53,7 @@ class DslButton extends StatelessWidget {
       Color foreground,
       Color? outline,
     ) = switch (variant) {
+      _ when disabled && onLight => (colors.white, colors.muted, null),
       _ when disabled => (colors.inkDisabled, colors.muted, null),
       DslButtonVariant.primary => (colors.cyan, colors.white, null),
       DslButtonVariant.secondary => (
