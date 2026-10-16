@@ -1,7 +1,7 @@
 ---
 type: convention
 scope: cross-cutting
-sources: [dsl-backend/CLAUDE.md, dsl-backend/AGENTS.md, dsl-teacher-dashboard/CLAUDE.md, dsl-teacher-dashboard/AGENTS.md]
+sources: [dsl-mobile/CLAUDE.md, dsl-backend/CLAUDE.md, dsl-backend/AGENTS.md, dsl-teacher-dashboard/CLAUDE.md, dsl-teacher-dashboard/AGENTS.md]
 updated: 2026-10-16
 ---
 # Conventions
@@ -13,6 +13,7 @@ Package rules live in the packages. **Inside its folder, a package's file takes 
 | `dsl-backend/CLAUDE.md` | handoff status, "don't touch verified phases except for real bugs", verification discipline (real requests, real database) |
 | `dsl-backend/AGENTS.md` | stack, folder structure, data model, question catalogue, API conventions, CORS, roadmap, coding conventions, "What not to do" |
 | `dsl-teacher-dashboard/CLAUDE.md` | completed 15-subtask roadmap, finalized design direction, verification rules (real API, real browser) |
+| `dsl-mobile/CLAUDE.md` | Flutter stack, folder layout, error/401 and no-auto-retry rules, styling through theme tokens, Figma budget, run commands, memory limits, verification |
 | `dsl-teacher-dashboard/AGENTS.md` | stack, Tailwind v4 / shadcn setup pitfalls, env handling, folder structure, API client pattern, Docker, coding conventions |
 
 ## Known staleness in these files

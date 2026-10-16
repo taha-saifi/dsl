@@ -1,12 +1,12 @@
 ---
 type: roadmap
 scope: mobile
-sources: [dsl-backend/AGENTS.md, dsl-backend/src/app.ts]
+sources: [dsl-mobile/CLAUDE.md, dsl-backend/AGENTS.md, dsl-backend/src/app.ts]
 updated: 2026-10-16
 ---
-# Mobile (`dsl-mobile/`, planned)
+# Mobile (`dsl-mobile/`)
 
-A Flutter student app. **It doesn't exist yet.** When it's added it gets its own `dsl-mobile/CLAUDE.md`, follows [[api-contract]], and keeps its notes in this folder (`docs/mobile/`).
+A Flutter (Android) student app. **Slice 0 is done**: scaffold, theme from the Figma tokens, API client with the 401 rule, and a 4-tab shell with placeholder screens. No student feature exists yet; the next is Slice 1 ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
 
 ## Existing endpoints it can use (read-only, any authenticated role)
 | Need | Endpoint |

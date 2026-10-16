@@ -16,7 +16,7 @@ DSL teaches professional vocabulary (medical, legal, engineering, finance) in a 
 - [[data-model-index]]: MongoDB collections and question types
 - [[dashboard-index]]: `dsl-teacher-dashboard/` (React + Vite)
 - [[contracts-index]]: **the API contract every client follows**, plus known mismatches
-- [[mobile-index]]: planned `dsl-mobile/` (Flutter): [[figma-screen-inventory]], [[backend-capability-map]], [[00-feature-catalog]], [[mobile-roadmap]]
+- [[mobile-index]]: `dsl-mobile/` (Flutter, Slice 0 done): [[figma-screen-inventory]], [[backend-capability-map]], [[00-feature-catalog]], [[mobile-roadmap]]
 - [[decisions-index]]: architectural decisions
 - [[conventions-index]]: links to the package-level CLAUDE.md / AGENTS.md rules
 - [[gotchas]]: pitfalls

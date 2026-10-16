@@ -8,7 +8,7 @@ dashboard; students will learn it in a mobile app. Both clients use one REST API
 | --- | --- | --- |
 | `dsl-backend/` | Express 5 + TypeScript + Mongoose API, media in MinIO | `dsl-backend/CLAUDE.md` |
 | `dsl-teacher-dashboard/` | React 19 + Vite + Tailwind v4 + shadcn/ui authoring app | `dsl-teacher-dashboard/CLAUDE.md` |
-| `dsl-mobile/` | Flutter student app (**planned, does not exist yet**) | — |
+| `dsl-mobile/` | Flutter (Android) student app, Riverpod + go_router + dio | `dsl-mobile/CLAUDE.md` |
 | `docker-compose.yml` | Mongo, MinIO, backend, frontend | — |
 | `docs/` | Obsidian knowledge vault describing the whole system | this file |
 
@@ -28,7 +28,7 @@ dashboard; students will learn it in a mobile app. Both clients use one REST API
 
 ## Precedence
 
-- Inside `dsl-backend/` and `dsl-teacher-dashboard/`, their own `CLAUDE.md`
+- Inside `dsl-backend/`, `dsl-teacher-dashboard/` and `dsl-mobile/`, their own `CLAUDE.md`
   (which imports `AGENTS.md`) takes precedence for package-specific rules: stack,
   structure, coding conventions, verification discipline.
 - **One exception:** `dsl-teacher-dashboard/CLAUDE.md` calls the backend
@@ -74,6 +74,8 @@ cd dsl-teacher-dashboard && npm install && npm run dev  # Vite on :5173
 ```
 
 Build and lint: `npm run build` in either package; `npm run lint` (oxlint) in the dashboard.
+Mobile: `flutter analyze && flutter test` in `dsl-mobile/`; run with
+`flutter run --dart-define-from-file=env/emulator.json` (see `dsl-mobile/CLAUDE.md`).
 The backend exits at startup if Mongo or MinIO is unreachable. For dev, a local MinIO
 can come from `docker compose up minio`.
 
@@ -103,12 +105,11 @@ can come from `docker compose up minio`.
 - New notes are linked from their section index (and the section index from
   `docs/00-index.md`).
 
-## Adding dsl-mobile
+## dsl-mobile
 
-- It gets its own `dsl-mobile/CLAUDE.md` for Flutter-specific rules, which takes
-  precedence inside that folder.
-- It must follow `[[api-contract]]` (`docs/contracts/api-contract.md`). Any API it
-  needs is added via the cross-cutting rule above.
-- Its notes go in `docs/mobile/`, starting from `docs/mobile/mobile-index.md`, which
-  lists the backend gaps to close first: published-only reads, student accounts,
-  progress endpoints.
+- `dsl-mobile/CLAUDE.md` holds the Flutter-specific rules and takes precedence
+  inside that folder.
+- It follows `[[api-contract]]` (`docs/contracts/api-contract.md`). Any API it
+  needs is added via the cross-cutting rule above, in the same slice.
+- Its notes are in `docs/mobile/`, starting from `docs/mobile/mobile-index.md`.
+  Build order and per-slice gates: `docs/mobile/mobile-roadmap.md`.

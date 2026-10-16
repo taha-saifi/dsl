@@ -6,7 +6,7 @@ updated: 2026-10-16
 ---
 # ADR: `dsl-mobile/` architecture
 
-Status: **accepted 2026-10-16** (application id `dev.ssuniverse.dsl`, Riverpod). Toolchain on the dev machine: Flutter 3.41.7 stable, Dart 3.11.5, JDK 21. Target: Android only. Features: [[00-feature-catalog]].
+Status: **accepted 2026-10-16** (application id `dev.ssuniverse.dsl`, Riverpod); **implemented in Slice 0** the same day. Toolchain on the dev machine: Flutter 3.41.7 stable, Dart 3.11.5, JDK 21. Target: Android only. Features: [[00-feature-catalog]].
 
 ## Decisions
 | Area | Choice | Rejected | Why |
@@ -43,6 +43,13 @@ Status: **accepted 2026-10-16** (application id `dev.ssuniverse.dsl`, Riverpod).
 
 **Root `CLAUDE.md`:** add `dsl-mobile/` to the package table, and Flutter commands to "Build and lint".
 
-> [!todo] Unverified: the Android SDK location and emulator image on this machine weren't checked (`flutter doctor` runs in Slice 0). The application id can't change after a Play Store release.
+## Added while implementing Slice 0
+- **Riverpod 3 retries failing providers automatically**; the app turns that off (`ProviderScope(retry: noAutomaticRetry)`) so errors show at once with "Try again".
+- **`/health` is enveloped** like every other route (`{data:{status}}`), so `ApiClient` has no raw/unwrapped path.
+- **Gradle is capped at 3 GB** (`android/gradle.properties`; the Flutter template asks for 8 GB, which got the emulator OOM-killed on a 16 GB machine). The emulator AVD is `dsl_pixel_api34` (Pixel 6, API 34, `-memory 1536`).
+- Inter ships as **static weights** (400–800) rather than the variable font, so `FontWeight` maps directly.
+- **API 24–25 launcher icon:** those versions show the logo on a Midnight Ink tile (`assets/branding/icon_legacy.png`). Android 8+ uses an adaptive icon: the logo over an Ink background.
+
+The application id can't change after a Play Store release.
 
 Back to [[decisions-index]] · [[mobile-index]].

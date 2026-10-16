@@ -18,8 +18,8 @@ One slice at a time: **backend → dashboard → mobile → vault**, then the ga
   - then a manual run on the emulator (`flutter run --dart-define-from-file=env/emulator.json`) against the docker stack
 - **Vault:** listed notes updated with new `updated:` dates, and no broken wikilinks.
 
-## Slice 0: scaffold
-Not a feature; nothing in the API changes.
+## Slice 0: scaffold ✅ done 2026-10-16
+Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/health` through `ApiClient` shows `ok` via `10.0.2.2`; with the API stopped the System check shows the error state and recovers on "Try again"; the design-system screen matches the DS boards (background verified `#1E1B4B`). `flutter analyze` 0 issues, 16 tests pass. Figma: 1 call (logo, cached as `docs/assets/mobile-screens/_logo.png`).
 - **Mobile:**
   - Run `flutter doctor` (upgrade Flutter if needed), then `flutter create --org dev.ssuniverse --project-name dsl dsl-mobile`, which gives `applicationId dev.ssuniverse.dsl`. Set `minSdk 24` and portrait only.
   - Add the folder layout, `analysis_options.yaml`, and the dependencies from the ADR.

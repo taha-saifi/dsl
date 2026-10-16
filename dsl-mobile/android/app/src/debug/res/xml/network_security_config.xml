@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only: the local API runs over plain HTTP (emulator 10.0.2.2,
+     or the dev machine's LAN IP from a phone). Release builds keep Android's
+     default, which blocks cleartext traffic. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
