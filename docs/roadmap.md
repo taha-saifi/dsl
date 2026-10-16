@@ -15,6 +15,7 @@ updated: 2026-10-16
 - **Mobile Slice 2** (2026-10-16): onboarding. `PATCH /auth/me` with `User.preferences`, `GET /learn/specializations` and `/learn/languages`; three app steps shown until preferences are saved ([[feat-onboarding-and-preferences]]).
 - **Mobile Slice 3** (2026-10-16): published-content API. `/learn/courses`, `/learn/courses/:id`, `/learn/units/:id` show only content published all the way down; authoring GETs teacher-only; media URLs built from the current endpoint ([[feat-published-content-api]]).
 - **Mobile Slice 4** (2026-10-16): catalog and enrollment. `enrollments` collection, enroll/unenroll and `/learn/me/courses`; app Courses tab, Course Details and Home ([[feat-catalog-and-enrollment]]).
+- **Mobile Slice 5** (2026-10-16): unit overview. `questionTypes` on unit exercises; app Unit Details and Exercise Intro ([[feat-unit-and-exercise-overview]]).
 - **Monorepo**: compose stack (Mongo, MinIO, backend, frontend); knowledge vault (this folder).
 
 ## Outstanding

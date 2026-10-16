@@ -39,7 +39,8 @@ interface EnrolledCourse extends CourseSummary { progress: null }   // GET /lear
 interface Enrollment { _id: string; studentId: string; courseId: string; enrolledAt: string; completedAt?: string; __v: number }
 interface CourseDetail extends CourseSummary { units: { _id: string; name: string; orderIndex: number; exerciseCount: number }[] }  // by orderIndex
 interface UnitDetail { _id: string; courseId: string; courseName: string; name: string; orderIndex: number;
-  exercises: { _id: string; name: string; orderIndex: number; questionCount: number }[] }  // by orderIndex
+  exercises: { _id: string; name: string; orderIndex: number; questionCount: number;
+    questionTypes: QuestionType[] }[] }  // by orderIndex; questionTypes distinct, in order of first appearance (exercises are mixed-type)
 interface Specialization { name: string; slug: string; iconUrl?: string; createdAt }
 interface Course { specializationId: string; thumbnailMediaId?: string; name: string;
   sourceLanguage: string; targetLanguage: string; description?: string; isPublished: boolean; createdAt; updatedAt }

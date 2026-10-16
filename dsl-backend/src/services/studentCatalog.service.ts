@@ -29,6 +29,8 @@ interface VisibleExercise {
   name: string;
   orderIndex: number;
   questionCount: number;
+  /** Distinct, in the order they first appear (by question `orderIndex`). */
+  questionTypes: string[];
 }
 
 interface VisibleUnit {
@@ -58,21 +60,31 @@ const loadVisibleCourses = async (filter: QueryFilter<ICourse>): Promise<Visible
   const exercises = await Exercise.find({ unitId: { $in: units.map((u) => u._id) }, isPublished: true })
     .select("unitId name orderIndex")
     .lean();
-  const questionCounts = await Question.aggregate<{ _id: Types.ObjectId; count: number }>([
+  // Exercises are mixed-type, so collect each one's types in question order.
+  const questionStats = await Question.aggregate<{ _id: Types.ObjectId; count: number; types: string[] }>([
     { $match: { exerciseId: { $in: exercises.map((e) => e._id) } } },
-    { $group: { _id: "$exerciseId", count: { $sum: 1 } } },
+    { $sort: { orderIndex: 1, _id: 1 } },
+    { $group: { _id: "$exerciseId", count: { $sum: 1 }, types: { $push: "$type" } } },
   ]);
-  const countByExercise = new Map(questionCounts.map((q) => [q._id.toString(), q.count]));
+  const statsByExercise = new Map(
+    questionStats.map((q) => [q._id.toString(), { count: q.count, types: [...new Set(q.types)] }]),
+  );
 
   const exercisesByUnit = new Map<string, VisibleExercise[]>();
   for (const exercise of exercises) {
-    const questionCount = countByExercise.get(exercise._id.toString()) ?? 0;
-    if (questionCount === 0) {
+    const stats = statsByExercise.get(exercise._id.toString());
+    if (!stats || stats.count === 0) {
       continue;
     }
     const key = exercise.unitId.toString();
     const list = exercisesByUnit.get(key) ?? [];
-    list.push({ _id: exercise._id, name: exercise.name, orderIndex: exercise.orderIndex, questionCount });
+    list.push({
+      _id: exercise._id,
+      name: exercise.name,
+      orderIndex: exercise.orderIndex,
+      questionCount: stats.count,
+      questionTypes: stats.types,
+    });
     exercisesByUnit.set(key, list);
   }
 

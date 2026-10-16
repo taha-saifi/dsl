@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'question_type.dart';
+
 part 'learn_models.freezed.dart';
 part 'learn_models.g.dart';
 
@@ -97,6 +99,12 @@ abstract class ExerciseSummary with _$ExerciseSummary {
     required String name,
     required int orderIndex,
     required int questionCount,
+
+    /// Distinct types in the order they first appear; exercises are
+    /// mixed-type.
+    @JsonKey(unknownEnumValue: QuestionType.unknown)
+    @Default(<QuestionType>[])
+    List<QuestionType> questionTypes,
   }) = _ExerciseSummary;
 
   factory ExerciseSummary.fromJson(Map<String, dynamic> json) =>

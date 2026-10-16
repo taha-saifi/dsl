@@ -9,14 +9,14 @@
     "targetLanguage": "fr",
     "thumbnailUrl": "http://localhost:9000/dsl-media/8ea82f09-12d2-42eb-b037-03d8322054aa.png",
     "unitCount": 1,
-    "exerciseCount": 2,
+    "exerciseCount": 3,
     "isEnrolled": false,
     "units": [
       {
         "_id": "6ad28f21dcbfbc7ecf3f1a96",
         "name": "A1 Published unit",
         "orderIndex": 0,
-        "exerciseCount": 2
+        "exerciseCount": 3
       }
     ]
   }

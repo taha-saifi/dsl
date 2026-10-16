@@ -18,6 +18,8 @@ import '../../features/onboarding/presentation/domain_step_screen.dart';
 import '../../features/onboarding/presentation/language_step_screen.dart';
 import '../../features/onboarding/presentation/profile_step_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/unit/presentation/exercise_intro_screen.dart';
+import '../../features/unit/presentation/unit_details_screen.dart';
 import '../auth/auth_controller.dart';
 import '../widgets/dsl_bottom_nav.dart';
 import '../widgets/placeholder_screen.dart';
@@ -107,6 +109,25 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (_, state) => CourseDetailsScreen(
                       courseId: state.pathParameters['courseId']!,
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'units/:unitId',
+                        builder: (_, state) => UnitDetailsScreen(
+                          courseId: state.pathParameters['courseId']!,
+                          unitId: state.pathParameters['unitId']!,
+                        ),
+                        routes: [
+                          GoRoute(
+                            path: 'exercises/:exerciseId',
+                            builder: (_, state) => ExerciseIntroScreen(
+                              courseId: state.pathParameters['courseId']!,
+                              unitId: state.pathParameters['unitId']!,
+                              exerciseId: state.pathParameters['exerciseId']!,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),

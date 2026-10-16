@@ -1415,7 +1415,9 @@ $CourseSummaryCopyWith<$Res> get course {
 /// @nodoc
 mixin _$ExerciseSummary {
 
-@JsonKey(name: '_id') String get id; String get name; int get orderIndex; int get questionCount;
+@JsonKey(name: '_id') String get id; String get name; int get orderIndex; int get questionCount;/// Distinct types in the order they first appear; exercises are
+/// mixed-type.
+@JsonKey(unknownEnumValue: QuestionType.unknown) List<QuestionType> get questionTypes;
 /// Create a copy of ExerciseSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1428,16 +1430,16 @@ $ExerciseSummaryCopyWith<ExerciseSummary> get copyWith => _$ExerciseSummaryCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExerciseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.orderIndex, orderIndex) || other.orderIndex == orderIndex)&&(identical(other.questionCount, questionCount) || other.questionCount == questionCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ExerciseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.orderIndex, orderIndex) || other.orderIndex == orderIndex)&&(identical(other.questionCount, questionCount) || other.questionCount == questionCount)&&const DeepCollectionEquality().equals(other.questionTypes, questionTypes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,orderIndex,questionCount);
+int get hashCode => Object.hash(runtimeType,id,name,orderIndex,questionCount,const DeepCollectionEquality().hash(questionTypes));
 
 @override
 String toString() {
-  return 'ExerciseSummary(id: $id, name: $name, orderIndex: $orderIndex, questionCount: $questionCount)';
+  return 'ExerciseSummary(id: $id, name: $name, orderIndex: $orderIndex, questionCount: $questionCount, questionTypes: $questionTypes)';
 }
 
 
@@ -1448,7 +1450,7 @@ abstract mixin class $ExerciseSummaryCopyWith<$Res>  {
   factory $ExerciseSummaryCopyWith(ExerciseSummary value, $Res Function(ExerciseSummary) _then) = _$ExerciseSummaryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String name, int orderIndex, int questionCount
+@JsonKey(name: '_id') String id, String name, int orderIndex, int questionCount,@JsonKey(unknownEnumValue: QuestionType.unknown) List<QuestionType> questionTypes
 });
 
 
@@ -1465,13 +1467,14 @@ class _$ExerciseSummaryCopyWithImpl<$Res>
 
 /// Create a copy of ExerciseSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? orderIndex = null,Object? questionCount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? orderIndex = null,Object? questionCount = null,Object? questionTypes = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,orderIndex: null == orderIndex ? _self.orderIndex : orderIndex // ignore: cast_nullable_to_non_nullable
 as int,questionCount: null == questionCount ? _self.questionCount : questionCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,questionTypes: null == questionTypes ? _self.questionTypes : questionTypes // ignore: cast_nullable_to_non_nullable
+as List<QuestionType>,
   ));
 }
 
@@ -1556,10 +1559,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String name,  int orderIndex,  int questionCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String name,  int orderIndex,  int questionCount, @JsonKey(unknownEnumValue: QuestionType.unknown)  List<QuestionType> questionTypes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ExerciseSummary() when $default != null:
-return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount);case _:
+return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount,_that.questionTypes);case _:
   return orElse();
 
 }
@@ -1577,10 +1580,10 @@ return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String name,  int orderIndex,  int questionCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String name,  int orderIndex,  int questionCount, @JsonKey(unknownEnumValue: QuestionType.unknown)  List<QuestionType> questionTypes)  $default,) {final _that = this;
 switch (_that) {
 case _ExerciseSummary():
-return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount);case _:
+return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount,_that.questionTypes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1597,10 +1600,10 @@ return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String name,  int orderIndex,  int questionCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String name,  int orderIndex,  int questionCount, @JsonKey(unknownEnumValue: QuestionType.unknown)  List<QuestionType> questionTypes)?  $default,) {final _that = this;
 switch (_that) {
 case _ExerciseSummary() when $default != null:
-return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount);case _:
+return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount,_that.questionTypes);case _:
   return null;
 
 }
@@ -1612,13 +1615,24 @@ return $default(_that.id,_that.name,_that.orderIndex,_that.questionCount);case _
 @JsonSerializable()
 
 class _ExerciseSummary implements ExerciseSummary {
-  const _ExerciseSummary({@JsonKey(name: '_id') required this.id, required this.name, required this.orderIndex, required this.questionCount});
+  const _ExerciseSummary({@JsonKey(name: '_id') required this.id, required this.name, required this.orderIndex, required this.questionCount, @JsonKey(unknownEnumValue: QuestionType.unknown) final  List<QuestionType> questionTypes = const <QuestionType>[]}): _questionTypes = questionTypes;
   factory _ExerciseSummary.fromJson(Map<String, dynamic> json) => _$ExerciseSummaryFromJson(json);
 
 @override@JsonKey(name: '_id') final  String id;
 @override final  String name;
 @override final  int orderIndex;
 @override final  int questionCount;
+/// Distinct types in the order they first appear; exercises are
+/// mixed-type.
+ final  List<QuestionType> _questionTypes;
+/// Distinct types in the order they first appear; exercises are
+/// mixed-type.
+@override@JsonKey(unknownEnumValue: QuestionType.unknown) List<QuestionType> get questionTypes {
+  if (_questionTypes is EqualUnmodifiableListView) return _questionTypes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_questionTypes);
+}
+
 
 /// Create a copy of ExerciseSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -1633,16 +1647,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExerciseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.orderIndex, orderIndex) || other.orderIndex == orderIndex)&&(identical(other.questionCount, questionCount) || other.questionCount == questionCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ExerciseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.orderIndex, orderIndex) || other.orderIndex == orderIndex)&&(identical(other.questionCount, questionCount) || other.questionCount == questionCount)&&const DeepCollectionEquality().equals(other._questionTypes, _questionTypes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,orderIndex,questionCount);
+int get hashCode => Object.hash(runtimeType,id,name,orderIndex,questionCount,const DeepCollectionEquality().hash(_questionTypes));
 
 @override
 String toString() {
-  return 'ExerciseSummary(id: $id, name: $name, orderIndex: $orderIndex, questionCount: $questionCount)';
+  return 'ExerciseSummary(id: $id, name: $name, orderIndex: $orderIndex, questionCount: $questionCount, questionTypes: $questionTypes)';
 }
 
 
@@ -1653,7 +1667,7 @@ abstract mixin class _$ExerciseSummaryCopyWith<$Res> implements $ExerciseSummary
   factory _$ExerciseSummaryCopyWith(_ExerciseSummary value, $Res Function(_ExerciseSummary) _then) = __$ExerciseSummaryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String name, int orderIndex, int questionCount
+@JsonKey(name: '_id') String id, String name, int orderIndex, int questionCount,@JsonKey(unknownEnumValue: QuestionType.unknown) List<QuestionType> questionTypes
 });
 
 
@@ -1670,13 +1684,14 @@ class __$ExerciseSummaryCopyWithImpl<$Res>
 
 /// Create a copy of ExerciseSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? orderIndex = null,Object? questionCount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? orderIndex = null,Object? questionCount = null,Object? questionTypes = null,}) {
   return _then(_ExerciseSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,orderIndex: null == orderIndex ? _self.orderIndex : orderIndex // ignore: cast_nullable_to_non_nullable
 as int,questionCount: null == questionCount ? _self.questionCount : questionCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,questionTypes: null == questionTypes ? _self._questionTypes : questionTypes // ignore: cast_nullable_to_non_nullable
+as List<QuestionType>,
   ));
 }
 

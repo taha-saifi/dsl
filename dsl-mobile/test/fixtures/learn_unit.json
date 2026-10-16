@@ -10,13 +10,35 @@
         "_id": "6ad28f21dcbfbc7ecf3f1a98",
         "name": "A1 ex 1 (published)",
         "orderIndex": 0,
-        "questionCount": 2
+        "questionCount": 2,
+        "questionTypes": [
+          "typing"
+        ]
       },
       {
         "_id": "6ad28f21dcbfbc7ecf3f1a97",
         "name": "A1 ex 2 (published)",
         "orderIndex": 1,
-        "questionCount": 1
+        "questionCount": 1,
+        "questionTypes": [
+          "typing"
+        ]
+      },
+      {
+        "_id": "6ad295274c24c8b9343a5c7f",
+        "name": "Organs: mixed practice",
+        "orderIndex": 4,
+        "questionCount": 8,
+        "questionTypes": [
+          "choose_picture",
+          "multiple_choice",
+          "listening_transcribe",
+          "listening_select",
+          "typing",
+          "fill_blank",
+          "arrange_sentence",
+          "matching"
+        ]
       }
     ]
   }

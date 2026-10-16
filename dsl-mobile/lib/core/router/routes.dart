@@ -24,6 +24,16 @@ abstract final class Routes {
   /// Course Details, inside the Courses tab.
   static String course(String id) => '$courses/$id';
 
+  /// Unit Details and Exercise Intro, nested under their course.
+  static String unit(String courseId, String unitId) =>
+      '${course(courseId)}/units/$unitId';
+
+  static String exerciseIntro(
+    String courseId,
+    String unitId,
+    String exerciseId,
+  ) => '${unit(courseId, unitId)}/exercises/$exerciseId';
+
   // Debug-only developer screens.
   static const systemCheck = '/dev/system-check';
   static const designSystem = '/dev/design-system';

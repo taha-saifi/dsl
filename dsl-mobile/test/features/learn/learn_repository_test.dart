@@ -1,6 +1,7 @@
 import 'package:dsl/core/api/api_client.dart';
 import 'package:dsl/core/api/api_exception.dart';
 import 'package:dsl/features/learn/data/learn_repository.dart';
+import 'package:dsl/features/learn/data/question_type.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fake_adapter.dart';
@@ -32,7 +33,7 @@ void main() {
       expect(course.name, 'S3 Full Course 4zjs');
       expect(course.targetLanguage, 'fr');
       expect(course.unitCount, 1);
-      expect(course.exerciseCount, 2);
+      expect(course.exerciseCount, 3);
       expect(course.thumbnailUrl, startsWith('http://localhost:9000/'));
     });
 
@@ -69,7 +70,7 @@ void main() {
       expect(detail.course.name, 'S3 Full Course 4zjs');
       expect(detail.course.description, 'S3 Full Course 4zjs description');
       expect(detail.units.single.name, 'A1 Published unit');
-      expect(detail.units.single.exerciseCount, 2);
+      expect(detail.units.single.exerciseCount, 3);
     },
   );
 
@@ -85,6 +86,17 @@ void main() {
     expect(unit.exercises.map((e) => (e.name, e.questionCount)), [
       ('A1 ex 1 (published)', 2),
       ('A1 ex 2 (published)', 1),
+      ('Organs: mixed practice', 8),
+    ]);
+    expect(unit.exercises.last.questionTypes, [
+      QuestionType.choosePicture,
+      QuestionType.multipleChoice,
+      QuestionType.listeningTranscribe,
+      QuestionType.listeningSelect,
+      QuestionType.typing,
+      QuestionType.fillBlank,
+      QuestionType.arrangeSentence,
+      QuestionType.matching,
     ]);
   });
 

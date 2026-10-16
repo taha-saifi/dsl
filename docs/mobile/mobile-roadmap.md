@@ -84,6 +84,22 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - 80 tests pass. Figma: 1 call (Catalog `62:5`, `catalog.png`).
 - Fixed while building: a course thumbnail inside the card's intrinsic-height row would have crashed layout (`height: infinity`); it now overlays the letter tile.
 
+## Slice 5: unit overview ✅ done 2026-10-16
+**Gates passed.**
+- curl, 9/9, on the seeded 8-type exercise "Organs: mixed practice":
+  - `questionCount` 8 and `questionTypes` list all 8 types in question order, matching what the teacher API stores;
+  - a repeated type is listed once;
+  - after a teacher reorders the questions, the type order follows; it was restored afterwards;
+  - no answer material in the response;
+  - course counts include the new exercise.
+- Emulator:
+  - enroll → Continue Learning → Unit Details lists the 3 exercises in order with type summaries ("Choose picture · Multiple choice · +6") and question counts;
+  - the mixed exercise's Intro shows "MIXED PRACTICE", 8 questions, 8 types and one chip per type;
+  - "I'll do this later" returns to the unit.
+- 86 tests pass. Figma: 0 calls.
+- Fixed while building: `DslBadge` overflowed with long labels; it now ellipsizes.
+- Start Exercise is shown disabled until the player exists (Slice 6).
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
@@ -91,7 +107,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 | 2 ✅ | [[feat-onboarding-and-preferences]] | 📜 | `PATCH /auth/me` with `preferences`; `GET /learn/languages` | — | Domain → Language → Profile Setup; router redirect while preferences are unset |
 | 3 ✅ | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
 | 4 ✅ | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
-| 5 | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
+| 5 ✅ | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
 | 6 | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
 | 7 | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
 | 8 | [[feat-learning-progress]] | 📜 | progress, `nextExerciseId`, per-exercise status and best score, computed from sessions | — | progress bars and rings, Done badges, Continue targets |

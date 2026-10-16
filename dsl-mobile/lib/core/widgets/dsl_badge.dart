@@ -71,11 +71,17 @@ class DslBadge extends StatelessWidget {
             Icon(icon, size: 14, color: foreground),
             const SizedBox(width: AppSpacing.xs),
           ],
-          Text(
-            label,
-            style: context.type.caption.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w600,
+          // Long labels (unit and course names) ellipsize instead of
+          // overflowing a narrow screen.
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: context.type.caption.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

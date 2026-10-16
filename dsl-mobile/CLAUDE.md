@@ -5,7 +5,7 @@ client of the one DSL API. Inside this folder, this file takes precedence for
 Flutter-specific rules; the root `CLAUDE.md` still applies (API contract,
 vertical slices, never read `.env`/credential files, commit only when asked).
 
-**Status:** Slices 0–4 done (scaffold, student accounts, onboarding, published-content repository, catalog and enrollment). Build order, per-slice tasks and gates:
+**Status:** Slices 0–5 done (scaffold, student accounts, onboarding, published-content repository, catalog and enrollment, unit overview). Build order, per-slice tasks and gates:
 `docs/mobile/mobile-roadmap.md`. Features and decisions:
 `docs/mobile/features/00-feature-catalog.md`. Architecture and the reasons
 behind every choice below: `docs/decisions/mobile-architecture.md`.

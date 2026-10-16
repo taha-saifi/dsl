@@ -19,7 +19,7 @@ Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** =
 | GET | `/learn/languages` | R | `?specializationId` (404 if unknown) | 200 `LanguageSummary[]` (most courses first) |
 | GET | `/learn/courses` | R | `?specializationId`, `?targetLanguage` (2-letter), `?search` (case-insensitive, literal, ≤100 chars); newest first | 200 `CourseSummary[]` |
 | GET | `/learn/courses/:id` | R | — (404 `COURSE_NOT_FOUND` unless visible) | 200 `CourseDetail` |
-| GET | `/learn/units/:id` | R | — (404 `UNIT_NOT_FOUND` unless visible) | 200 `UnitDetail` |
+| GET | `/learn/units/:id` | R | — (404 `UNIT_NOT_FOUND` unless visible) | 200 `UnitDetail` (exercises carry `questionCount` and `questionTypes`) |
 | POST | `/learn/courses/:id/enroll` | S | — (404 unless visible; idempotent) | **201** new / 200 existing `Enrollment` |
 | DELETE | `/learn/courses/:id/enroll` | S | — (idempotent) | 200 `{id: courseId}` |
 | GET | `/learn/me/courses` | S | — (visible enrolled courses, most recently enrolled first) | 200 `EnrolledCourse[]` |

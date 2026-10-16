@@ -102,6 +102,17 @@ _ExerciseSummary _$ExerciseSummaryFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       orderIndex: (json['orderIndex'] as num).toInt(),
       questionCount: (json['questionCount'] as num).toInt(),
+      questionTypes:
+          (json['questionTypes'] as List<dynamic>?)
+              ?.map(
+                (e) => $enumDecode(
+                  _$QuestionTypeEnumMap,
+                  e,
+                  unknownValue: QuestionType.unknown,
+                ),
+              )
+              .toList() ??
+          const <QuestionType>[],
     );
 
 Map<String, dynamic> _$ExerciseSummaryToJson(_ExerciseSummary instance) =>
@@ -110,7 +121,22 @@ Map<String, dynamic> _$ExerciseSummaryToJson(_ExerciseSummary instance) =>
       'name': instance.name,
       'orderIndex': instance.orderIndex,
       'questionCount': instance.questionCount,
+      'questionTypes': instance.questionTypes
+          .map((e) => _$QuestionTypeEnumMap[e]!)
+          .toList(),
     };
+
+const _$QuestionTypeEnumMap = {
+  QuestionType.choosePicture: 'choose_picture',
+  QuestionType.multipleChoice: 'multiple_choice',
+  QuestionType.listeningSelect: 'listening_select',
+  QuestionType.typing: 'typing',
+  QuestionType.listeningTranscribe: 'listening_transcribe',
+  QuestionType.fillBlank: 'fill_blank',
+  QuestionType.arrangeSentence: 'arrange_sentence',
+  QuestionType.matching: 'matching',
+  QuestionType.unknown: 'unknown',
+};
 
 _UnitDetail _$UnitDetailFromJson(Map<String, dynamic> json) => _UnitDetail(
   id: json['_id'] as String,
