@@ -10,7 +10,7 @@ export const connectToDatabase = async (): Promise<void> => {
 
   try {
     await mongoose.connect(config.mongoDbUri);
-    console.log("MongoDB Atlas connected successfully.");
+    console.log("MongoDB connected successfully.");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown connection error";
     console.error(`MongoDB connection failed: ${message}`);

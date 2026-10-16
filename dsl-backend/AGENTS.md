@@ -286,17 +286,28 @@ The correct answer is **never** stored in `config`. It is always derived at runt
 
 `cors()` must explicitly allow `process.env.FRONTEND_URL` as an origin. Without this, the dashboard's fetch calls fail silently and look like the backend is down — check this first if the dashboard can't connect.
 
+## Deployment
+
+This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with `npm run build`; runner installs production deps only and runs `node dist/server.js`). `MONGODB_URI`, `MINIO_INTERNAL_ENDPOINT`, `MINIO_PUBLIC_ENDPOINT`, and the other `MINIO_*`/`JWT_SECRET`/`FRONTEND_URL` values are supplied via environment at container runtime (via Docker Compose in a later task) — never baked into the image. `.dockerignore` excludes `node_modules`, `dist`, `.env`, `.git`, and all `*.md` files (including `AGENTS.md`/`CLAUDE.md` — dev docs, not runtime files).
+
 ---
 
 ## Roadmap (this repo's slice of each phase)
 
-- [ ] **Phase 0 — Scaffolding** ← current phase
-- [ ] Phase 1 — Auth (register, login, JWT middleware)
-- [ ] Phase 2 — Specializations / Courses / Units CRUD
-- [ ] Phase 3 — Media upload endpoint (S3 or Cloudinary)
-- [ ] Phase 4 — Learning Items + Translations CRUD
-- [ ] Phase 5 — Exercises + Questions CRUD (all 8 types)
-- [ ] Phase 6 — Publish workflow, validation, permissions
+- [x] **Phase 0 — Scaffolding**
+- [x] Phase 1 — Auth (register, login, JWT middleware)
+- [x] Phase 2 — Specializations / Courses / Units CRUD
+  - Note: the Unit↔Exercise dependent-delete guard (reject deleting a unit while exercises reference it) was missing from the original Phase 2 implementation and was added later, once Phase 5 introduced Exercises.
+- [x] Phase 3 — Media upload endpoint (MinIO, local S3-compatible)
+  - Note: Media originally shipped with only upload/getById/remove — a GET /api/media list endpoint (optional ?type= filter, newest-first) was added later for the dashboard's media picker.
+  - Note: originally built against Cloudinary, later migrated to a self-hosted MinIO bucket (S3-compatible) — same upload validation, URL/delete contract, and "don't delete the DB record if storage deletion fails" rule, only the storage backend changed. `Media.storageKey` (formerly `cloudinaryPublicId`) holds the object key; `ensureBucketExists()` in `config/storage.ts` creates the bucket with a public-read policy on server startup.
+- [x] Phase 4a — Learning Items + Translations
+- [x] Phase 4b — Unit learning-item attachments
+- [x] Phase 5 — Exercises + Questions CRUD (all 8 types)
+  - Note: Exercise originally shipped without a reorder endpoint — PATCH /api/exercises/reorder was added later, mirroring Question's reorder (including its cross-parent unitId scope check).
+- [x] Phase 6 — Publish workflow, validation, permissions
+  - Publish-readiness gating: POST/PATCH on Exercise, Unit, and Course reject `isPublished: true` with 409 (`EXERCISE_HAS_NO_QUESTIONS`, `UNIT_HAS_NO_PUBLISHED_EXERCISE`, `COURSE_HAS_NO_PUBLISHED_UNIT`) unless the resource already has a qualifying published/existing child — see `ensureExerciseReadyToPublish` / `ensureUnitReadyToPublish` / `ensureCourseReadyToPublish` in `resourceDependencies.service.ts`. Setting `isPublished: false` is never gated.
+  - Permissions: `requireRole("teacher", "admin")` (`role.middleware.ts`, `FORBIDDEN_ROLE` / 403) is now applied to every mutating route (POST/PATCH/DELETE, including reorder/attach/detach) across every resource. GET routes remain `auth.middleware` only — any authenticated role can read. The one-off `requireRole` on Exercise's reorder route from the prior task is no longer a special case; it's now consistent with the rest of the API.
 
 ### Phase 0 definition of done
 
