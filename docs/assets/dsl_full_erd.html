@@ -1,0 +1,196 @@
+
+<style>
+#erd svg { width: 100%; height: auto; }
+#erd svg.erDiagram .divider path { stroke-opacity: 0.5; }
+#erd svg.erDiagram .row-rect-odd path,
+#erd svg.erDiagram .row-rect-odd rect,
+#erd svg.erDiagram .row-rect-even path,
+#erd svg.erDiagram .row-rect-even rect { stroke: none !important; }
+</style>
+<div id="erd" style="padding: 1rem 0; min-height: 400px;"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+
+const diagram = `erDiagram
+  USERS {
+    uuid id PK
+    varchar email
+    enum role
+    varchar first_name
+    timestamp created_at
+  }
+  SPECIALIZATIONS {
+    uuid id PK
+    varchar name
+    varchar slug
+  }
+  COURSES {
+    uuid id PK
+    uuid specialization_id FK
+    uuid thumbnail_media_id FK
+    varchar name
+    char source_language
+    char target_language
+    boolean is_published
+  }
+  UNITS {
+    uuid id PK
+    uuid course_id FK
+    varchar name
+    int order_index
+    boolean is_published
+  }
+  MEDIA {
+    uuid id PK
+    uuid uploaded_by FK
+    enum type
+    varchar url
+    varchar mime_type
+  }
+  LEARNING_ITEMS {
+    uuid id PK
+    uuid created_by FK
+    uuid image_media_id FK
+    enum type
+  }
+  LEARNING_ITEM_TRANSLATIONS {
+    uuid id PK
+    uuid learning_item_id FK
+    uuid audio_media_id FK
+    char language
+    varchar text
+    varchar ipa
+  }
+  UNIT_LEARNING_ITEMS {
+    uuid unit_id FK
+    uuid learning_item_id FK
+    int order_index
+  }
+  EXERCISES {
+    uuid id PK
+    uuid unit_id FK
+    varchar name
+    int order_index
+    boolean is_published
+  }
+  QUESTIONS {
+    uuid id PK
+    uuid exercise_id FK
+    enum type
+    int order_index
+    jsonb config
+    int points
+  }
+  QUESTION_ITEMS {
+    uuid id PK
+    uuid question_id FK
+    uuid learning_item_id FK
+    enum role
+    int display_order
+  }
+  ENROLLMENTS {
+    uuid id PK
+    uuid student_id FK
+    uuid course_id FK
+    timestamp enrolled_at
+    timestamp completed_at
+  }
+  STUDENT_STATS {
+    uuid student_id PK
+    int total_xp
+    int current_streak
+    int hearts
+    date last_activity_date
+  }
+  UNIT_PROGRESS {
+    uuid id PK
+    uuid student_id FK
+    uuid unit_id FK
+    boolean is_unlocked
+    timestamp completed_at
+  }
+  EXERCISE_SESSIONS {
+    uuid id PK
+    uuid student_id FK
+    uuid exercise_id FK
+    timestamp started_at
+    int xp_earned
+    decimal accuracy
+  }
+  QUESTION_ATTEMPTS {
+    uuid id PK
+    uuid session_id FK
+    uuid question_id FK
+    boolean is_correct
+    int time_taken_ms
+  }
+
+  SPECIALIZATIONS ||--|{ COURSES : "has"
+  COURSES }o--o| MEDIA : "thumbnail"
+  COURSES ||--|{ UNITS : "has"
+  UNITS ||--|{ EXERCISES : "has"
+  UNITS ||--|{ UNIT_LEARNING_ITEMS : "contains"
+  LEARNING_ITEMS ||--|{ UNIT_LEARNING_ITEMS : "in"
+  LEARNING_ITEMS }o--o| MEDIA : "image"
+  LEARNING_ITEMS ||--|{ LEARNING_ITEM_TRANSLATIONS : "has"
+  LEARNING_ITEM_TRANSLATIONS }o--o| MEDIA : "audio"
+  EXERCISES ||--|{ QUESTIONS : "has"
+  QUESTIONS ||--|{ QUESTION_ITEMS : "has"
+  QUESTION_ITEMS }|--|| LEARNING_ITEMS : "references"
+  USERS ||--|{ ENROLLMENTS : "makes"
+  COURSES ||--|{ ENROLLMENTS : "in"
+  USERS ||--o| STUDENT_STATS : "has"
+  USERS ||--|{ UNIT_PROGRESS : "tracks"
+  UNITS ||--|{ UNIT_PROGRESS : "for"
+  USERS ||--|{ EXERCISE_SESSIONS : "starts"
+  EXERCISES ||--|{ EXERCISE_SESSIONS : "in"
+  EXERCISE_SESSIONS ||--|{ QUESTION_ATTEMPTS : "has"
+  QUESTIONS ||--|{ QUESTION_ATTEMPTS : "in"
+  USERS ||--|{ MEDIA : "uploads"
+  USERS ||--|{ LEARNING_ITEMS : "creates"`;
+
+try {
+  const { svg } = await mermaid.render('erd-svg', diagram);
+  document.getElementById('erd').innerHTML = svg;
+
+  document.querySelectorAll('#erd svg.erDiagram .node').forEach(node => {
+    const firstPath = node.querySelector('path[d]');
+    if (!firstPath) return;
+    const d = firstPath.getAttribute('d');
+    const nums = d.match(/-?[\d.]+/g)?.map(Number);
+    if (!nums || nums.length < 8) return;
+    const xs = [nums[0], nums[2], nums[4], nums[6]];
+    const ys = [nums[1], nums[3], nums[5], nums[7]];
+    const x = Math.min(...xs), y = Math.min(...ys);
+    const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', w); rect.setAttribute('height', h);
+    rect.setAttribute('rx', '8');
+    for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+      if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+    }
+    firstPath.replaceWith(rect);
+  });
+
+  document.querySelectorAll('#erd svg.erDiagram .row-rect-odd path, #erd svg.erDiagram .row-rect-even path').forEach(p => {
+    p.setAttribute('stroke', 'none');
+  });
+} catch (e) {
+  document.getElementById('erd').innerHTML = '<p style="color:var(--text-secondary);padding:1rem">Could not render diagram. ' + e.message + '</p>';
+}
+</script>
