@@ -1,7 +1,7 @@
 ---
 type: component
 scope: dashboard
-sources: [dsl-teacher-dashboard/src/App.tsx, dsl-teacher-dashboard/src/components/layout/AppShell.tsx, dsl-teacher-dashboard/src/components/ProtectedRoute.tsx, dsl-teacher-dashboard/src/components/RequireTeacherRole.tsx, dsl-teacher-dashboard/src/pages]
+sources: [dsl-teacher-dashboard/src/App.tsx, dsl-teacher-dashboard/src/components/layout/AppShell.tsx, dsl-teacher-dashboard/src/components/ProtectedRoute.tsx, dsl-teacher-dashboard/src/components/RequireTeacherRole.tsx, dsl-teacher-dashboard/src/components/RequireAdminRole.tsx, dsl-teacher-dashboard/src/pages]
 updated: 2026-10-16
 ---
 # Routing and pages
@@ -12,7 +12,7 @@ updated: 2026-10-16
 /login                       RedirectIfAuthenticated > LoginPage
 <ProtectedRoute>             no user → /login (token + connectionError → render anyway)
   <RequireTeacherRole>       student → "teachers only" + Logout
-    <AppShell>               sidebar: Dashboard · Specializations · Learning Items; topbar: email + Logout
+    <AppShell>               sidebar: Dashboard · Specializations · Learning Items (+ Users for admins); topbar: email + Logout
       /                                   DashboardHomePage
       /specializations                    SpecializationsPage
       /specializations/:specializationId/courses   CoursesPage
@@ -21,6 +21,8 @@ updated: 2026-10-16
       /learning-items                     LearningItemsPage
       /learning-items/:learningItemId     LearningItemDetailPage
       /exercises/:exerciseId              ExerciseDetailPage
+      <RequireAdminRole>                  not admin → /
+        /users                            UsersPage
 ```
 There's no catch-all 404 route. Users navigate down the hierarchy; detail pages fetch their parents for breadcrumbs.
 
@@ -36,6 +38,7 @@ There's no catch-all 404 route. Users navigate down the hierarchy; detail pages 
 | LearningItemsPage + LearningItemFormDialog | list (`?type`, debounced `?search`), create, update, delete, `GET /media/:id` per thumbnail |
 | LearningItemDetailPage + TranslationFormDialog | `GET /learning-items/:id`, add, update, and remove translations, delete item, `GET /media/:id` |
 | ExerciseDetailPage + QuestionFormDialog | `GET /exercises/:id` → unit → course; questions by `?exerciseId`; create, update, delete, reorder; exercise publish/delete; `GET /learning-items/:id` |
+| UsersPage + StaffUserFormDialog + ResetPasswordDialog (admin) | `GET /admin/users?role=`, `POST /admin/users`, `PATCH /admin/users/:id/password` |
 | MediaPicker / MediaAttachField | `GET /media?type`, `POST /media/upload`, `GET /media/:id` |
 | AttachLearningItemDialog (also used by TargetItemField) | `GET /learning-items`, `GET /media/:id` |
 

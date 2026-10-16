@@ -1,19 +1,22 @@
 ---
 type: component
 scope: backend
-sources: [dsl-backend/src/app.ts, dsl-backend/src/routes/auth.routes.ts, dsl-backend/src/routes/specializations.routes.ts, dsl-backend/src/routes/courses.routes.ts, dsl-backend/src/routes/units.routes.ts, dsl-backend/src/routes/media.routes.ts, dsl-backend/src/routes/learningItem.routes.ts, dsl-backend/src/routes/exercise.routes.ts, dsl-backend/src/routes/question.routes.ts, dsl-backend/src/routes/health.routes.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/routes/auth.routes.ts, dsl-backend/src/routes/adminUsers.routes.ts, dsl-backend/src/routes/specializations.routes.ts, dsl-backend/src/routes/courses.routes.ts, dsl-backend/src/routes/units.routes.ts, dsl-backend/src/routes/media.routes.ts, dsl-backend/src/routes/learningItem.routes.ts, dsl-backend/src/routes/exercise.routes.ts, dsl-backend/src/routes/question.routes.ts, dsl-backend/src/routes/health.routes.ts]
 updated: 2026-10-16
 ---
 # API endpoints
 
-Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** = teacher or admin ([[auth-and-roles]]). Every success response is `{data: …}`. **Deletes return 200 `{data:{id}}`**, not 204. Body shapes are defined in [[api-contract]].
+Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** = teacher or admin, **A** = admin only ([[auth-and-roles]]). Every success response is `{data: …}`. **Deletes return 200 `{data:{id}}`**, not 204. Body shapes are defined in [[api-contract]].
 
 | Method | Path | Role | Body / query | Success |
 |---|---|---|---|---|
 | GET | `/health` | P | — | 200 `{status:"ok"}` |
-| POST | `/auth/register` | P | `{email,password,firstName?,lastName?}` | 201 `{token,user}` |
+| POST | `/auth/register` | P | `{email,password (≥8),firstName,lastName,acceptedTerms?}`, always creates a **student** | 201 `{token,user}` |
 | POST | `/auth/login` | P | `{email,password}` | 200 `{token,user}` |
 | GET | `/auth/me` | R | — | 200 `User` |
+| GET | `/admin/users` | A | `?role=teacher,admin` (comma list; omitted = every role; newest first) | 200 `User[]` |
+| POST | `/admin/users` | A | `{email,password (≥8),firstName,lastName,role:"teacher"\|"admin"}` | 201 `User` |
+| PATCH | `/admin/users/:id/password` | A | `{password (≥8)}` | 200 `User` |
 | GET | `/specializations` | R | — (sorted by name) | 200 `Specialization[]` |
 | GET | `/specializations/:id` | R | — | 200 |
 | POST | `/specializations` | T | `{name, slug?, iconUrl?}` | 201 |

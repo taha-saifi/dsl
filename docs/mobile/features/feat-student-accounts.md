@@ -21,7 +21,7 @@ A student creates an account, signs in, stays signed in, and signs out.
 - A teacher or admin who logs into the app sees a "students only" screen. This mirrors the dashboard's `RequireTeacherRole`.
 
 ## Backend changes
-- **Breaking (behavior):** `POST /auth/register` creates **students**. `User.role` default becomes `"student"`. This fixes [[known-mismatches]] #12.
+- **Breaking (behavior):** `POST /auth/register` creates **students**. `User.role` default becomes `"student"`. This fixed the old known mismatch "anyone who registers becomes a teacher".
   - The dashboard has no register page, so nothing there breaks.
   - Teachers and admins need another way in (see questions).
 - **Additive:** password validation, minimum 8 characters (the Figma helper text), as 400 `VALIDATION_ERROR`.
@@ -38,6 +38,13 @@ A student creates an account, signs in, stays signed in, and signs out.
 ## Dashboard changes
 - Admin-only **Users** page: list teachers and admins, add a teacher, reset a password. It's hidden for teachers.
 - `RequireTeacherRole` already blocks students.
+
+## Built (2026-10-16)
+Slice 1 shipped as described above, with these details settled while building:
+- Register **requires** `firstName` and `lastName` and checks the email format; a `role` in the body is ignored.
+- `GET /admin/users?role=` takes a comma list (`teacher,admin`); omitted = every role. Admins can reset any user's password, students included.
+- First admin: `npm run create-admin` in `dsl-backend/` ([[user]]).
+- App: a 401 on any call with a token signs the student out to Sign In ("Your session has ended"); offline at launch shows a retry screen and keeps the token ([[auth-and-roles]]). The "Step 1 of 4" bar from Figma waits for onboarding (Slice 2).
 
 ## Decisions (2026-10-16)
 - Q1 → **An admin-only endpoint lets an admin add teachers** (and other admins). The first admin comes from a seed script.

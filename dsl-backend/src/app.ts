@@ -3,6 +3,7 @@ import express from "express";
 
 import { config } from "./config/config";
 import { errorHandler } from "./middleware/error.middleware";
+import adminUsersRouter from "./routes/adminUsers.routes";
 import authRouter from "./routes/auth.routes";
 import coursesRouter from "./routes/courses.routes";
 import exercisesRouter from "./routes/exercise.routes";
@@ -19,6 +20,7 @@ app.use(cors({ origin: config.frontendUrl }));
 app.use(express.json());
 app.use("/api/health", healthRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/admin/users", adminUsersRouter);
 app.use("/api/specializations", specializationsRouter);
 app.use("/api/courses", coursesRouter);
 app.use("/api/units", unitsRouter);

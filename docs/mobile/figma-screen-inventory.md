@@ -81,6 +81,6 @@ Color Tokens `52:5`, Typography `52:39`, Spacing `52:67`, Elevation `52:101`, Gr
 - Sign Up says "Step 1 of 4"; onboarding says "Step 1 of 3" (4 in total, numbered inconsistently).
 - Fill in Blank shows 4 choices; `fill_blank` has no distractors (see [[figma-question-screens]]).
 
-Logo: `122:335` (tile) / `91:14` (image fill, 500×500 PNG), cached as `docs/assets/mobile-screens/_logo.png` and `_logo-tile.png` (Slice 0, 1 call).
+Logo: `122:335` (tile) / `91:14` (image fill, 500×500 PNG), cached as `docs/assets/mobile-screens/_logo.png` and `_logo-tile.png` (Slice 0, 1 call). Splash `55:5` screenshot cached as `auth_splash.png` (Slice 1, 1 call); Login and Sign Up were built from the metadata and the DS boards.
 
 Back to [[mobile-index]] · capabilities: [[backend-capability-map]].

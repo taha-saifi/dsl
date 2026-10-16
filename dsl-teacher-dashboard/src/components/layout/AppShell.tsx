@@ -8,6 +8,8 @@ const NAV_LINKS = [
   { to: "/learning-items", label: "Learning Items", end: false },
 ];
 
+const ADMIN_NAV_LINKS = [{ to: "/users", label: "Users", end: false }];
+
 export default function AppShell() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ export default function AppShell() {
           DSL Dashboard
         </div>
         <nav className="flex flex-col gap-1 px-2">
-          {NAV_LINKS.map((link) => (
+          {[...NAV_LINKS, ...(user?.role === "admin" ? ADMIN_NAV_LINKS : [])].map((link) => (
             <NavLink
               key={link.to}
               to={link.to}

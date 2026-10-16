@@ -4,7 +4,11 @@ export interface User {
   role: "admin" | "teacher" | "student";
   firstName: string;
   lastName: string;
+  termsAcceptedAt?: string;
+  createdAt?: string;
 }
+
+export type UserRole = User["role"];
 
 export interface Specialization {
   _id: string;

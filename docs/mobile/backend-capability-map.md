@@ -15,7 +15,8 @@ What the API gives a student today, checked against the code on 2026-10-16. Scre
 |---|---|---|
 | `GET /health` | P | ✅ as-is |
 | `POST /auth/login`, `GET /auth/me` | P / R | ✅ as-is |
-| `POST /auth/register` | P | ⚠️ needs a variant: always creates a **teacher**, no role field, no password rule (Figma: min 8) |
+| `POST /auth/register` | P | ✅ creates a **student**, password ≥ 8, names required (Slice 1) |
+| `/admin/users` | A | admin-only staff accounts and password resets (Slice 1) |
 | `GET /specializations`, `/:id` | R | ✅ mostly (domain list); 🔶 needs published course counts for Domain/Language cards |
 | `GET /courses`, `/:id` | R | 🔶 needs a student variant: published only, plus enrollment and progress |
 | `GET /units`, `/:id` | R | 🔶 published only, plus progress and lock state; `learningItems[]` is teacher data |
@@ -34,7 +35,7 @@ Only what a Figma screen or the existing model calls for.
 
 | Capability | Needed by | Status today |
 |---|---|---|
-| Student accounts and role | Sign Up `55:68` | ❌ register → `teacher` ([[auth-and-roles]]); `role:"student"` exists in the enum only |
+| Student accounts and role | Sign Up `55:68` | ✅ built in Slice 1 ([[auth-and-roles]]) |
 | Google sign-in | Login `55:40` | ❌ designed in `AGENTS.md`, not built |
 | Forgot password | Login | ❌ none |
 | Onboarding profile: domain, language, goal, daily target, level | `57:5` `57:73` `57:132`, Settings | ❌ `User` has none of these |

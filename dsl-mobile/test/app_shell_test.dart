@@ -11,14 +11,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'helpers/test_api.dart';
+
 const _config = AppConfig(
   apiBaseUrl: 'http://api.test/api',
   environment: 'dev',
 );
 
-Widget _app({List<Override> overrides = const []}) => ProviderScope(
+/// The app with a signed-in student (stored token, `/auth/me` fixture).
+Widget _signedInApp() => ProviderScope(
   retry: noAutomaticRetry,
-  overrides: [appConfigProvider.overrideWithValue(_config), ...overrides],
+  overrides: TestApi(
+    (_) async => fixtureResponse('auth_me.json'),
+    token: 'stored',
+  ).overrides,
   child: const DslApp(),
 );
 
@@ -38,8 +44,10 @@ void main() {
   testWidgets('shell shows four tabs, no Practice, and switches tabs', (
     tester,
   ) async {
-    await tester.pumpWidget(_app());
+    await tester.pumpWidget(_signedInApp());
     await tester.pumpAndSettle();
+
+    expect(find.text('Hi, Sara'), findsOneWidget);
 
     for (final label in ['Home', 'Courses', 'Certs', 'Profile']) {
       expect(_navTab(label), findsOneWidget);

@@ -1,6 +1,7 @@
 import { HydratedDocument, model, Schema } from "mongoose";
 
-export type UserRole = "admin" | "teacher" | "student";
+export const USER_ROLES = ["admin", "teacher", "student"] as const;
+export type UserRole = (typeof USER_ROLES)[number];
 
 export interface IUser {
   email: string;
@@ -8,6 +9,7 @@ export interface IUser {
   role: UserRole;
   firstName?: string;
   lastName?: string;
+  termsAcceptedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,8 +30,8 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ["admin", "teacher", "student"],
-      default: "teacher",
+      enum: USER_ROLES,
+      default: "student",
     },
     firstName: {
       type: String,
@@ -38,6 +40,9 @@ const userSchema = new Schema<IUser>(
     lastName: {
       type: String,
       trim: true,
+    },
+    termsAcceptedAt: {
+      type: Date,
     },
   },
   {

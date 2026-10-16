@@ -5,7 +5,7 @@ client of the one DSL API. Inside this folder, this file takes precedence for
 Flutter-specific rules; the root `CLAUDE.md` still applies (API contract,
 vertical slices, never read `.env`/credential files, commit only when asked).
 
-**Status:** Slice 0 (scaffold) done. Build order, per-slice tasks and gates:
+**Status:** Slices 0 (scaffold) and 1 (student accounts) done. Build order, per-slice tasks and gates:
 `docs/mobile/mobile-roadmap.md`. Features and decisions:
 `docs/mobile/features/00-feature-catalog.md`. Architecture and the reasons
 behind every choice below: `docs/decisions/mobile-architecture.md`.
@@ -27,8 +27,9 @@ lib/
   main.dart, app.dart
   core/
     api/        ApiClient, ApiException, error messages, providers
+    auth/       AppUser, AuthRepository, AuthController (session state)
     config/     AppConfig (dart-defines)
-    router/     appRouterProvider, Routes
+    router/     appRouterProvider, Routes, authRedirect (the one guard)
     storage/    TokenStorage
     theme/      AppColors / AppTypography (ThemeExtensions), AppTheme, AppSpacing, AppRadii
     widgets/    DslButton, DslTextField, DslProgressBar, DslBadge, DslCard,
@@ -49,8 +50,10 @@ lib/
   `ApiException(failure, status, code, message)`. Show it with `ErrorView` /
   `describeError`. Server messages are shown as-is.
 - **Session rule:** only a genuine HTTP 401 on a request that carried a token
-  ends the session (`AuthInterceptor`). Network errors, timeouts, 403 and 5xx
-  keep the token and show a retryable error.
+  ends the session (`AuthInterceptor` → `AuthController` → Sign In). Network
+  errors, timeouts, 403 and 5xx keep the token and show a retryable error.
+- **Guards** live only in `core/router/auth_redirect.dart` (a pure function,
+  unit-tested); screens never navigate after sign-in/out, the redirect does.
 - **No automatic retries:** `ProviderScope(retry: noAutomaticRetry)`. Error
   states offer "Try again" (`ref.invalidate`).
 - **Every screen that loads data has loading, empty and error states.**

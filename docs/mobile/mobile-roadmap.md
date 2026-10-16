@@ -36,10 +36,18 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - **Vault:** [[mobile-index]] (no longer "planned"), [[runtime-and-deployment]] (emulator and device URLs), [[conventions-index]] (link the new CLAUDE.md). Mark the ADR implemented.
 - **Gates:** the app launches on the emulator. A debug "ping" calls `GET /health` through `ApiClient` and shows `ok`; with the API stopped it shows the error state, not a crash. The theme screen matches the Figma tokens.
 
+## Slice 1: student accounts ✅ done 2026-10-16
+**Gates passed.**
+- curl, 25/25: register → student, `termsAcceptedAt` set; a 7-character password, a missing name or a bad email → 400; duplicate → 409; `role` in the body is ignored; a student calling `POST /courses` or `/admin/users` → 403; a teacher calling `/admin/users` → 403; no token → 401; an admin creates a teacher, who can then sign in; the admin resets that password → the old one fails with 401 and the new one works; reset of an unknown id → 404 `USER_NOT_FOUND`.
+- Browser: the admin sees Users and adds a teacher (duplicate email shows the server message); after a reset the old password is refused; the new teacher signs in, has no Users link, and `/users` sends them to `/`.
+- Emulator: Sign Up validation (short password, mismatch, terms) → account created (`role: student` in Mongo) → Home "Hi, Amina". After killing and reopening the app the student is still signed in. With the API stopped: a retry screen and still signed in; "Try again" recovers once the API is back. Profile → Log out → Welcome. A wrong password shows "Invalid credentials."; a teacher sees "This app is for students". A token signed with another secret → Sign In with "Your session has ended".
+- `flutter analyze` 0 issues; 50 tests pass. Figma: 1 call (Splash `55:5`, cached as `auth_splash.png`).
+- Bug found on the device and fixed: the keyboard's Next on Password focused the eye toggle instead of Confirm.
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
-| 1 | [[feat-student-accounts]] | 📜 | register → student; password ≥ 8; `termsAcceptedAt`; `/admin/users` (create teacher/admin, list, reset password); admin seed script | admin-only Users page and nav entry | Splash, Login, Sign Up, secure token, `/auth/me` bootstrap, logout, "students only" screen |
+| 1 ✅ | [[feat-student-accounts]] | 📜 | register → student; password ≥ 8; `termsAcceptedAt`; `/admin/users` (create teacher/admin, list, reset password); admin seed script | admin-only Users page and nav entry | Splash, Login, Sign Up, secure token, `/auth/me` bootstrap, logout, "students only" screen |
 | 2 | [[feat-onboarding-and-preferences]] | 📜 | `PATCH /auth/me` with `preferences`; `GET /learn/languages` | — | Domain → Language → Profile Setup; router redirect while preferences are unset |
 | 3 | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
 | 4 | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
@@ -50,7 +58,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 | 9 | [[feat-static-screens]] | — | — | — | static Certificates, Leaderboard, achievements, Settings rows; real Profile header and logout |
 
 ### Vault notes per slice
-- **1:** [[auth-and-roles]], [[user]], [[api-contract]], [[api-endpoints]], [[error-codes]]. Delete [[known-mismatches]] #12. Also [[routing-and-pages]] (Users page).
+- **1:** [[auth-and-roles]], [[user]], [[api-contract]], [[api-endpoints]], [[error-codes]]. Deleted the old known-mismatch entry for the teacher default. Also [[routing-and-pages]] (Users page).
 - **2:** [[user]] (preferences), contract, endpoints.
 - **3:** contract, endpoints, [[publish-readiness]] (the student filter), [[media-storage-minio]] (response-time URLs), [[backend-capability-map]].
 - **4:** contract, endpoints, [[student-progress-planned]] (enrollments now built; split out an `enrollment` model note).

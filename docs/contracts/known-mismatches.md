@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-teacher-dashboard/src/components/media/MediaAttachField.tsx, dsl-teacher-dashboard/src/components/learningItems/LearningItemFormDialog.tsx, dsl-teacher-dashboard/src/components/learningItems/TranslationFormDialog.tsx, dsl-teacher-dashboard/src/lib/sentenceWords.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-teacher-dashboard/src/types/index.ts, dsl-backend/src/utils/requestValidation.ts, dsl-backend/src/services/questionValidation.service.ts, dsl-backend/src/models/User.ts, dsl-backend/src/services/resourceDependencies.service.ts, dsl-backend/src/controllers/media.controller.ts]
+sources: [dsl-teacher-dashboard/src/components/media/MediaAttachField.tsx, dsl-teacher-dashboard/src/components/learningItems/LearningItemFormDialog.tsx, dsl-teacher-dashboard/src/components/learningItems/TranslationFormDialog.tsx, dsl-teacher-dashboard/src/lib/sentenceWords.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-teacher-dashboard/src/types/index.ts, dsl-backend/src/utils/requestValidation.ts, dsl-backend/src/services/questionValidation.service.ts, dsl-backend/src/services/resourceDependencies.service.ts, dsl-backend/src/controllers/media.controller.ts]
 updated: 2026-10-16
 ---
 # Known mismatches
@@ -26,7 +26,6 @@ Found during the 2026-10-16 audit. Remove an entry once it's fixed, in the same 
 11. Moving a unit, exercise, or question to another parent is supported by PATCH but not exposed.
 
 ## D. Contract hazards (fix before `dsl-mobile` relies on them)
-12. **Anyone who registers becomes a teacher** (`User.role` defaults to `"teacher"`). See [[auth-and-roles]].
 13. The reorder bodies have three different shapes, and `order` vs `orderIndex` naming is mixed ([[api-contract]]).
 14. Deleting a learning item doesn't check question references. Afterwards, editing the question fails with 404 ([[delete-guards]]).
 15. Deleting media doesn't check references, which leaves broken URLs ([[media-storage-minio]]).

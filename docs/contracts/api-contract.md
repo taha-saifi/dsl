@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/app.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
 updated: 2026-10-16
 ---
 # API contract
@@ -20,7 +20,9 @@ updated: 2026-10-16
 Every entity also has `_id: string` and `__v: number` (User has no `__v`). Dates are ISO strings.
 ```ts
 type Role = "admin" | "teacher" | "student";
-interface User { email: string; role: Role; firstName?: string; lastName?: string; createdAt; updatedAt }
+interface User { email: string; role: Role; firstName?: string; lastName?: string;
+  termsAcceptedAt?: string;   // set when register sent acceptedTerms: true
+  createdAt; updatedAt }
 interface Specialization { name: string; slug: string; iconUrl?: string; createdAt }
 interface Course { specializationId: string; thumbnailMediaId?: string; name: string;
   sourceLanguage: string; targetLanguage: string; description?: string; isPublished: boolean; createdAt; updatedAt }
@@ -49,6 +51,7 @@ interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionTyp
 - `orderIndex`, `order`, `displayOrder`, and `points` must be JSON numbers.
 - `isPublished: true` is gated ([[publish-readiness]]). Creating with `true` always fails.
 - `Question.questionText`: optional, trimmed, 1–300 Unicode code points. On PATCH, `null` clears it (the type's default is used again); `""` or whitespace-only is rejected (`INVALID_QUESTION_TEXT`). Clients render `displayText` ([[adr-question-text]]).
+- **Accounts:** `POST /auth/register` always creates a `student` (any `role` in the body is ignored) and requires `firstName` and `lastName`. Teachers and admins are created by an admin with `POST /admin/users`. Emails must look like `a@b.c`; passwords are trimmed and must be 8–128 characters (register, admin create, admin reset; login only checks the hash). See [[auth-and-roles]].
 - `Question.type` is fixed at creation. PATCH with a different `type` → 400 `QUESTION_TYPE_IMMUTABLE`; resending the same type is allowed.
 
 ## Reorder bodies (they differ per endpoint)

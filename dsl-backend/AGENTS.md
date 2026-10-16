@@ -106,6 +106,7 @@ passwordHash    string, required
 role            "admin" | "teacher" | "student"
 firstName       string
 lastName        string
+termsAcceptedAt Date, optional (register with acceptedTerms: true)
 createdAt       Date
 updatedAt       Date
 ```
@@ -311,6 +312,10 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
 - [x] Phase 6 — Publish workflow, validation, permissions
   - Publish-readiness gating: POST/PATCH on Exercise, Unit, and Course reject `isPublished: true` with 409 (`EXERCISE_HAS_NO_QUESTIONS`, `UNIT_HAS_NO_PUBLISHED_EXERCISE`, `COURSE_HAS_NO_PUBLISHED_UNIT`) unless the resource already has a qualifying published/existing child — see `ensureExerciseReadyToPublish` / `ensureUnitReadyToPublish` / `ensureCourseReadyToPublish` in `resourceDependencies.service.ts`. Setting `isPublished: false` is never gated.
   - Permissions: `requireRole("teacher", "admin")` (`role.middleware.ts`, `FORBIDDEN_ROLE` / 403) is now applied to every mutating route (POST/PATCH/DELETE, including reorder/attach/detach) across every resource. GET routes remain `auth.middleware` only — any authenticated role can read. The one-off `requireRole` on Exercise's reorder route from the prior task is no longer a special case; it's now consistent with the rest of the API.
+- [x] Student accounts (mobile Slice 1, 2026-10-16)
+  - `POST /auth/register` always creates a `student` (default role is now `"student"`; existing users keep their stored role), requires first/last name, password 8–128 chars (`services/userAccount.service.ts`), optional `acceptedTerms` → `termsAcceptedAt`.
+  - Admin-only `/api/admin/users` (`requireRole("admin")`): list (`?role=`), create teacher/admin, `PATCH /:id/password`. `USER_NOT_FOUND` 404.
+  - `npm run create-admin -- --email … --password … --first-name … --last-name …` (`src/scripts/createAdmin.ts`) creates or promotes the first admin.
 
 ### Phase 0 definition of done
 

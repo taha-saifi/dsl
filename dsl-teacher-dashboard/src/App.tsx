@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "@/components/layout/AppShell";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import RequireAdminRole from "@/components/RequireAdminRole";
 import RequireTeacherRole from "@/components/RequireTeacherRole";
 import { Toaster } from "@/components/ui/toast";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
@@ -14,6 +15,7 @@ import LoginPage from "@/pages/LoginPage";
 import SpecializationsPage from "@/pages/SpecializationsPage";
 import UnitDetailPage from "@/pages/UnitDetailPage";
 import UnitsPage from "@/pages/UnitsPage";
+import UsersPage from "@/pages/UsersPage";
 
 function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -67,6 +69,9 @@ function App() {
                   path="/exercises/:exerciseId"
                   element={<ExerciseDetailPage />}
                 />
+                <Route element={<RequireAdminRole />}>
+                  <Route path="/users" element={<UsersPage />} />
+                </Route>
               </Route>
             </Route>
           </Route>

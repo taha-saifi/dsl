@@ -11,6 +11,7 @@ updated: 2026-10-16
 - **Dashboard subtasks 1–15** (`dsl-teacher-dashboard/CLAUDE.md`): full authoring UI, including all 8 question forms, publish workflow, and role guard.
 - **Question text + student preview** (2026-10-16): optional `questionText` with per-type defaults, immutable question type, grouped type picker, live phone preview in the question form and a preview modal on the list ([[adr-question-text]], [[question-builder]]).
 - **Mobile Slice 0** (2026-10-16): `dsl-mobile/` scaffold, Figma theme, API client, 4-tab shell ([[mobile-roadmap]]).
+- **Mobile Slice 1** (2026-10-16): student accounts. Register creates students; admin-only `/admin/users` and dashboard Users page; `create-admin` script; app Welcome, Sign In, Sign Up, session restore and logout ([[auth-and-roles]]).
 - **Monorepo**: compose stack (Mongo, MinIO, backend, frontend); knowledge vault (this folder).
 
 ## Outstanding
@@ -25,6 +26,6 @@ The student-facing backend and `dsl-mobile/` are built together, one vertical sl
 - Architecture: [[mobile-architecture]]
 - Inputs: [[figma-screen-inventory]], [[backend-capability-map]]
 
-Slice 1 also fixes the open-registration role default ([[known-mismatches]] #12).
+Slice 1 fixed the open-registration role default (register used to create teachers).
 
 Back to [[00-index]].

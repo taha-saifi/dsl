@@ -6,7 +6,7 @@ updated: 2026-10-16
 ---
 # Mobile (`dsl-mobile/`)
 
-A Flutter (Android) student app. **Slice 0 is done**: scaffold, theme from the Figma tokens, API client with the 401 rule, and a 4-tab shell with placeholder screens. No student feature exists yet; the next is Slice 1 ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
+A Flutter (Android) student app. **Slices 0–1 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, and student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]). Next is Slice 2, onboarding ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
 
 ## Existing endpoints it can use (read-only, any authenticated role)
 | Need | Endpoint |

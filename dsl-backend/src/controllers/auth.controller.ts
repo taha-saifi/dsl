@@ -5,12 +5,21 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config";
 import User, { type UserRole } from "../models/User";
 import { ApiError } from "../middleware/error.middleware";
+import {
+  ensureEmailAvailable,
+  getValidEmail,
+  getValidPassword,
+  hashPassword,
+} from "../services/userAccount.service";
+import {
+  getBodyObject,
+  getOptionalBoolean,
+  getRequiredString,
+} from "../utils/requestValidation";
 
 interface AuthRequestBody {
   email?: unknown;
   password?: unknown;
-  firstName?: unknown;
-  lastName?: unknown;
 }
 
 const requireString = (value: unknown, field: string): string => {
@@ -21,9 +30,6 @@ const requireString = (value: unknown, field: string): string => {
   return value.trim();
 };
 
-const optionalString = (value: unknown): string | undefined =>
-  typeof value === "string" && value.trim() !== "" ? value.trim() : undefined;
-
 const createToken = (userId: string, role: UserRole): string => {
   if (!config.jwtSecret) {
     throw new ApiError(500, "JWT_SECRET is not configured.", "CONFIGURATION_ERROR");
@@ -32,24 +38,24 @@ const createToken = (userId: string, role: UserRole): string => {
   return jwt.sign({ userId, role }, config.jwtSecret, { expiresIn: "7d" });
 };
 
+/** Self-registration always creates a student. Teachers and admins are created by an admin. */
 export const register = async (request: Request, response: Response): Promise<void> => {
-  const body = request.body as AuthRequestBody;
-  const email = requireString(body.email, "Email").toLowerCase();
-  const password = requireString(body.password, "Password");
+  const body = getBodyObject(request.body as unknown);
+  const email = getValidEmail(body.email);
+  const password = getValidPassword(body.password);
+  const firstName = getRequiredString(body.firstName, "First name");
+  const lastName = getRequiredString(body.lastName, "Last name");
+  const acceptedTerms = getOptionalBoolean(body.acceptedTerms, "Accepted terms");
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    throw new ApiError(409, "An account with that email already exists.", "EMAIL_IN_USE");
-  }
+  await ensureEmailAvailable(email);
 
-  const passwordHash = await bcrypt.hash(password, 12);
-  const firstName = optionalString(body.firstName);
-  const lastName = optionalString(body.lastName);
   const user = await User.create({
     email,
-    passwordHash,
-    ...(firstName ? { firstName } : {}),
-    ...(lastName ? { lastName } : {}),
+    passwordHash: await hashPassword(password),
+    role: "student",
+    firstName,
+    lastName,
+    ...(acceptedTerms === true ? { termsAcceptedAt: new Date() } : {}),
   });
 
   response.status(201).json({
