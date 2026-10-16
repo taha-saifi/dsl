@@ -28,9 +28,14 @@ interface LearningPreferences { specializationId?: string; targetLanguage?: stri
   goal?: "professional" | "academic" | "certification" | "daily_practice";
   dailyTargetMinutes?: 5 | 10 | 15 | 20 | 30;
   experienceLevel?: "beginner" | "intermediate" | "advanced" }
-// GET /learn/* (student views; only courses with isPublished: true count until slice 3 tightens it)
+// GET /learn/* — student views of content published all the way down (see Field rules)
 interface SpecializationSummary { _id: string; name: string; slug: string; iconUrl?: string; publishedCourseCount: number }
 interface LanguageSummary { code: string; publishedCourseCount: number }
+interface CourseSummary { _id: string; specializationId: string; name: string; description?: string;
+  sourceLanguage: string; targetLanguage: string; thumbnailUrl?: string; unitCount: number; exerciseCount: number }
+interface CourseDetail extends CourseSummary { units: { _id: string; name: string; orderIndex: number; exerciseCount: number }[] }  // by orderIndex
+interface UnitDetail { _id: string; courseId: string; courseName: string; name: string; orderIndex: number;
+  exercises: { _id: string; name: string; orderIndex: number; questionCount: number }[] }  // by orderIndex
 interface Specialization { name: string; slug: string; iconUrl?: string; createdAt }
 interface Course { specializationId: string; thumbnailMediaId?: string; name: string;
   sourceLanguage: string; targetLanguage: string; description?: string; isPublished: boolean; createdAt; updatedAt }
@@ -60,6 +65,9 @@ interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionTyp
 - `isPublished: true` is gated ([[publish-readiness]]). Creating with `true` always fails.
 - `Question.questionText`: optional, trimmed, 1–300 Unicode code points. On PATCH, `null` clears it (the type's default is used again); `""` or whitespace-only is rejected (`INVALID_QUESTION_TEXT`). Clients render `displayText` ([[adr-question-text]]).
 - **Accounts:** `POST /auth/register` always creates a `student` (any `role` in the body is ignored) and requires `firstName` and `lastName`. Teachers and admins are created by an admin with `POST /admin/users`. Emails must look like `a@b.c`; passwords are trimmed and must be 8–128 characters (register, admin create, admin reset; login only checks the hash). See [[auth-and-roles]].
+- **Student visibility (`/learn`):** an exercise is visible when it's published and has ≥1 question; a unit when it's published and has a visible exercise; a course when it's published and has a visible unit; a domain when it has a visible course. Anything else is **404** (`COURSE_NOT_FOUND` / `UNIT_NOT_FOUND`), never 403. `/learn` responses never contain `isPublished`, `Unit.learningItems` or anything that reveals answers. Logic: `dsl-backend/src/services/studentCatalog.service.ts`.
+- **Access:** authoring routes (`/specializations`, `/courses`, `/units`, `/exercises`, `/questions`, `/learning-items`, `/media`) are teacher/admin only for **every** method, GETs included (403 `FORBIDDEN_ROLE` for students).
+- **Media URLs** (`Media.url`, `thumbnailUrl`) are built when responding from `storageKey` and the **current** `MINIO_PUBLIC_ENDPOINT`; the `url` stored at upload is not used ([[media-storage-minio]]).
 - **`PATCH /auth/me`** (students only): `{firstName?, lastName?, preferences?}`. Each `preferences` key is optional, **`null` clears it**, unknown keys are rejected (400). `specializationId` must exist (404 `SPECIALIZATION_NOT_FOUND`); `targetLanguage` is any 2-letter code; goal, daily target and level must be one of the values above (400 `VALIDATION_ERROR`). Goal and level are informational in the MVP.
 - `Question.type` is fixed at creation. PATCH with a different `type` → 400 `QUESTION_TYPE_IMMUTABLE`; resending the same type is allowed.
 
@@ -76,6 +84,6 @@ Each returns the updated, ordered sibling list (`Unit[]`, `Exercise[]`, `Questio
 - Never re-implement business rules. Treat the server's 4xx as final ([[adr-business-logic-backend-only]]).
 - Derive correct answers from translations; never expect an `answer` field ([[adr-answers-derived-not-stored]]).
 - Sort embedded arrays (`Unit.learningItems` by `order`, `Question.items` by `displayOrder`) on the client.
-- Load `Media.url` directly; it's an absolute public URL.
+- Load `Media.url` / `thumbnailUrl` directly; they are absolute public URLs for the current endpoint.
 
 Current deviations: [[known-mismatches]]. Back to [[contracts-index]].

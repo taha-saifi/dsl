@@ -7,11 +7,12 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const coursesRouter = Router();
 
-coursesRouter.use(asyncHandler(authenticate));
+// Authoring routes: teachers and admins only. Students read through /api/learn.
+coursesRouter.use(asyncHandler(authenticate), requireRole("teacher", "admin"));
 coursesRouter.get("/", asyncHandler(list));
 coursesRouter.get("/:id", asyncHandler(getById));
-coursesRouter.post("/", requireRole("teacher", "admin"), asyncHandler(create));
-coursesRouter.patch("/:id", requireRole("teacher", "admin"), asyncHandler(update));
-coursesRouter.delete("/:id", requireRole("teacher", "admin"), asyncHandler(remove));
+coursesRouter.post("/", asyncHandler(create));
+coursesRouter.patch("/:id", asyncHandler(update));
+coursesRouter.delete("/:id", asyncHandler(remove));
 
 export default coursesRouter;

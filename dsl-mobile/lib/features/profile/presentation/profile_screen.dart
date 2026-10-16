@@ -6,8 +6,8 @@ import '../../../core/auth/auth_controller.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/dsl_button.dart';
 import '../../../core/widgets/dsl_card.dart';
-import '../../onboarding/data/language_names.dart';
-import '../../onboarding/data/learn_repository.dart';
+import '../../learn/data/language_names.dart';
+import '../../learn/data/learn_repository.dart';
 import '../../onboarding/presentation/preference_labels.dart';
 
 /// Who is signed in, their learning preferences (read-only for now), and

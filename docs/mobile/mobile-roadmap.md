@@ -53,12 +53,25 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - Fixed while building: grid cards with a fixed height overflowed with large text (now sized to their content); the save error appeared below the fold (now above the button).
 - Brought forward from Slice 3: `GET /learn/specializations` (see [[feat-onboarding-and-preferences]]).
 
+## Slice 3: published content ✅ done 2026-10-16
+**Gates passed.**
+- curl, 46/46, against seeded data (`S3 Medical`: a full chain; a draft unit; a published unit whose only exercise was unpublished; a published exercise whose last question was deleted; a published course hollowed out the same way; a draft course):
+  - only the full chain appears in `/learn/courses`, with unit and exercise counts that skip the hidden parts;
+  - course and unit details list only visible units and playable exercises, in order;
+  - the draft, emptied and hollow cases and missing ids → 404;
+  - search is case-insensitive and literal; bad filters → 400; no token → 401;
+  - a student gets 403 on all 11 authoring GETs tried, including `GET /learning-items`; a teacher still gets 200.
+- Media: with `MINIO_PUBLIC_ENDPOINT=http://192.168.1.50:9000`, both the new thumbnail and a September upload came back on the LAN host, and the stored value was unchanged. The thumbnail loads from MinIO.
+- Browser: the dashboard works for a teacher from Specializations down to an exercise, with thumbnails, no API errors and no page errors.
+- Mobile: the repository is tested against recorded fixtures; a 403 doesn't sign the student out; 73 tests pass. Emulator: onboarding lists the seeded domain with "1 course" and its language, since the hollow and draft courses aren't counted.
+- Figma: 0 calls (no screens).
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
 | 1 ✅ | [[feat-student-accounts]] | 📜 | register → student; password ≥ 8; `termsAcceptedAt`; `/admin/users` (create teacher/admin, list, reset password); admin seed script | admin-only Users page and nav entry | Splash, Login, Sign Up, secure token, `/auth/me` bootstrap, logout, "students only" screen |
 | 2 ✅ | [[feat-onboarding-and-preferences]] | 📜 | `PATCH /auth/me` with `preferences`; `GET /learn/languages` | — | Domain → Language → Profile Setup; router redirect while preferences are unset |
-| 3 | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
+| 3 ✅ | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
 | 4 | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
 | 5 | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
 | 6 | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |

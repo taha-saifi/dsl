@@ -13,11 +13,12 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const specializationsRouter = Router();
 
-specializationsRouter.use(asyncHandler(authenticate));
+// Authoring routes: teachers and admins only. Students read through /api/learn.
+specializationsRouter.use(asyncHandler(authenticate), requireRole("teacher", "admin"));
 specializationsRouter.get("/", asyncHandler(list));
 specializationsRouter.get("/:id", asyncHandler(getById));
-specializationsRouter.post("/", requireRole("teacher", "admin"), asyncHandler(create));
-specializationsRouter.patch("/:id", requireRole("teacher", "admin"), asyncHandler(update));
-specializationsRouter.delete("/:id", requireRole("teacher", "admin"), asyncHandler(remove));
+specializationsRouter.post("/", asyncHandler(create));
+specializationsRouter.patch("/:id", asyncHandler(update));
+specializationsRouter.delete("/:id", asyncHandler(remove));
 
 export default specializationsRouter;

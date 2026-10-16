@@ -19,7 +19,7 @@ updated: 2026-10-16
 ## 2. Verifying (backend)
 - `authenticate` (`auth.middleware.ts`) reads `Authorization: Bearer <token>`, verifies it, **loads the user from the database on every request**, and sets `req.user` (a hydrated `IUser`). Any failure gives 401 `UNAUTHORIZED`. Since the role comes from the database rather than the token claim, a role change takes effect immediately.
 - `requireRole(...roles)` (`role.middleware.ts`) gives 403 `FORBIDDEN_ROLE` when `req.user.role` isn't in the list.
-- **Policy:** every router except health/auth calls `router.use(authenticate)`, so every GET works for any logged-in role. Every POST/PATCH/DELETE (including reorder/attach/detach) adds `requireRole("teacher","admin")`.
+- **Policy (since Slice 3):** every authoring router calls `router.use(authenticate, requireRole("teacher","admin"))`, so **all** its methods, GETs included, are teacher/admin only. Students read through `/api/learn` (any signed-in role, published content only). `/auth/me` PATCH is student-only; `/admin/users` admin-only.
 - `GET /api/auth/me` → `{data: user}`. Note: this is the user object itself, not `{user}`.
 
 ## 3. Storing and sending (dashboard)

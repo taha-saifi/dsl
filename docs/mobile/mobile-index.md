@@ -6,23 +6,23 @@ updated: 2026-10-16
 ---
 # Mobile (`dsl-mobile/`)
 
-A Flutter (Android) student app. **Slices 0–2 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]), and onboarding (domain, language, goal/target/level saved to `User.preferences`; see [[user]]). Next is Slice 3, the published-content API ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
+A Flutter (Android) student app. **Slices 0–2 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]), onboarding (domain, language, goal/target/level saved to `User.preferences`; see [[user]]), and the published-content API with its app repository (Slice 3). Next is Slice 4, catalog and enrollment ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
 
-## Existing endpoints it can use (read-only, any authenticated role)
+## Endpoints the app uses
+Students may call only these; every authoring route answers them 403 ([[auth-and-roles]]).
 | Need | Endpoint |
 |---|---|
-| Log in / current user | `POST /auth/login`, `GET /auth/me` |
-| Browse catalogue | `GET /specializations`, `GET /courses?specializationId=`, `GET /units?courseId=`, `GET /exercises?unitId=` |
-| Play an exercise | `GET /questions?exerciseId=`, then `GET /learning-items/:id` for each referenced item |
-| Images and audio | `GET /media/:id` → load `url` directly |
+| Account | `POST /auth/register`, `POST /auth/login`, `GET` / `PATCH /auth/me` |
+| Onboarding | `GET /learn/specializations`, `GET /learn/languages` |
+| Browse published content | `GET /learn/courses`, `GET /learn/courses/:id`, `GET /learn/units/:id` |
+| Images | `thumbnailUrl` in `/learn` responses, loaded directly |
 
-## Gaps the backend must fill first
-1. **Published-only reads.** List endpoints return drafts too; nothing filters on `isPublished`. Students would see unpublished content.
-2. **Student accounts.** Register always creates teachers ([[auth-and-roles]]).
+## Gaps the backend must fill next
+1. ~~Published-only reads~~ and ~~student accounts~~: done (Slices 1 and 3).
 3. **Progress, XP, hearts, sessions, enrollment**: designed but not built ([[student-progress-planned]]).
 4. **Bulk payloads.** Playing one exercise takes N+1 requests (questions → items → media). An endpoint that returns an exercise with its items and media resolved would help.
 5. **Answer checking.** No comparison rules are defined ([[question-types]]). Business logic belongs in the backend ([[adr-business-logic-backend-only]]).
-6. **Media URLs** are absolute and use `MINIO_PUBLIC_ENDPOINT` (`localhost` in compose), which a phone can't reach ([[media-storage-minio]]).
+6. ~~Media URLs~~: built from the current `MINIO_PUBLIC_ENDPOINT` on every response since Slice 3 ([[media-storage-minio]]).
 
 Stack decided in [[mobile-architecture]]: Riverpod, go_router, dio, secure storage for the token, online-only MVP.
 

@@ -1,7 +1,7 @@
 ---
 type: component
 scope: backend
-sources: [dsl-backend/src/config/storage.ts, dsl-backend/src/controllers/media.controller.ts, dsl-backend/src/middleware/upload.middleware.ts, dsl-backend/src/routes/media.routes.ts, dsl-backend/src/models/Media.ts, dsl-backend/src/services/mediaReference.service.ts]
+sources: [dsl-backend/src/config/storage.ts, dsl-backend/src/controllers/media.controller.ts, dsl-backend/src/middleware/upload.middleware.ts, dsl-backend/src/routes/media.routes.ts, dsl-backend/src/models/Media.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/services/mediaReference.service.ts]
 updated: 2026-10-16
 ---
 # Media storage (MinIO)
@@ -16,7 +16,7 @@ Media is stored in a self-hosted, S3-compatible MinIO bucket. It was originally 
 1. multer `memoryStorage`, field `file`, 10 MB limit (`dsl-backend/src/middleware/upload.middleware.ts`).
 2. Allowed MIME types: `image/jpeg`, `image/png`, `image/webp`, `audio/mpeg`, `audio/wav`, `audio/mp4`. Anything else gives 400 `UNSUPPORTED_MEDIA_TYPE`.
 3. Key = `randomUUID() + original extension`, via `PutObject` with the content type.
-4. `url = ${MINIO_PUBLIC_ENDPOINT}/${MINIO_BUCKET}/${key}`, an absolute URL saved in the database. Clients load it directly.
+4. `url = publicMediaUrl(key)` = `${MINIO_PUBLIC_ENDPOINT}/${MINIO_BUCKET}/${key}` (`config/storage.ts`), saved in the database. **Responses don't use the saved value:** `Media`'s `toJSON` rebuilds `url` from `storageKey` with the current endpoint, and `/learn` builds `thumbnailUrl` the same way. Clients load it directly.
 5. `type` = `image` if the MIME type starts with `image/`, otherwise `audio`. `video` is in the enum but can never be produced.
 6. Creates a [[media]] document with `uploadedBy = req.user._id` and `storageKey = key`. Returns 201.
 
@@ -28,6 +28,6 @@ Deletes the object from storage **first**. If that fails it returns 500 `STORAGE
 ## Type checks on references
 `ensureMediaHasType` (`mediaReference.service.ts`) runs when an `imageMediaId` or `audioMediaId` is set on a learning item or translation: 404 if the media is missing, 400 `INVALID_MEDIA_TYPE` if it's the wrong kind. `Course.thumbnailMediaId` is **not** checked.
 
-> [!todo] Unverified: since `url` stores an absolute public endpoint, changing `MINIO_PUBLIC_ENDPOINT` (e.g. for a real deployment) breaks every existing URL. Is a migration planned, or should URLs be built on read?
+Changing `MINIO_PUBLIC_ENDPOINT` (e.g. to a LAN IP so a phone can load media, or for a deployment) applies to existing media at once; no migration. Verified 2026-10-16 with a September upload.
 
 Dashboard side: [[state-and-forms]] (MediaPicker / MediaAttachField). Back to [[backend-index]].

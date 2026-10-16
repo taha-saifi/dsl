@@ -17,6 +17,15 @@ export const s3Client = new S3Client({
   },
 });
 
+/**
+ * The public URL of a stored object, built from the *current*
+ * MINIO_PUBLIC_ENDPOINT. Responses use this instead of the URL saved at
+ * upload time, so changing the endpoint (e.g. to a LAN IP for a phone)
+ * applies to existing media too.
+ */
+export const publicMediaUrl = (storageKey: string): string =>
+  `${config.minioPublicEndpoint}/${config.minioBucket}/${storageKey}`;
+
 const buildPublicReadPolicy = (bucket: string): string =>
   JSON.stringify({
     Version: "2012-10-17",

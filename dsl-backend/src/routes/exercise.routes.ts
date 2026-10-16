@@ -7,12 +7,13 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const exercisesRouter = Router();
 
-exercisesRouter.use(asyncHandler(authenticate));
+// Authoring routes: teachers and admins only. Students read through /api/learn.
+exercisesRouter.use(asyncHandler(authenticate), requireRole("teacher", "admin"));
 exercisesRouter.get("/", asyncHandler(list));
 exercisesRouter.get("/:id", asyncHandler(getById));
-exercisesRouter.post("/", requireRole("teacher", "admin"), asyncHandler(create));
-exercisesRouter.patch("/reorder", requireRole("teacher", "admin"), asyncHandler(reorder));
-exercisesRouter.patch("/:id", requireRole("teacher", "admin"), asyncHandler(update));
-exercisesRouter.delete("/:id", requireRole("teacher", "admin"), asyncHandler(remove));
+exercisesRouter.post("/", asyncHandler(create));
+exercisesRouter.patch("/reorder", asyncHandler(reorder));
+exercisesRouter.patch("/:id", asyncHandler(update));
+exercisesRouter.delete("/:id", asyncHandler(remove));
 
 export default exercisesRouter;

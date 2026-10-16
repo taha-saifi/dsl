@@ -2,9 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/api/api_providers.dart';
-import 'learn_summaries.dart';
+import 'learn_models.dart';
 
-/// The `/learn` endpoints onboarding needs. Slice 3 adds courses and units.
+/// Student reads of published content: only `/learn/*`. The authoring
+/// routes (`/courses`, `/units`…) are teacher-only and answer students 403.
+/// Hidden or missing content fails with a 404 [ApiException]
+/// (`COURSE_NOT_FOUND`, `UNIT_NOT_FOUND`).
 class LearnRepository {
   const LearnRepository(this._client);
 
@@ -21,6 +24,34 @@ class LearnRepository {
         query: {'specializationId': ?specializationId},
         decode: (data) => _list(data, LanguageSummary.fromJson),
       );
+
+  /// Newest first. Blank [search] is not sent.
+  Future<List<CourseSummary>> courses({
+    String? specializationId,
+    String? targetLanguage,
+    String? search,
+  }) {
+    final query = search?.trim();
+    return _client.get(
+      '/learn/courses',
+      query: {
+        'specializationId': ?specializationId,
+        'targetLanguage': ?targetLanguage,
+        if (query != null && query.isNotEmpty) 'search': query,
+      },
+      decode: (data) => _list(data, CourseSummary.fromJson),
+    );
+  }
+
+  Future<CourseDetail> course(String id) => _client.get(
+    '/learn/courses/$id',
+    decode: (data) => CourseDetail.fromJson(data! as Map<String, dynamic>),
+  );
+
+  Future<UnitDetail> unit(String id) => _client.get(
+    '/learn/units/$id',
+    decode: (data) => UnitDetail.fromJson(data! as Map<String, dynamic>),
+  );
 
   static List<T> _list<T>(
     Object? data,
@@ -39,7 +70,7 @@ final specializationsProvider =
       (ref) => ref.watch(learnRepositoryProvider).specializations(),
     );
 
-/// Languages with published courses, in one domain when [specializationId]
+/// Languages with visible courses, in one domain when [specializationId]
 /// is given.
 final languagesProvider = FutureProvider.autoDispose
     .family<List<LanguageSummary>, String?>(

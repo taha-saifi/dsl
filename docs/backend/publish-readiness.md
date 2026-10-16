@@ -1,7 +1,7 @@
 ---
 type: component
 scope: backend
-sources: [dsl-backend/src/services/resourceDependencies.service.ts, dsl-backend/src/controllers/courses.controller.ts, dsl-backend/src/controllers/units.controller.ts, dsl-backend/src/controllers/exercise.controller.ts, dsl-teacher-dashboard/src/components/PublishToggle.tsx]
+sources: [dsl-backend/src/services/resourceDependencies.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/controllers/courses.controller.ts, dsl-backend/src/controllers/units.controller.ts, dsl-backend/src/controllers/exercise.controller.ts, dsl-teacher-dashboard/src/components/PublishToggle.tsx]
 updated: 2026-10-16
 ---
 # Publish readiness
@@ -19,6 +19,8 @@ Course, Unit, and Exercise each have `isPublished` (default `false`). Setting it
 
 > [!warning] No cascade
 > The gates only run when publishing. Unpublishing an exercise, or deleting its last question (question deletes aren't guarded), leaves the parent unit or course published with nothing published underneath. Student-facing reads must not assume a published parent has published children. See [[gotchas]].
+>
+> **Handled for students (Slice 3):** `/api/learn` re-checks the whole chain on every read (`studentCatalog.service.ts`), so an emptied unit or course disappears for students. The authoring side still has no cascade.
 
 > [!todo] Unverified: is a published question set meant to be frozen? Questions can currently be edited or deleted under a published exercise.
 

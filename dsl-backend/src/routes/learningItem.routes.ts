@@ -16,26 +16,24 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const learningItemsRouter = Router();
 
-learningItemsRouter.use(asyncHandler(authenticate));
+// Authoring routes: teachers and admins only. Students read through /api/learn.
+learningItemsRouter.use(asyncHandler(authenticate), requireRole("teacher", "admin"));
 learningItemsRouter.get("/", asyncHandler(list));
-learningItemsRouter.post("/", requireRole("teacher", "admin"), asyncHandler(create));
+learningItemsRouter.post("/", asyncHandler(create));
 learningItemsRouter.post(
   "/:id/translations",
-  requireRole("teacher", "admin"),
   asyncHandler(addTranslation),
 );
 learningItemsRouter.patch(
   "/:id/translations/:language",
-  requireRole("teacher", "admin"),
   asyncHandler(updateTranslation),
 );
 learningItemsRouter.delete(
   "/:id/translations/:language",
-  requireRole("teacher", "admin"),
   asyncHandler(removeTranslation),
 );
 learningItemsRouter.get("/:id", asyncHandler(getById));
-learningItemsRouter.patch("/:id", requireRole("teacher", "admin"), asyncHandler(update));
-learningItemsRouter.delete("/:id", requireRole("teacher", "admin"), asyncHandler(remove));
+learningItemsRouter.patch("/:id", asyncHandler(update));
+learningItemsRouter.delete("/:id", asyncHandler(remove));
 
 export default learningItemsRouter;

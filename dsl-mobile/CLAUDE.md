@@ -5,7 +5,7 @@ client of the one DSL API. Inside this folder, this file takes precedence for
 Flutter-specific rules; the root `CLAUDE.md` still applies (API contract,
 vertical slices, never read `.env`/credential files, commit only when asked).
 
-**Status:** Slices 0 (scaffold), 1 (student accounts) and 2 (onboarding) done. Build order, per-slice tasks and gates:
+**Status:** Slices 0–3 done (scaffold, student accounts, onboarding, published-content repository). Build order, per-slice tasks and gates:
 `docs/mobile/mobile-roadmap.md`. Features and decisions:
 `docs/mobile/features/00-feature-catalog.md`. Architecture and the reasons
 behind every choice below: `docs/decisions/mobile-architecture.md`.
@@ -43,6 +43,7 @@ lib/
 - Shared widgets go in `core/widgets` only once a second feature needs them.
 
 ## Rules
+- **Students read content only through `/learn/*`** (`features/learn/data/LearnRepository`). The authoring routes answer them 403.
 - **Follow `docs/contracts/api-contract.md`.** Never derive answers, scores,
   progress, locks or any other rule in the app. If the app needs a rule, it's
   an API change (backend + contract + clients in one slice).

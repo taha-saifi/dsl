@@ -170,4 +170,25 @@ void main() {
       expect(api.storage.token, isNull);
     });
   });
+
+  test('a 403 from an authoring route keeps the student signed in', () async {
+    final api = TestApi(
+      (_) async => fixtureResponse('auth_me.json'),
+      token: 'stored',
+    );
+    final container = api.container();
+    expect(await restored(container), isA<SignedIn>());
+
+    api.handler = (_) async =>
+        fixtureResponse('authoring_forbidden.json', status: 403);
+    await expectLater(
+      container.read(apiClientProvider).get('/courses', decode: (j) => j),
+      throwsA(
+        isA<ApiException>().having((e) => e.code, 'code', 'FORBIDDEN_ROLE'),
+      ),
+    );
+
+    expect(container.read(authControllerProvider), isA<SignedIn>());
+    expect(api.storage.token, 'stored');
+  });
 }

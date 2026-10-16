@@ -5,7 +5,7 @@ import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import type { Request, Response } from "express";
 
 import { config } from "../config/config";
-import { s3Client } from "../config/storage";
+import { publicMediaUrl, s3Client } from "../config/storage";
 import { ApiError } from "../middleware/error.middleware";
 import Media, { type MediaType } from "../models/Media";
 import { getRequiredString, getRouteObjectId } from "../utils/requestValidation";
@@ -34,7 +34,7 @@ const uploadToStorage = async (file: Express.Multer.File): Promise<{ url: string
     }),
   );
 
-  const url = `${config.minioPublicEndpoint}/${config.minioBucket}/${key}`;
+  const url = publicMediaUrl(key);
   return { url, key };
 };
 

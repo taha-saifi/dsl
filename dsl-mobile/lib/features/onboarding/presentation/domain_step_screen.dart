@@ -6,7 +6,7 @@ import '../../../core/auth/auth_controller.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/state_views.dart';
-import '../data/learn_repository.dart';
+import '../../learn/data/learn_repository.dart';
 import '../data/onboarding_draft.dart';
 import 'onboarding_widgets.dart';
 

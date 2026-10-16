@@ -1,4 +1,6 @@
-import { model, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types } from "mongoose";
+
+import { publicMediaUrl } from "../config/storage";
 
 export type MediaType = "image" | "audio" | "video";
 
@@ -46,7 +48,18 @@ const mediaSchema = new Schema<IMedia>(
       required: true,
     },
   },
-  { timestamps: { createdAt: true, updatedAt: false } },
+  {
+    timestamps: { createdAt: true, updatedAt: false },
+    toJSON: {
+      // `url` is stored at upload time; send one built from the current endpoint.
+      transform: (_document: HydratedDocument<IMedia>, returnedObject: Record<string, unknown>) => {
+        if (typeof returnedObject.storageKey === "string") {
+          returnedObject.url = publicMediaUrl(returnedObject.storageKey);
+        }
+        return returnedObject;
+      },
+    },
+  },
 );
 
 const Media = model<IMedia>("Media", mediaSchema);

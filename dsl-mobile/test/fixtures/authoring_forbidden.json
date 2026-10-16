@@ -1,0 +1,1 @@
+{"error":{"message":"This action requires one of the following roles: teacher, admin.","code":"FORBIDDEN_ROLE"}}

@@ -312,14 +312,18 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
   - Note: Exercise originally shipped without a reorder endpoint — PATCH /api/exercises/reorder was added later, mirroring Question's reorder (including its cross-parent unitId scope check).
 - [x] Phase 6 — Publish workflow, validation, permissions
   - Publish-readiness gating: POST/PATCH on Exercise, Unit, and Course reject `isPublished: true` with 409 (`EXERCISE_HAS_NO_QUESTIONS`, `UNIT_HAS_NO_PUBLISHED_EXERCISE`, `COURSE_HAS_NO_PUBLISHED_UNIT`) unless the resource already has a qualifying published/existing child — see `ensureExerciseReadyToPublish` / `ensureUnitReadyToPublish` / `ensureCourseReadyToPublish` in `resourceDependencies.service.ts`. Setting `isPublished: false` is never gated.
-  - Permissions: `requireRole("teacher", "admin")` (`role.middleware.ts`, `FORBIDDEN_ROLE` / 403) is now applied to every mutating route (POST/PATCH/DELETE, including reorder/attach/detach) across every resource. GET routes remain `auth.middleware` only — any authenticated role can read. The one-off `requireRole` on Exercise's reorder route from the prior task is no longer a special case; it's now consistent with the rest of the API.
+  - Permissions (superseded by the Slice 3 entry below: GETs are teacher/admin too): `requireRole("teacher", "admin")` (`role.middleware.ts`, `FORBIDDEN_ROLE` / 403) is now applied to every mutating route (POST/PATCH/DELETE, including reorder/attach/detach) across every resource. GET routes remain `auth.middleware` only — any authenticated role can read. The one-off `requireRole` on Exercise's reorder route from the prior task is no longer a special case; it's now consistent with the rest of the API.
 - [x] Student accounts (mobile Slice 1, 2026-10-16)
   - `POST /auth/register` always creates a `student` (default role is now `"student"`; existing users keep their stored role), requires first/last name, password 8–128 chars (`services/userAccount.service.ts`), optional `acceptedTerms` → `termsAcceptedAt`.
   - Admin-only `/api/admin/users` (`requireRole("admin")`): list (`?role=`), create teacher/admin, `PATCH /:id/password`. `USER_NOT_FOUND` 404.
   - `npm run create-admin -- --email … --password … --first-name … --last-name …` (`src/scripts/createAdmin.ts`) creates or promotes the first admin.
 - [x] Onboarding preferences (mobile Slice 2, 2026-10-16)
   - `PATCH /auth/me` (student only) sets name and `preferences` (`services/learnerPreferences.service.ts`; `null` clears a key, unknown keys 400, specialization must exist).
-  - New `/api/learn` router (any signed-in role): `GET /learn/specializations`, `GET /learn/languages?specializationId=`. Visibility lives in `services/studentCatalog.service.ts` (currently `isPublished: true`).
+  - New `/api/learn` router (any signed-in role): `GET /learn/specializations`, `GET /learn/languages?specializationId=`.
+- [x] Published content API (mobile Slice 3, 2026-10-16)
+  - `/api/learn` adds `GET /courses`, `/courses/:id`, `/units/:id`. Visibility ("published all the way down": exercise published with ≥1 question → unit → course → domain) lives only in `services/studentCatalog.service.ts`; hidden content is 404.
+  - **Every authoring router is now `requireRole("teacher","admin")` for all methods, GETs included** (set once in `router.use`). Students use `/api/learn`.
+  - `Media` JSON rebuilds `url` from `storageKey` with the current `MINIO_PUBLIC_ENDPOINT` (`publicMediaUrl` in `config/storage.ts`); the stored `url` is no longer sent.
 
 ### Phase 0 definition of done
 

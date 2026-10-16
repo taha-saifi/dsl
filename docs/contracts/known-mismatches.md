@@ -29,7 +29,7 @@ Found during the 2026-10-16 audit. Remove an entry once it's fixed, in the same 
 13. The reorder bodies have three different shapes, and `order` vs `orderIndex` naming is mixed ([[api-contract]]).
 14. Deleting a learning item doesn't check question references. Afterwards, editing the question fails with 404 ([[delete-guards]]).
 15. Deleting media doesn't check references, which leaves broken URLs ([[media-storage-minio]]).
-16. No publish cascade: a published parent can lose all its published children ([[publish-readiness]]).
+16. No publish cascade on the authoring side: a published parent can lose all its published children. Students are protected since `/learn` checks the whole chain; the dashboard still shows such a parent as published ([[publish-readiness]]).
 17. Question PATCH re-validates everything, so a points-only edit can fail if a referenced item has changed since ([[question-validation]]).
 
 Back to [[contracts-index]] · [[roadmap]].

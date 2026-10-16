@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { languages, specializations } from "../controllers/learn.controller";
+import { course, courses, languages, specializations, unit } from "../controllers/learn.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -10,5 +10,8 @@ const learnRouter = Router();
 learnRouter.use(asyncHandler(authenticate));
 learnRouter.get("/specializations", asyncHandler(specializations));
 learnRouter.get("/languages", asyncHandler(languages));
+learnRouter.get("/courses", asyncHandler(courses));
+learnRouter.get("/courses/:id", asyncHandler(course));
+learnRouter.get("/units/:id", asyncHandler(unit));
 
 export default learnRouter;

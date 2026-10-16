@@ -8,10 +8,11 @@ import { asyncHandler } from "../utils/asyncHandler";
 
 const mediaRouter = Router();
 
-mediaRouter.use(asyncHandler(authenticate));
+// Authoring routes: teachers and admins only. Students read through /api/learn.
+mediaRouter.use(asyncHandler(authenticate), requireRole("teacher", "admin"));
 mediaRouter.get("/", asyncHandler(list));
-mediaRouter.post("/upload", requireRole("teacher", "admin"), upload.single("file"), asyncHandler(uploadMedia));
+mediaRouter.post("/upload", upload.single("file"), asyncHandler(uploadMedia));
 mediaRouter.get("/:id", asyncHandler(getById));
-mediaRouter.delete("/:id", requireRole("teacher", "admin"), asyncHandler(remove));
+mediaRouter.delete("/:id", asyncHandler(remove));
 
 export default mediaRouter;
