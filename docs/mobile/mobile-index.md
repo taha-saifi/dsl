@@ -24,10 +24,17 @@ A Flutter student app. **It doesn't exist yet.** When it's added it gets its own
 5. **Answer checking.** No comparison rules are defined ([[question-types]]). Business logic belongs in the backend ([[adr-business-logic-backend-only]]).
 6. **Media URLs** are absolute and use `MINIO_PUBLIC_ENDPOINT` (`localhost` in compose), which a phone can't reach ([[media-storage-minio]]).
 
-> [!todo] Unverified: Flutter state management, offline caching, and how tokens are stored on the device haven't been decided.
+Stack decided in [[mobile-architecture]]: Riverpod, go_router, dio, secure storage for the token, online-only MVP.
 
 Design reference: the brand (Electric Cyan `#06B8D4`, Gold Amber `#F5B02A`, Inter) comes from the mobile Figma design. The question screens use a light Soft Gray surface with Midnight Ink text. Cached tokens, layouts and screenshots: [[figma-question-screens]].
 
 Render each question's `displayText` as its heading ([[adr-question-text]]).
+
+## Planning notes
+- [[figma-screen-inventory]]: every Figma frame by flow, with node ids and prototype links.
+- [[backend-capability-map]]: each endpoint and learner capability, and what's missing for students.
+- [[00-feature-catalog]]: MVP and later features, one note each under `features/`.
+- [[mobile-architecture]]: Flutter stack and conventions (accepted).
+- [[mobile-roadmap]]: build order, per-slice tasks and verification gates.
 
 Back to [[00-index]] · [[roadmap]].

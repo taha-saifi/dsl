@@ -18,6 +18,7 @@ Architectural decisions that can be seen in the code or stated in the sub-projec
 | [[adr-jwt-in-localstorage]] | Dashboard keeps the JWT in localStorage (a deliberate MVP trade-off) |
 | [[adr-vite-api-url-build-arg]] | `VITE_API_URL` is a build arg and must be browser-reachable |
 | [[adr-question-text]] | Optional teacher-written question text with server-side per-type defaults; question type is immutable |
+| [[mobile-architecture]] | Flutter app structure, Riverpod, go_router, dio, freezed, online-only MVP |
 | [[adr-non-optimistic-publish]] | The publish toggle waits for the server; reorder is optimistic with rollback |
 
 Back to [[00-index]].

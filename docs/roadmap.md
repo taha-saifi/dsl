@@ -17,10 +17,13 @@ updated: 2026-10-16
 - **Fix [[known-mismatches]]**, starting with group A (silent data loss) and the open-registration role default.
 - **Move JWT to httpOnly cookies** before any real deployment ([[adr-jwt-in-localstorage]]).
 
-## Next (not yet scoped; confirm with the user first)
-1. Student-facing backend: published-only reads, student registration, progress collections ([[student-progress-planned]]).
-2. `dsl-mobile/` Flutter app ([[mobile-index]]).
+## Next: student mobile app (planned 2026-10-16)
+The student-facing backend and `dsl-mobile/` are built together, one vertical slice at a time: Slice 0 (scaffold), then MVP slices 1–9, then the later features. Each slice is backend → dashboard → mobile and is verified before the next one.
+- Order and gates: [[mobile-roadmap]]
+- Features and decisions: [[00-feature-catalog]]
+- Architecture: [[mobile-architecture]]
+- Inputs: [[figma-screen-inventory]], [[backend-capability-map]]
 
-> [!todo] Unverified: priority and order of the items above; nothing beyond Phase 6 has been defined (`dsl-backend/CLAUDE.md`).
+Slice 1 also fixes the open-registration role default ([[known-mismatches]] #12).
 
 Back to [[00-index]].

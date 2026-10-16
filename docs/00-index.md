@@ -16,7 +16,7 @@ DSL teaches professional vocabulary (medical, legal, engineering, finance) in a 
 - [[data-model-index]]: MongoDB collections and question types
 - [[dashboard-index]]: `dsl-teacher-dashboard/` (React + Vite)
 - [[contracts-index]]: **the API contract every client follows**, plus known mismatches
-- [[mobile-index]]: planned `dsl-mobile/` (Flutter)
+- [[mobile-index]]: planned `dsl-mobile/` (Flutter): [[figma-screen-inventory]], [[backend-capability-map]], [[00-feature-catalog]], [[mobile-roadmap]]
 - [[decisions-index]]: architectural decisions
 - [[conventions-index]]: links to the package-level CLAUDE.md / AGENTS.md rules
 - [[gotchas]]: pitfalls
@@ -30,6 +30,6 @@ DSL teaches professional vocabulary (medical, legal, engineering, finance) in a 
 | Docker / env / ports | [[runtime-and-deployment]] |
 | Login, tokens, roles | [[auth-and-roles]] |
 | Fix a client/server disagreement | [[known-mismatches]] |
-| Start the mobile app | [[mobile-index]] → [[api-contract]] |
+| Start the mobile app | [[mobile-roadmap]] → [[mobile-architecture]] → [[api-contract]] |
 
 Original relational ERD (design reference only; it predates the MongoDB model): `docs/assets/dsl_full_erd.html`.
