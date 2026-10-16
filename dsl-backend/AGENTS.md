@@ -212,7 +212,7 @@ createdAt       Date
 updatedAt       Date
 ```
 
-### enrollments
+### enrollments (built: `models/Enrollment.ts`)
 ```
 _id             ObjectId
 studentId       ObjectId → users
@@ -324,6 +324,9 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
   - `/api/learn` adds `GET /courses`, `/courses/:id`, `/units/:id`. Visibility ("published all the way down": exercise published with ≥1 question → unit → course → domain) lives only in `services/studentCatalog.service.ts`; hidden content is 404.
   - **Every authoring router is now `requireRole("teacher","admin")` for all methods, GETs included** (set once in `router.use`). Students use `/api/learn`.
   - `Media` JSON rebuilds `url` from `storageKey` with the current `MINIO_PUBLIC_ENDPOINT` (`publicMediaUrl` in `config/storage.ts`); the stored `url` is no longer sent.
+- [x] Enrollment (mobile Slice 4, 2026-10-16)
+  - `models/Enrollment.ts` (unique `{studentId, courseId}`), `services/enrollment.service.ts` (idempotent enroll/unenroll; visible courses only).
+  - Student-only `POST`/`DELETE /api/learn/courses/:id/enroll`, `GET /api/learn/me/courses`. `/learn` course summaries add `specializationName`, `isEnrolled`, `enrolledAt`.
 
 ### Phase 0 definition of done
 

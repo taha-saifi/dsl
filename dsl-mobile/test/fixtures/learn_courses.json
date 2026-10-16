@@ -3,13 +3,15 @@
     {
       "_id": "6ad28f21dcbfbc7ecf3f1a95",
       "specializationId": "6ad28f21dcbfbc7ecf3f1a93",
+      "specializationName": "S3 Medical 4zjs",
       "name": "S3 Full Course 4zjs",
       "description": "S3 Full Course 4zjs description",
       "sourceLanguage": "en",
       "targetLanguage": "fr",
       "thumbnailUrl": "http://localhost:9000/dsl-media/8ea82f09-12d2-42eb-b037-03d8322054aa.png",
       "unitCount": 1,
-      "exerciseCount": 2
+      "exerciseCount": 2,
+      "isEnrolled": false
     }
   ]
 }

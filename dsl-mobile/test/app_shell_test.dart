@@ -22,7 +22,12 @@ const _config = AppConfig(
 Widget _signedInApp() => ProviderScope(
   retry: noAutomaticRetry,
   overrides: TestApi(
-    (_) async => fixtureResponse('auth_me.json'),
+    routes({
+      'GET /auth/me': respondWith('auth_me.json'),
+      'GET /learn/me/courses': respondWith('learn_me_courses_empty.json'),
+      'GET /learn/specializations': respondWith('learn_specializations.json'),
+      'GET /learn/courses': respondWith('learn_courses_all.json'),
+    }),
     token: 'stored',
   ).overrides,
   child: const DslApp(),
@@ -47,7 +52,7 @@ void main() {
     await tester.pumpWidget(_signedInApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('Hi, Sara'), findsOneWidget);
+    expect(find.text('Hello, Sara'), findsOneWidget);
 
     for (final label in ['Home', 'Courses', 'Certs', 'Profile']) {
       expect(_navTab(label), findsOneWidget);
@@ -56,10 +61,7 @@ void main() {
 
     await tester.tap(_navTab('Courses'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Browse published courses and enroll here.'),
-      findsOneWidget,
-    );
+    expect(find.text('Explore Courses'), findsOneWidget);
   });
 
   testWidgets('system check shows success when /health answers', (

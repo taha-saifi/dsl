@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/services/enrollment.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
 updated: 2026-10-16
 ---
 # API contract
@@ -31,8 +31,12 @@ interface LearningPreferences { specializationId?: string; targetLanguage?: stri
 // GET /learn/* — student views of content published all the way down (see Field rules)
 interface SpecializationSummary { _id: string; name: string; slug: string; iconUrl?: string; publishedCourseCount: number }
 interface LanguageSummary { code: string; publishedCourseCount: number }
-interface CourseSummary { _id: string; specializationId: string; name: string; description?: string;
-  sourceLanguage: string; targetLanguage: string; thumbnailUrl?: string; unitCount: number; exerciseCount: number }
+interface CourseSummary { _id: string; specializationId: string; specializationName: string; name: string; description?: string;
+  sourceLanguage: string; targetLanguage: string; thumbnailUrl?: string; unitCount: number; exerciseCount: number;
+  isEnrolled: boolean;      // always false for teachers/admins
+  enrolledAt?: string }
+interface EnrolledCourse extends CourseSummary { progress: null }   // GET /learn/me/courses; progress arrives with feat-learning-progress
+interface Enrollment { _id: string; studentId: string; courseId: string; enrolledAt: string; completedAt?: string; __v: number }
 interface CourseDetail extends CourseSummary { units: { _id: string; name: string; orderIndex: number; exerciseCount: number }[] }  // by orderIndex
 interface UnitDetail { _id: string; courseId: string; courseName: string; name: string; orderIndex: number;
   exercises: { _id: string; name: string; orderIndex: number; questionCount: number }[] }  // by orderIndex
@@ -68,6 +72,7 @@ interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionTyp
 - **Student visibility (`/learn`):** an exercise is visible when it's published and has ≥1 question; a unit when it's published and has a visible exercise; a course when it's published and has a visible unit; a domain when it has a visible course. Anything else is **404** (`COURSE_NOT_FOUND` / `UNIT_NOT_FOUND`), never 403. `/learn` responses never contain `isPublished`, `Unit.learningItems` or anything that reveals answers. Logic: `dsl-backend/src/services/studentCatalog.service.ts`.
 - **Access:** authoring routes (`/specializations`, `/courses`, `/units`, `/exercises`, `/questions`, `/learning-items`, `/media`) are teacher/admin only for **every** method, GETs included (403 `FORBIDDEN_ROLE` for students).
 - **Media URLs** (`Media.url`, `thumbnailUrl`) are built when responding from `storageKey` and the **current** `MINIO_PUBLIC_ENDPOINT`; the `url` stored at upload is not used ([[media-storage-minio]]).
+- **Enrollment** (students only, 403 otherwise): `POST /learn/courses/:id/enroll` is idempotent (201 created, 200 existing) and needs a visible course (404); `DELETE` is idempotent and returns `{id: courseId}`. A course that stops being visible drops out of `/learn/me/courses` but the enrollment is kept ([[enrollment]]).
 - **`PATCH /auth/me`** (students only): `{firstName?, lastName?, preferences?}`. Each `preferences` key is optional, **`null` clears it**, unknown keys are rejected (400). `specializationId` must exist (404 `SPECIALIZATION_NOT_FOUND`); `targetLanguage` is any 2-letter code; goal, daily target and level must be one of the values above (400 `VALIDATION_ERROR`). Goal and level are informational in the MVP.
 - `Question.type` is fixed at creation. PATCH with a different `type` → 400 `QUESTION_TYPE_IMMUTABLE`; resending the same type is allowed.
 

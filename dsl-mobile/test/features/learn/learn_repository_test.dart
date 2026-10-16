@@ -104,7 +104,11 @@ void main() {
 
   test('specializations and languages parse their fixtures', () async {
     final (specRepo, _) = _repo('learn_specializations.json');
-    expect((await specRepo.specializations()).single.publishedCourseCount, 1);
+    final domains = await specRepo.specializations();
+    expect(domains.map((d) => (d.name, d.publishedCourseCount)), [
+      ('E2E Languages', 1),
+      ('S3 Medical 4zjs', 1),
+    ]);
 
     final (langRepo, adapter) = _repo('learn_languages.json');
     final languages = await langRepo.languages(specializationId: 'spec');
@@ -112,5 +116,26 @@ void main() {
     expect(adapter.requests.single.queryParameters, {
       'specializationId': 'spec',
     });
+  });
+
+  test('my courses parse with enrollment fields', () async {
+    final (repo, adapter) = _repo('learn_me_courses.json');
+    final courses = await repo.myCourses();
+
+    expect(adapter.requests.single.path, '/learn/me/courses');
+    expect(courses.single.isEnrolled, isTrue);
+    expect(courses.single.enrolledAt, isNotNull);
+    expect(courses.single.specializationName, 'S3 Medical 4zjs');
+  });
+
+  test('enroll and unenroll call the enrollment route', () async {
+    final (repo, adapter) = _repo('learn_enroll.json');
+    await repo.enroll('c1');
+    await repo.unenroll('c1');
+
+    expect(adapter.requests.map((r) => '${r.method} ${r.path}'), [
+      'POST /learn/courses/c1/enroll',
+      'DELETE /learn/courses/c1/enroll',
+    ]);
   });
 }

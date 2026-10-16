@@ -5,6 +5,12 @@
       "name": "E2E Languages",
       "slug": "e2e-languages",
       "publishedCourseCount": 1
+    },
+    {
+      "_id": "6ad28f21dcbfbc7ecf3f1a93",
+      "name": "S3 Medical 4zjs",
+      "slug": "s3-medical-4zjs",
+      "publishedCourseCount": 1
     }
   ]
 }

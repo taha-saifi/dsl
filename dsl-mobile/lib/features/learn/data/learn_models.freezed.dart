@@ -553,8 +553,9 @@ as int,
 /// @nodoc
 mixin _$CourseSummary {
 
-@JsonKey(name: '_id') String get id; String get specializationId; String get name; String get sourceLanguage; String get targetLanguage; int get unitCount; int get exerciseCount; String? get description;/// Absolute MinIO URL built from the current `MINIO_PUBLIC_ENDPOINT`.
- String? get thumbnailUrl;
+@JsonKey(name: '_id') String get id; String get specializationId; String get specializationName; String get name; String get sourceLanguage; String get targetLanguage; int get unitCount; int get exerciseCount; String? get description;/// Absolute MinIO URL built from the current `MINIO_PUBLIC_ENDPOINT`.
+ String? get thumbnailUrl;/// Always false for teachers and admins.
+ bool get isEnrolled; DateTime? get enrolledAt;
 /// Create a copy of CourseSummary
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -567,16 +568,16 @@ $CourseSummaryCopyWith<CourseSummary> get copyWith => _$CourseSummaryCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.specializationId, specializationId) || other.specializationId == specializationId)&&(identical(other.name, name) || other.name == name)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage)&&(identical(other.unitCount, unitCount) || other.unitCount == unitCount)&&(identical(other.exerciseCount, exerciseCount) || other.exerciseCount == exerciseCount)&&(identical(other.description, description) || other.description == description)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CourseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.specializationId, specializationId) || other.specializationId == specializationId)&&(identical(other.specializationName, specializationName) || other.specializationName == specializationName)&&(identical(other.name, name) || other.name == name)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage)&&(identical(other.unitCount, unitCount) || other.unitCount == unitCount)&&(identical(other.exerciseCount, exerciseCount) || other.exerciseCount == exerciseCount)&&(identical(other.description, description) || other.description == description)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.isEnrolled, isEnrolled) || other.isEnrolled == isEnrolled)&&(identical(other.enrolledAt, enrolledAt) || other.enrolledAt == enrolledAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,specializationId,name,sourceLanguage,targetLanguage,unitCount,exerciseCount,description,thumbnailUrl);
+int get hashCode => Object.hash(runtimeType,id,specializationId,specializationName,name,sourceLanguage,targetLanguage,unitCount,exerciseCount,description,thumbnailUrl,isEnrolled,enrolledAt);
 
 @override
 String toString() {
-  return 'CourseSummary(id: $id, specializationId: $specializationId, name: $name, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage, unitCount: $unitCount, exerciseCount: $exerciseCount, description: $description, thumbnailUrl: $thumbnailUrl)';
+  return 'CourseSummary(id: $id, specializationId: $specializationId, specializationName: $specializationName, name: $name, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage, unitCount: $unitCount, exerciseCount: $exerciseCount, description: $description, thumbnailUrl: $thumbnailUrl, isEnrolled: $isEnrolled, enrolledAt: $enrolledAt)';
 }
 
 
@@ -587,7 +588,7 @@ abstract mixin class $CourseSummaryCopyWith<$Res>  {
   factory $CourseSummaryCopyWith(CourseSummary value, $Res Function(CourseSummary) _then) = _$CourseSummaryCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String specializationId, String name, String sourceLanguage, String targetLanguage, int unitCount, int exerciseCount, String? description, String? thumbnailUrl
+@JsonKey(name: '_id') String id, String specializationId, String specializationName, String name, String sourceLanguage, String targetLanguage, int unitCount, int exerciseCount, String? description, String? thumbnailUrl, bool isEnrolled, DateTime? enrolledAt
 });
 
 
@@ -604,10 +605,11 @@ class _$CourseSummaryCopyWithImpl<$Res>
 
 /// Create a copy of CourseSummary
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? specializationId = null,Object? name = null,Object? sourceLanguage = null,Object? targetLanguage = null,Object? unitCount = null,Object? exerciseCount = null,Object? description = freezed,Object? thumbnailUrl = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? specializationId = null,Object? specializationName = null,Object? name = null,Object? sourceLanguage = null,Object? targetLanguage = null,Object? unitCount = null,Object? exerciseCount = null,Object? description = freezed,Object? thumbnailUrl = freezed,Object? isEnrolled = null,Object? enrolledAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,specializationId: null == specializationId ? _self.specializationId : specializationId // ignore: cast_nullable_to_non_nullable
+as String,specializationName: null == specializationName ? _self.specializationName : specializationName // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sourceLanguage: null == sourceLanguage ? _self.sourceLanguage : sourceLanguage // ignore: cast_nullable_to_non_nullable
 as String,targetLanguage: null == targetLanguage ? _self.targetLanguage : targetLanguage // ignore: cast_nullable_to_non_nullable
@@ -615,7 +617,9 @@ as String,unitCount: null == unitCount ? _self.unitCount : unitCount // ignore: 
 as int,exerciseCount: null == exerciseCount ? _self.exerciseCount : exerciseCount // ignore: cast_nullable_to_non_nullable
 as int,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,isEnrolled: null == isEnrolled ? _self.isEnrolled : isEnrolled // ignore: cast_nullable_to_non_nullable
+as bool,enrolledAt: freezed == enrolledAt ? _self.enrolledAt : enrolledAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -700,10 +704,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String specializationId,  String name,  String sourceLanguage,  String targetLanguage,  int unitCount,  int exerciseCount,  String? description,  String? thumbnailUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String specializationId,  String specializationName,  String name,  String sourceLanguage,  String targetLanguage,  int unitCount,  int exerciseCount,  String? description,  String? thumbnailUrl,  bool isEnrolled,  DateTime? enrolledAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CourseSummary() when $default != null:
-return $default(_that.id,_that.specializationId,_that.name,_that.sourceLanguage,_that.targetLanguage,_that.unitCount,_that.exerciseCount,_that.description,_that.thumbnailUrl);case _:
+return $default(_that.id,_that.specializationId,_that.specializationName,_that.name,_that.sourceLanguage,_that.targetLanguage,_that.unitCount,_that.exerciseCount,_that.description,_that.thumbnailUrl,_that.isEnrolled,_that.enrolledAt);case _:
   return orElse();
 
 }
@@ -721,10 +725,10 @@ return $default(_that.id,_that.specializationId,_that.name,_that.sourceLanguage,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String specializationId,  String name,  String sourceLanguage,  String targetLanguage,  int unitCount,  int exerciseCount,  String? description,  String? thumbnailUrl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: '_id')  String id,  String specializationId,  String specializationName,  String name,  String sourceLanguage,  String targetLanguage,  int unitCount,  int exerciseCount,  String? description,  String? thumbnailUrl,  bool isEnrolled,  DateTime? enrolledAt)  $default,) {final _that = this;
 switch (_that) {
 case _CourseSummary():
-return $default(_that.id,_that.specializationId,_that.name,_that.sourceLanguage,_that.targetLanguage,_that.unitCount,_that.exerciseCount,_that.description,_that.thumbnailUrl);case _:
+return $default(_that.id,_that.specializationId,_that.specializationName,_that.name,_that.sourceLanguage,_that.targetLanguage,_that.unitCount,_that.exerciseCount,_that.description,_that.thumbnailUrl,_that.isEnrolled,_that.enrolledAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -741,10 +745,10 @@ return $default(_that.id,_that.specializationId,_that.name,_that.sourceLanguage,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String specializationId,  String name,  String sourceLanguage,  String targetLanguage,  int unitCount,  int exerciseCount,  String? description,  String? thumbnailUrl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: '_id')  String id,  String specializationId,  String specializationName,  String name,  String sourceLanguage,  String targetLanguage,  int unitCount,  int exerciseCount,  String? description,  String? thumbnailUrl,  bool isEnrolled,  DateTime? enrolledAt)?  $default,) {final _that = this;
 switch (_that) {
 case _CourseSummary() when $default != null:
-return $default(_that.id,_that.specializationId,_that.name,_that.sourceLanguage,_that.targetLanguage,_that.unitCount,_that.exerciseCount,_that.description,_that.thumbnailUrl);case _:
+return $default(_that.id,_that.specializationId,_that.specializationName,_that.name,_that.sourceLanguage,_that.targetLanguage,_that.unitCount,_that.exerciseCount,_that.description,_that.thumbnailUrl,_that.isEnrolled,_that.enrolledAt);case _:
   return null;
 
 }
@@ -756,11 +760,12 @@ return $default(_that.id,_that.specializationId,_that.name,_that.sourceLanguage,
 @JsonSerializable()
 
 class _CourseSummary implements CourseSummary {
-  const _CourseSummary({@JsonKey(name: '_id') required this.id, required this.specializationId, required this.name, required this.sourceLanguage, required this.targetLanguage, required this.unitCount, required this.exerciseCount, this.description, this.thumbnailUrl});
+  const _CourseSummary({@JsonKey(name: '_id') required this.id, required this.specializationId, required this.specializationName, required this.name, required this.sourceLanguage, required this.targetLanguage, required this.unitCount, required this.exerciseCount, this.description, this.thumbnailUrl, this.isEnrolled = false, this.enrolledAt});
   factory _CourseSummary.fromJson(Map<String, dynamic> json) => _$CourseSummaryFromJson(json);
 
 @override@JsonKey(name: '_id') final  String id;
 @override final  String specializationId;
+@override final  String specializationName;
 @override final  String name;
 @override final  String sourceLanguage;
 @override final  String targetLanguage;
@@ -769,6 +774,9 @@ class _CourseSummary implements CourseSummary {
 @override final  String? description;
 /// Absolute MinIO URL built from the current `MINIO_PUBLIC_ENDPOINT`.
 @override final  String? thumbnailUrl;
+/// Always false for teachers and admins.
+@override@JsonKey() final  bool isEnrolled;
+@override final  DateTime? enrolledAt;
 
 /// Create a copy of CourseSummary
 /// with the given fields replaced by the non-null parameter values.
@@ -783,16 +791,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CourseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.specializationId, specializationId) || other.specializationId == specializationId)&&(identical(other.name, name) || other.name == name)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage)&&(identical(other.unitCount, unitCount) || other.unitCount == unitCount)&&(identical(other.exerciseCount, exerciseCount) || other.exerciseCount == exerciseCount)&&(identical(other.description, description) || other.description == description)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CourseSummary&&(identical(other.id, id) || other.id == id)&&(identical(other.specializationId, specializationId) || other.specializationId == specializationId)&&(identical(other.specializationName, specializationName) || other.specializationName == specializationName)&&(identical(other.name, name) || other.name == name)&&(identical(other.sourceLanguage, sourceLanguage) || other.sourceLanguage == sourceLanguage)&&(identical(other.targetLanguage, targetLanguage) || other.targetLanguage == targetLanguage)&&(identical(other.unitCount, unitCount) || other.unitCount == unitCount)&&(identical(other.exerciseCount, exerciseCount) || other.exerciseCount == exerciseCount)&&(identical(other.description, description) || other.description == description)&&(identical(other.thumbnailUrl, thumbnailUrl) || other.thumbnailUrl == thumbnailUrl)&&(identical(other.isEnrolled, isEnrolled) || other.isEnrolled == isEnrolled)&&(identical(other.enrolledAt, enrolledAt) || other.enrolledAt == enrolledAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,specializationId,name,sourceLanguage,targetLanguage,unitCount,exerciseCount,description,thumbnailUrl);
+int get hashCode => Object.hash(runtimeType,id,specializationId,specializationName,name,sourceLanguage,targetLanguage,unitCount,exerciseCount,description,thumbnailUrl,isEnrolled,enrolledAt);
 
 @override
 String toString() {
-  return 'CourseSummary(id: $id, specializationId: $specializationId, name: $name, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage, unitCount: $unitCount, exerciseCount: $exerciseCount, description: $description, thumbnailUrl: $thumbnailUrl)';
+  return 'CourseSummary(id: $id, specializationId: $specializationId, specializationName: $specializationName, name: $name, sourceLanguage: $sourceLanguage, targetLanguage: $targetLanguage, unitCount: $unitCount, exerciseCount: $exerciseCount, description: $description, thumbnailUrl: $thumbnailUrl, isEnrolled: $isEnrolled, enrolledAt: $enrolledAt)';
 }
 
 
@@ -803,7 +811,7 @@ abstract mixin class _$CourseSummaryCopyWith<$Res> implements $CourseSummaryCopy
   factory _$CourseSummaryCopyWith(_CourseSummary value, $Res Function(_CourseSummary) _then) = __$CourseSummaryCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: '_id') String id, String specializationId, String name, String sourceLanguage, String targetLanguage, int unitCount, int exerciseCount, String? description, String? thumbnailUrl
+@JsonKey(name: '_id') String id, String specializationId, String specializationName, String name, String sourceLanguage, String targetLanguage, int unitCount, int exerciseCount, String? description, String? thumbnailUrl, bool isEnrolled, DateTime? enrolledAt
 });
 
 
@@ -820,10 +828,11 @@ class __$CourseSummaryCopyWithImpl<$Res>
 
 /// Create a copy of CourseSummary
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? specializationId = null,Object? name = null,Object? sourceLanguage = null,Object? targetLanguage = null,Object? unitCount = null,Object? exerciseCount = null,Object? description = freezed,Object? thumbnailUrl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? specializationId = null,Object? specializationName = null,Object? name = null,Object? sourceLanguage = null,Object? targetLanguage = null,Object? unitCount = null,Object? exerciseCount = null,Object? description = freezed,Object? thumbnailUrl = freezed,Object? isEnrolled = null,Object? enrolledAt = freezed,}) {
   return _then(_CourseSummary(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,specializationId: null == specializationId ? _self.specializationId : specializationId // ignore: cast_nullable_to_non_nullable
+as String,specializationName: null == specializationName ? _self.specializationName : specializationName // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,sourceLanguage: null == sourceLanguage ? _self.sourceLanguage : sourceLanguage // ignore: cast_nullable_to_non_nullable
 as String,targetLanguage: null == targetLanguage ? _self.targetLanguage : targetLanguage // ignore: cast_nullable_to_non_nullable
@@ -831,7 +840,9 @@ as String,unitCount: null == unitCount ? _self.unitCount : unitCount // ignore: 
 as int,exerciseCount: null == exerciseCount ? _self.exerciseCount : exerciseCount // ignore: cast_nullable_to_non_nullable
 as int,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,thumbnailUrl: freezed == thumbnailUrl ? _self.thumbnailUrl : thumbnailUrl // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,isEnrolled: null == isEnrolled ? _self.isEnrolled : isEnrolled // ignore: cast_nullable_to_non_nullable
+as bool,enrolledAt: freezed == enrolledAt ? _self.enrolledAt : enrolledAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

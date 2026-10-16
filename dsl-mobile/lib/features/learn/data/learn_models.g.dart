@@ -40,6 +40,7 @@ _CourseSummary _$CourseSummaryFromJson(Map<String, dynamic> json) =>
     _CourseSummary(
       id: json['_id'] as String,
       specializationId: json['specializationId'] as String,
+      specializationName: json['specializationName'] as String,
       name: json['name'] as String,
       sourceLanguage: json['sourceLanguage'] as String,
       targetLanguage: json['targetLanguage'] as String,
@@ -47,12 +48,17 @@ _CourseSummary _$CourseSummaryFromJson(Map<String, dynamic> json) =>
       exerciseCount: (json['exerciseCount'] as num).toInt(),
       description: json['description'] as String?,
       thumbnailUrl: json['thumbnailUrl'] as String?,
+      isEnrolled: json['isEnrolled'] as bool? ?? false,
+      enrolledAt: json['enrolledAt'] == null
+          ? null
+          : DateTime.parse(json['enrolledAt'] as String),
     );
 
 Map<String, dynamic> _$CourseSummaryToJson(_CourseSummary instance) =>
     <String, dynamic>{
       '_id': instance.id,
       'specializationId': instance.specializationId,
+      'specializationName': instance.specializationName,
       'name': instance.name,
       'sourceLanguage': instance.sourceLanguage,
       'targetLanguage': instance.targetLanguage,
@@ -60,6 +66,8 @@ Map<String, dynamic> _$CourseSummaryToJson(_CourseSummary instance) =>
       'exerciseCount': instance.exerciseCount,
       'description': instance.description,
       'thumbnailUrl': instance.thumbnailUrl,
+      'isEnrolled': instance.isEnrolled,
+      'enrolledAt': instance.enrolledAt?.toIso8601String(),
     };
 
 _UnitSummary _$UnitSummaryFromJson(Map<String, dynamic> json) => _UnitSummary(

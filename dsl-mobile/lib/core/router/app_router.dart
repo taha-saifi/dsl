@@ -9,6 +9,8 @@ import '../../features/auth/presentation/sign_in_screen.dart';
 import '../../features/auth/presentation/sign_up_screen.dart';
 import '../../features/auth/presentation/students_only_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
+import '../../features/catalog/presentation/catalog_screen.dart';
+import '../../features/catalog/presentation/course_details_screen.dart';
 import '../../features/dev/presentation/design_system_screen.dart';
 import '../../features/dev/presentation/system_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
@@ -98,10 +100,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: Routes.courses,
-                builder: (_, _) => const PlaceholderScreen(
-                  title: 'Courses',
-                  message: 'Browse published courses and enroll here.',
-                ),
+                builder: (_, _) => const CatalogScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':courseId',
+                    builder: (_, state) => CourseDetailsScreen(
+                      courseId: state.pathParameters['courseId']!,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

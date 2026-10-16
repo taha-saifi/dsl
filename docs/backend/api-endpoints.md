@@ -20,6 +20,9 @@ Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** =
 | GET | `/learn/courses` | R | `?specializationId`, `?targetLanguage` (2-letter), `?search` (case-insensitive, literal, ≤100 chars); newest first | 200 `CourseSummary[]` |
 | GET | `/learn/courses/:id` | R | — (404 `COURSE_NOT_FOUND` unless visible) | 200 `CourseDetail` |
 | GET | `/learn/units/:id` | R | — (404 `UNIT_NOT_FOUND` unless visible) | 200 `UnitDetail` |
+| POST | `/learn/courses/:id/enroll` | S | — (404 unless visible; idempotent) | **201** new / 200 existing `Enrollment` |
+| DELETE | `/learn/courses/:id/enroll` | S | — (idempotent) | 200 `{id: courseId}` |
+| GET | `/learn/me/courses` | S | — (visible enrolled courses, most recently enrolled first) | 200 `EnrolledCourse[]` |
 | GET | `/admin/users` | A | `?role=teacher,admin` (comma list; omitted = every role; newest first) | 200 `User[]` |
 | POST | `/admin/users` | A | `{email,password (≥8),firstName,lastName,role:"teacher"\|"admin"}` | 201 `User` |
 | PATCH | `/admin/users/:id/password` | A | `{password (≥8)}` | 200 `User` |
@@ -60,6 +63,6 @@ Route order matters: `/reorder` (and `/questions/text-defaults`) are registered 
 
 Every question response includes `displayText` (a virtual: `questionText` or the type's default), see [[adr-question-text]].
 
-**Since Slice 3 every authoring route, GETs included, is teacher/admin only**; students read published content through `/api/learn`, which shows only content published all the way down ([[publish-readiness]]). Not implemented yet: progress, sessions, enrollment. See [[student-progress-planned]] and [[mobile-index]].
+**Since Slice 3 every authoring route, GETs included, is teacher/admin only**; students read published content through `/api/learn`, which shows only content published all the way down ([[publish-readiness]]). Not implemented yet: progress and sessions. See [[student-progress-planned]] and [[mobile-index]].
 
 Errors: [[error-codes]]. Related: [[routing-and-pages]] (which page calls what). Back to [[backend-index]].

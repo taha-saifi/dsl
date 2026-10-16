@@ -66,13 +66,31 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - Mobile: the repository is tested against recorded fixtures; a 403 doesn't sign the student out; 73 tests pass. Emulator: onboarding lists the seeded domain with "1 course" and its language, since the hollow and draft courses aren't counted.
 - Figma: 0 calls (no screens).
 
+## Slice 4: catalog and enrollment ✅ done 2026-10-16
+**Gates passed.**
+- curl, 30/30:
+  - enroll → 201 and then 200; 7 enrolls (5 of them concurrent) leave **one** document (unique index);
+  - enrolling in a draft, hollow or missing course → 404; a bad id → 400; a teacher → 403; no token → 401;
+  - `isEnrolled` and `specializationName` appear in the catalog and details (always false for a teacher);
+  - `/learn/me/courses` lists the most recently enrolled first with `progress: null`;
+  - a course hidden after enrolling drops out but the enrollment is kept, and it comes back once republished;
+  - unenroll is idempotent.
+- Emulator (backend on `MINIO_PUBLIC_ENDPOINT=http://10.0.2.2:9000`):
+  - Home shows the empty state, and "Browse courses" opens the catalog **preselected on the onboarding domain and French** (the gate moved from Slice 2);
+  - "All" shows 2 courses, and the S3 thumbnail loads from MinIO;
+  - searching "full" leaves 1 course;
+  - Enroll Now → the card shows Enrolled and Continue; Home shows it as Current Course and in My Courses; Continue Learning → Course Details;
+  - Leave course (with confirmation) → Enroll Now again, and Home is back to empty.
+- 80 tests pass. Figma: 1 call (Catalog `62:5`, `catalog.png`).
+- Fixed while building: a course thumbnail inside the card's intrinsic-height row would have crashed layout (`height: infinity`); it now overlays the letter tile.
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
 | 1 ✅ | [[feat-student-accounts]] | 📜 | register → student; password ≥ 8; `termsAcceptedAt`; `/admin/users` (create teacher/admin, list, reset password); admin seed script | admin-only Users page and nav entry | Splash, Login, Sign Up, secure token, `/auth/me` bootstrap, logout, "students only" screen |
 | 2 ✅ | [[feat-onboarding-and-preferences]] | 📜 | `PATCH /auth/me` with `preferences`; `GET /learn/languages` | — | Domain → Language → Profile Setup; router redirect while preferences are unset |
 | 3 ✅ | [[feat-published-content-api]] | 📜 | `/api/learn` router (specializations, courses, course, unit); fully-published filter; media URLs built from `storageKey`; authoring GETs teacher-only | — | repositories and models only (fixture tests) |
-| 4 | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
+| 4 ✅ | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
 | 5 | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
 | 6 | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
 | 7 | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
@@ -83,7 +101,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - **1:** [[auth-and-roles]], [[user]], [[api-contract]], [[api-endpoints]], [[error-codes]]. Deleted the old known-mismatch entry for the teacher default. Also [[routing-and-pages]] (Users page).
 - **2:** [[user]] (preferences), contract, endpoints.
 - **3:** contract, endpoints, [[publish-readiness]] (the student filter), [[media-storage-minio]] (response-time URLs), [[backend-capability-map]].
-- **4:** contract, endpoints, [[student-progress-planned]] (enrollments now built; split out an `enrollment` model note).
+- **4:** contract, endpoints, [[student-progress-planned]], new [[enrollment]] model note. Done.
 - **5:** contract, endpoints.
 - **6:** contract, endpoints, [[question-types]] (derivation now in a backend service), [[question-preview]] (note the shared logic).
 - **7:** contract, endpoints, error codes, [[question-types]] (comparison rule), a new `exercise-session` model note, and a new ADR for the answer-normalization rule.

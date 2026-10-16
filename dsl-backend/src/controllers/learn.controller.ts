@@ -1,17 +1,32 @@
 import type { Request, Response } from "express";
+import type { Types } from "mongoose";
 
 import { ApiError } from "../middleware/error.middleware";
+import { enroll as enrollStudent, unenroll as unenrollStudent } from "../services/enrollment.service";
 import { ensureSpecializationExists } from "../services/resourceDependencies.service";
 import {
   getCourseDetail,
   getUnitDetail,
   listCourseSummaries,
+  listEnrolledCourses,
   listLanguageSummaries,
   listSpecializationSummaries,
+  type Viewer,
 } from "../services/studentCatalog.service";
 import { getOptionalObjectId, getRouteObjectId } from "../utils/requestValidation";
 
 const LANGUAGE_CODE = /^[a-z]{2}$/;
+
+const viewerOf = (request: Request): Viewer =>
+  request.user?.role === "student" ? { studentId: request.user._id } : {};
+
+const studentIdOf = (request: Request): Types.ObjectId => {
+  // requireRole("student") runs first; this narrows the type.
+  if (!request.user) {
+    throw new ApiError(401, "Unauthorized.", "UNAUTHORIZED");
+  }
+  return request.user._id;
+};
 const SEARCH_MAX_LENGTH = 100;
 
 const getOptionalQueryString = (value: unknown, field: string): string | undefined => {
@@ -49,20 +64,39 @@ export const courses = async (request: Request, response: Response): Promise<voi
     throw new ApiError(400, `Search must be at most ${SEARCH_MAX_LENGTH} characters.`, "VALIDATION_ERROR");
   }
 
-  const data = await listCourseSummaries({
-    ...(specializationId ? { specializationId } : {}),
-    ...(targetLanguage ? { targetLanguage } : {}),
-    ...(search ? { search } : {}),
-  });
+  const data = await listCourseSummaries(
+    {
+      ...(specializationId ? { specializationId } : {}),
+      ...(targetLanguage ? { targetLanguage } : {}),
+      ...(search ? { search } : {}),
+    },
+    viewerOf(request),
+  );
   response.status(200).json({ data });
 };
 
 export const course = async (request: Request, response: Response): Promise<void> => {
   const courseId = getRouteObjectId(request.params.id, "Course");
-  response.status(200).json({ data: await getCourseDetail(courseId) });
+  response.status(200).json({ data: await getCourseDetail(courseId, viewerOf(request)) });
 };
 
 export const unit = async (request: Request, response: Response): Promise<void> => {
   const unitId = getRouteObjectId(request.params.id, "Unit");
   response.status(200).json({ data: await getUnitDetail(unitId) });
+};
+
+export const enroll = async (request: Request, response: Response): Promise<void> => {
+  const courseId = getRouteObjectId(request.params.id, "Course");
+  const { enrollment, created } = await enrollStudent(studentIdOf(request), courseId);
+  response.status(created ? 201 : 200).json({ data: enrollment });
+};
+
+export const unenroll = async (request: Request, response: Response): Promise<void> => {
+  const courseId = getRouteObjectId(request.params.id, "Course");
+  await unenrollStudent(studentIdOf(request), courseId);
+  response.status(200).json({ data: { id: courseId } });
+};
+
+export const myCourses = async (request: Request, response: Response): Promise<void> => {
+  response.status(200).json({ data: await listEnrolledCourses(studentIdOf(request)) });
 };

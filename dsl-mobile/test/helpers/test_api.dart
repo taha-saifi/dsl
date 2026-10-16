@@ -67,3 +67,19 @@ Future<AuthState> restored(ProviderContainer container) async {
   }
   throw StateError('session restore never finished');
 }
+
+typedef Responder = ResponseBody Function(RequestOptions options);
+
+/// Dispatches on "METHOD /path"; an unexpected request fails the test.
+Future<ResponseBody> Function(RequestOptions) routes(
+  Map<String, Responder> table,
+) => (options) async {
+  final responder = table['${options.method} ${options.path}'];
+  if (responder == null) {
+    throw StateError('unexpected ${options.method} ${options.path}');
+  }
+  return responder(options);
+};
+
+Responder respondWith(String fixtureName, {int status = 200}) =>
+    (_) => fixtureResponse(fixtureName, status: status);

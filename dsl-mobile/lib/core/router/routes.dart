@@ -21,6 +21,9 @@ abstract final class Routes {
   static const certificates = '/certificates';
   static const profile = '/profile';
 
+  /// Course Details, inside the Courses tab.
+  static String course(String id) => '$courses/$id';
+
   // Debug-only developer screens.
   static const systemCheck = '/dev/system-check';
   static const designSystem = '/dev/design-system';

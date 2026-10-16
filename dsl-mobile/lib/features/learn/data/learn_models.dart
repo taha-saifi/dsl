@@ -38,6 +38,7 @@ abstract class CourseSummary with _$CourseSummary {
   const factory CourseSummary({
     @JsonKey(name: '_id') required String id,
     required String specializationId,
+    required String specializationName,
     required String name,
     required String sourceLanguage,
     required String targetLanguage,
@@ -47,6 +48,10 @@ abstract class CourseSummary with _$CourseSummary {
 
     /// Absolute MinIO URL built from the current `MINIO_PUBLIC_ENDPOINT`.
     String? thumbnailUrl,
+
+    /// Always false for teachers and admins.
+    @Default(false) bool isEnrolled,
+    DateTime? enrolledAt,
   }) = _CourseSummary;
 
   factory CourseSummary.fromJson(Map<String, dynamic> json) =>

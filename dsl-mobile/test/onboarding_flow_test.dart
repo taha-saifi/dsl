@@ -62,6 +62,7 @@ void main() {
       'GET /learn/specializations': _fixture('learn_specializations.json'),
       'GET /learn/languages': _fixture('learn_languages.json'),
       'PATCH /auth/me': _fixture('auth_patch_me.json'),
+      'GET /learn/me/courses': _fixture('learn_me_courses_empty.json'),
     });
 
     // Step 1: domain. Continue waits for a choice.
@@ -96,8 +97,7 @@ void main() {
     await tester.tap(find.text('Get Started'));
     await tester.pumpAndSettle();
 
-    final patch = api.adapter.requests.last;
-    expect(patch.method, 'PATCH');
+    final patch = api.adapter.requests.singleWhere((r) => r.method == 'PATCH');
     expect(jsonDecode(jsonEncode(patch.data)), {
       'preferences': {
         'specializationId': '6aa872d4a40b68f11a965014',
@@ -107,7 +107,7 @@ void main() {
         'experienceLevel': 'beginner',
       },
     });
-    expect(find.text('Hi, Sara'), findsOneWidget);
+    expect(find.text('Hello, Sara'), findsOneWidget);
     expect(find.byType(DslBottomNav), findsOneWidget);
   });
 
@@ -140,6 +140,7 @@ void main() {
       'GET /learn/specializations': empty,
       'GET /learn/languages': empty,
       'PATCH /auth/me': _fixture('auth_patch_me.json'),
+      'GET /learn/me/courses': _fixture('learn_me_courses_empty.json'),
     });
 
     expect(find.text('No courses yet'), findsOneWidget);
@@ -156,7 +157,8 @@ void main() {
     await tester.tap(find.text('Get Started'));
     await tester.pumpAndSettle();
 
-    expect(jsonDecode(jsonEncode(api.adapter.requests.last.data)), {
+    final patch = api.adapter.requests.singleWhere((r) => r.method == 'PATCH');
+    expect(jsonDecode(jsonEncode(patch.data)), {
       'preferences': {
         'goal': 'academic',
         'dailyTargetMinutes': 5,

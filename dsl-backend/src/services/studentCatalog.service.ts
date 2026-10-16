@@ -3,6 +3,7 @@ import { Types, type QueryFilter } from "mongoose";
 import { publicMediaUrl } from "../config/storage";
 import { ApiError } from "../middleware/error.middleware";
 import Course, { type ICourse } from "../models/Course";
+import Enrollment from "../models/Enrollment";
 import Exercise from "../models/Exercise";
 import Media from "../models/Media";
 import Question from "../models/Question";
@@ -98,6 +99,53 @@ const loadVisibleCourses = async (filter: QueryFilter<ICourse>): Promise<Visible
   });
 };
 
+/** Throws 404 unless the course is visible to students. */
+export const ensureCourseVisible = async (courseId: Types.ObjectId): Promise<void> => {
+  const [visible] = await loadVisibleCourses({ _id: courseId });
+  if (!visible) {
+    throw new ApiError(404, "Course not found.", "COURSE_NOT_FOUND");
+  }
+};
+
+/** The viewer, for per-student fields. Only students have enrollments. */
+export interface Viewer {
+  studentId?: Types.ObjectId;
+}
+
+const enrolledCourseIds = async (viewer: Viewer, courses: VisibleCourse[]): Promise<Map<string, Date>> => {
+  if (!viewer.studentId || courses.length === 0) {
+    return new Map();
+  }
+  const enrollments = await Enrollment.find({
+    studentId: viewer.studentId,
+    courseId: { $in: courses.map(({ course }) => course._id) },
+  })
+    .select("courseId enrolledAt")
+    .lean();
+  return new Map(enrollments.map((e) => [e.courseId.toString(), e.enrolledAt]));
+};
+
+const specializationNames = async (courses: VisibleCourse[]): Promise<Map<string, string>> => {
+  const ids = [...new Set(courses.map(({ course }) => course.specializationId.toString()))];
+  const specializations = await Specialization.find({ _id: { $in: ids } }).select("name").lean();
+  return new Map(specializations.map((s) => [s._id.toString(), s.name]));
+};
+
+interface SummaryContext {
+  thumbnails: Map<string, string>;
+  domainNames: Map<string, string>;
+  enrolled: Map<string, Date>;
+}
+
+const loadSummaryContext = async (viewer: Viewer, courses: VisibleCourse[]): Promise<SummaryContext> => {
+  const [thumbnails, domainNames, enrolled] = await Promise.all([
+    thumbnailUrls(courses),
+    specializationNames(courses),
+    enrolledCourseIds(viewer, courses),
+  ]);
+  return { thumbnails, domainNames, enrolled };
+};
+
 const thumbnailUrls = async (courses: VisibleCourse[]): Promise<Map<string, string>> => {
   const ids = courses.flatMap(({ course }) => (course.thumbnailMediaId ? [course.thumbnailMediaId] : []));
   if (ids.length === 0) {
@@ -110,12 +158,14 @@ const thumbnailUrls = async (courses: VisibleCourse[]): Promise<Map<string, stri
 /** The course fields a student sees. No authoring fields (`isPublished`, ids of drafts). */
 const courseSummary = (
   { course, units }: VisibleCourse,
-  thumbnails: Map<string, string>,
+  { thumbnails, domainNames, enrolled }: SummaryContext,
 ): Record<string, unknown> => {
   const thumbnailUrl = course.thumbnailMediaId ? thumbnails.get(course.thumbnailMediaId.toString()) : undefined;
+  const enrolledAt = enrolled.get(course._id.toString());
   return {
     _id: course._id,
     specializationId: course.specializationId,
+    specializationName: domainNames.get(course.specializationId.toString()) ?? "",
     name: course.name,
     ...(course.description ? { description: course.description } : {}),
     sourceLanguage: course.sourceLanguage,
@@ -123,6 +173,8 @@ const courseSummary = (
     ...(thumbnailUrl ? { thumbnailUrl } : {}),
     unitCount: units.length,
     exerciseCount: units.reduce((sum, unit) => sum + unit.exercises.length, 0),
+    isEnrolled: enrolledAt !== undefined,
+    ...(enrolledAt ? { enrolledAt } : {}),
   };
 };
 
@@ -134,25 +186,31 @@ export interface CourseFilters {
   search?: string;
 }
 
-export const listCourseSummaries = async (filters: CourseFilters): Promise<Record<string, unknown>[]> => {
+export const listCourseSummaries = async (
+  filters: CourseFilters,
+  viewer: Viewer,
+): Promise<Record<string, unknown>[]> => {
   const visible = await loadVisibleCourses({
     ...(filters.specializationId ? { specializationId: filters.specializationId } : {}),
     ...(filters.targetLanguage ? { targetLanguage: filters.targetLanguage } : {}),
     ...(filters.search ? { name: { $regex: escapeRegExp(filters.search), $options: "i" } } : {}),
   });
-  const thumbnails = await thumbnailUrls(visible);
-  return visible.map((entry) => courseSummary(entry, thumbnails));
+  const context = await loadSummaryContext(viewer, visible);
+  return visible.map((entry) => courseSummary(entry, context));
 };
 
 /** A visible course with its visible units (each with `exerciseCount`). */
-export const getCourseDetail = async (courseId: Types.ObjectId): Promise<Record<string, unknown>> => {
+export const getCourseDetail = async (
+  courseId: Types.ObjectId,
+  viewer: Viewer,
+): Promise<Record<string, unknown>> => {
   const [visible] = await loadVisibleCourses({ _id: courseId });
   if (!visible) {
     throw new ApiError(404, "Course not found.", "COURSE_NOT_FOUND");
   }
-  const thumbnails = await thumbnailUrls([visible]);
+  const context = await loadSummaryContext(viewer, [visible]);
   return {
-    ...courseSummary(visible, thumbnails),
+    ...courseSummary(visible, context),
     units: visible.units.map((unit) => ({
       _id: unit._id,
       name: unit.name,
@@ -178,6 +236,25 @@ export const getUnitDetail = async (unitId: Types.ObjectId): Promise<Record<stri
     orderIndex: visibleUnit.orderIndex,
     exercises: visibleUnit.exercises,
   };
+};
+
+/**
+ * The student's enrolled courses that are still visible, most recently
+ * enrolled first. Courses that stopped being visible drop out (Q5); their
+ * enrollment is kept. `progress` arrives with feat-learning-progress.
+ */
+export const listEnrolledCourses = async (studentId: Types.ObjectId): Promise<Record<string, unknown>[]> => {
+  const enrollments = await Enrollment.find({ studentId }).sort({ enrolledAt: -1 }).select("courseId").lean();
+  if (enrollments.length === 0) {
+    return [];
+  }
+  const visible = await loadVisibleCourses({ _id: { $in: enrollments.map((e) => e.courseId) } });
+  const byId = new Map(visible.map((entry) => [entry.course._id.toString(), entry]));
+  const context = await loadSummaryContext({ studentId }, visible);
+  return enrollments.flatMap((enrollment) => {
+    const entry = byId.get(enrollment.courseId.toString());
+    return entry ? [{ ...courseSummary(entry, context), progress: null }] : [];
+  });
 };
 
 export interface SpecializationSummary {

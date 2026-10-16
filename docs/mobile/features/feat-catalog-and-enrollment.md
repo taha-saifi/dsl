@@ -36,6 +36,16 @@ A student browses published courses, opens one, enrolls, and finds their enrolle
 ## Dashboard changes
 None in the MVP; see [[feat-teacher-student-insights]].
 
+## Built (2026-10-16)
+- Backend as planned. Course summaries also carry `specializationName` (for the domain label on cards) and `enrolledAt`. Unenroll answers `{id: courseId}`, like other deletes. The model note is [[enrollment]].
+- App:
+  - **Courses tab** (`features/catalog/`): search with a 350 ms pause, domain chips, a language picker, course cards with Enroll Now or Continue, plus empty, error and loading states.
+  - **Filters** start from the onboarding domain and language; a preferred domain with no published courses falls back to "All".
+  - **Course Details**: counts, an About section, the unit list, Enroll Now, and Leave course (with a confirmation).
+  - **Home**: greeting, Current Course (the most recently enrolled until progress exists) with Continue Learning, and My Courses.
+- Not built yet: Continue Learning and the unit rows open Course Details for now; Unit Details is Slice 5. Sort and "Load more" are deferred.
+- The bottom nav keeps Certs and Profile (Profile has Log out).
+
 ## Decisions (2026-10-16)
 - Q6 → Students **enroll explicitly** ("Enroll Now") before playing.
 - Q7 → Cards hide level and duration in the MVP. Level arrives with [[feat-course-metadata]].

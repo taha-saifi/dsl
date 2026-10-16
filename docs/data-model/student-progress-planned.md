@@ -6,11 +6,12 @@ updated: 2026-10-16
 ---
 # Student progress collections (planned, not implemented)
 
-`dsl-backend/AGENTS.md` ("Data model") and the ERD describe these collections, but **there are no model files, routes, or controllers for them**. The planned model files (`Enrollment.ts`, `StudentStats.ts`, `UnitProgress.ts`, `ExerciseSession.ts`) don't exist yet.
+`enrollments` is built (Slice 4): see [[enrollment]].
+
+`dsl-backend/AGENTS.md` ("Data model") and the ERD describe these collections, but **there are no model files, routes, or controllers for them**. The planned model files (`StudentStats.ts`, `UnitProgress.ts`, `ExerciseSession.ts`) don't exist yet.
 
 | Collection | Key fields (as designed) |
 |---|---|
-| `enrollments` | `studentId`, `courseId`, `enrolledAt`, `completedAt?` |
 | `studentStats` | `studentId` (unique), `totalXp`, `currentStreak`, `longestStreak`, `hearts` (default 5), `lastActivityDate?` |
 | `unitProgress` | `studentId`, `unitId`, `isUnlocked`, `completedAt?` |
 | `exerciseSessions` | `studentId`, `exerciseId`, `startedAt`, `completedAt?`, `xpEarned`, `heartsLost`, `accuracy` 0–100, embedded `attempts[]: {questionId, isCorrect, timeTakenMs, attemptedAt}` |

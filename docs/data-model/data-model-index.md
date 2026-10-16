@@ -19,8 +19,9 @@ MongoDB via Mongoose, one file per model in `dsl-backend/src/models/`. The desig
 | [[learning-item]] | `LearningItem` | `translations[]` |
 | [[exercise]] | `Exercise` | — |
 | [[question]] | `Question` | `items[]` (replaces `question_items`) |
+| [[enrollment]] | `Enrollment` | — (student ↔ course, unique pair) |
 
-Question payloads: [[question-types]]. Planned student-side collections: [[student-progress-planned]].
+Question payloads: [[question-types]]. Planned student-side collections (progress, sessions): [[student-progress-planned]].
 
 ## References
 ```

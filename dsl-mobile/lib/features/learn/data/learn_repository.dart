@@ -53,6 +53,21 @@ class LearnRepository {
     decode: (data) => UnitDetail.fromJson(data! as Map<String, dynamic>),
   );
 
+  /// Enrolled courses that are still published, most recently enrolled
+  /// first (students only).
+  Future<List<CourseSummary>> myCourses() => _client.get(
+    '/learn/me/courses',
+    decode: (data) => _list(data, CourseSummary.fromJson),
+  );
+
+  /// Idempotent. 404 if the course isn't published all the way down.
+  Future<void> enroll(String courseId) =>
+      _client.post('/learn/courses/$courseId/enroll', decode: (_) {});
+
+  /// Idempotent.
+  Future<void> unenroll(String courseId) =>
+      _client.delete('/learn/courses/$courseId/enroll', decode: (_) {});
+
   static List<T> _list<T>(
     Object? data,
     T Function(Map<String, dynamic>) fromJson,

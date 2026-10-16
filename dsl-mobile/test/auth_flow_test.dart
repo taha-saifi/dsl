@@ -164,7 +164,7 @@ void main() {
     await tester.tap(find.text('Try again'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Hi, Sara'), findsOneWidget);
+    expect(find.text('Hello, Sara'), findsOneWidget);
   });
 
   testWidgets('a teacher sees "students only" and can log out', (tester) async {
