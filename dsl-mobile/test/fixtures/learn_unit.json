@@ -13,7 +13,8 @@
         "questionCount": 2,
         "questionTypes": [
           "typing"
-        ]
+        ],
+        "status": "not_started"
       },
       {
         "_id": "6ad28f21dcbfbc7ecf3f1a97",
@@ -22,7 +23,8 @@
         "questionCount": 1,
         "questionTypes": [
           "typing"
-        ]
+        ],
+        "status": "not_started"
       },
       {
         "_id": "6ad295274c24c8b9343a5c7f",
@@ -38,8 +40,18 @@
           "fill_blank",
           "arrange_sentence",
           "matching"
-        ]
+        ],
+        "status": "completed",
+        "bestScore": 25,
+        "bestMaxScore": 85,
+        "bestPercent": 29
       }
-    ]
+    ],
+    "progress": {
+      "completedExercises": 1,
+      "totalExercises": 3,
+      "percent": 33
+    },
+    "nextExerciseId": "6ad28f21dcbfbc7ecf3f1a98"
   }
 }

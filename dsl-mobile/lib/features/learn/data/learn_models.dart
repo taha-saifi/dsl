@@ -34,6 +34,25 @@ abstract class LanguageSummary with _$LanguageSummary {
       _$LanguageSummaryFromJson(json);
 }
 
+/// Completed exercises ÷ published exercises, computed by the server from
+/// completed sessions (feat-learning-progress). Students only.
+@freezed
+abstract class Progress with _$Progress {
+  const factory Progress({
+    required int completedExercises,
+    required int totalExercises,
+    required int percent,
+  }) = _Progress;
+
+  const Progress._();
+
+  factory Progress.fromJson(Map<String, dynamic> json) =>
+      _$ProgressFromJson(json);
+
+  bool get isComplete =>
+      totalExercises > 0 && completedExercises >= totalExercises;
+}
+
 /// A course in `GET /learn/courses`, and the head of a [CourseDetail].
 @freezed
 abstract class CourseSummary with _$CourseSummary {
@@ -54,6 +73,13 @@ abstract class CourseSummary with _$CourseSummary {
     /// Always false for teachers and admins.
     @Default(false) bool isEnrolled,
     DateTime? enrolledAt,
+
+    /// Students only. Where Continue goes: the first exercise not completed
+    /// yet; both null once everything is done.
+    Progress? progress,
+    String? nextUnitId,
+    String? nextExerciseId,
+    DateTime? lastActivityAt,
   }) = _CourseSummary;
 
   factory CourseSummary.fromJson(Map<String, dynamic> json) =>
@@ -68,6 +94,7 @@ abstract class UnitSummary with _$UnitSummary {
     required String name,
     required int orderIndex,
     required int exerciseCount,
+    Progress? progress,
   }) = _UnitSummary;
 
   factory UnitSummary.fromJson(Map<String, dynamic> json) =>
@@ -91,6 +118,12 @@ abstract class CourseDetail with _$CourseDetail {
   );
 }
 
+enum ExerciseStatus {
+  @JsonValue('not_started')
+  notStarted,
+  completed,
+}
+
 /// A playable exercise in a [UnitDetail], in `orderIndex` order.
 @freezed
 abstract class ExerciseSummary with _$ExerciseSummary {
@@ -105,6 +138,11 @@ abstract class ExerciseSummary with _$ExerciseSummary {
     @JsonKey(unknownEnumValue: QuestionType.unknown)
     @Default(<QuestionType>[])
     List<QuestionType> questionTypes,
+
+    /// Students only: done at any score; the best session's percent.
+    @JsonKey(unknownEnumValue: ExerciseStatus.notStarted)
+    ExerciseStatus? status,
+    int? bestPercent,
   }) = _ExerciseSummary;
 
   factory ExerciseSummary.fromJson(Map<String, dynamic> json) =>
@@ -121,6 +159,8 @@ abstract class UnitDetail with _$UnitDetail {
     required String name,
     required int orderIndex,
     required List<ExerciseSummary> exercises,
+    Progress? progress,
+    String? nextExerciseId,
   }) = _UnitDetail;
 
   factory UnitDetail.fromJson(Map<String, dynamic> json) =>

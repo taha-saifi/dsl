@@ -5,6 +5,7 @@ import 'package:dsl/app.dart';
 import 'package:dsl/core/api/api_providers.dart';
 import 'package:dsl/core/router/app_router.dart';
 import 'package:dsl/core/router/routes.dart';
+import 'package:dsl/core/widgets/dsl_bottom_nav.dart';
 import 'package:dsl/core/widgets/dsl_button.dart';
 import 'package:dsl/features/player/data/play_models.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +35,8 @@ class _Server {
   final answered = <Map<String, dynamic>>[];
   bool abandoned = false;
   bool completed = false;
+  int myCoursesFetches = 0;
+  int unitFetches = 0;
 
   late final Map<String, String> _verdictFor = {
     for (final q in _questions())
@@ -47,8 +50,14 @@ class _Server {
 
   Future<ResponseBody> Function(RequestOptions) get handler => routes({
     'GET /auth/me': respondWith('auth_me.json'),
-    'GET /learn/me/courses': respondWith('learn_me_courses_empty.json'),
-    'GET /learn/units/$_unit': respondWith('learn_unit.json'),
+    'GET /learn/me/courses': (_) {
+      myCoursesFetches++;
+      return fixtureResponse('learn_me_courses_empty.json');
+    },
+    'GET /learn/units/$_unit': (_) {
+      unitFetches++;
+      return fixtureResponse('learn_unit.json');
+    },
     'POST /learn/exercises/$_exercise/sessions': (_) => startStatus == 200
         ? fixtureResponse('learn_session_start.json', status: 201)
         : fixtureResponse('learn_play_not_enrolled.json', status: 403),
@@ -182,10 +191,12 @@ void main() {
     await _check(tester);
     expect(find.textContaining('The pairs are:'), findsOneWidget);
     expect(find.textContaining('cœur → heart'), findsOneWidget);
+    final homeFetchesBefore = server.myCoursesFetches;
     await _tap(tester, find.text('Skip & see results'));
 
     // Exercise Complete from the server's numbers (25 of 85 = 29%).
     expect(server.completed, isTrue);
+    expect(server.unitFetches, greaterThan(0));
     expect(find.text('Exercise Complete!'), findsOneWidget);
     expect(find.text('29%'), findsOneWidget);
     expect(find.text('Score 25 / 85'), findsOneWidget);
@@ -214,6 +225,17 @@ void main() {
 
     await _tap(tester, find.text('Back to the unit'));
     expect(find.text('Unit Details'), findsOneWidget);
+
+    // Progress comes from the server: Home refetches when it's shown again
+    // (Riverpod pauses providers of screens that aren't visible).
+    await _tap(
+      tester,
+      find.descendant(
+        of: find.byType(DslBottomNav),
+        matching: find.bySemanticsLabel('Home'),
+      ),
+    );
+    expect(server.myCoursesFetches, greaterThan(homeFetchesBefore));
   });
 
   testWidgets('Quit from Pause abandons the session', (tester) async {

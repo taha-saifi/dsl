@@ -36,6 +36,18 @@ Map<String, dynamic> _$LanguageSummaryToJson(_LanguageSummary instance) =>
       'publishedCourseCount': instance.publishedCourseCount,
     };
 
+_Progress _$ProgressFromJson(Map<String, dynamic> json) => _Progress(
+  completedExercises: (json['completedExercises'] as num).toInt(),
+  totalExercises: (json['totalExercises'] as num).toInt(),
+  percent: (json['percent'] as num).toInt(),
+);
+
+Map<String, dynamic> _$ProgressToJson(_Progress instance) => <String, dynamic>{
+  'completedExercises': instance.completedExercises,
+  'totalExercises': instance.totalExercises,
+  'percent': instance.percent,
+};
+
 _CourseSummary _$CourseSummaryFromJson(Map<String, dynamic> json) =>
     _CourseSummary(
       id: json['_id'] as String,
@@ -52,6 +64,14 @@ _CourseSummary _$CourseSummaryFromJson(Map<String, dynamic> json) =>
       enrolledAt: json['enrolledAt'] == null
           ? null
           : DateTime.parse(json['enrolledAt'] as String),
+      progress: json['progress'] == null
+          ? null
+          : Progress.fromJson(json['progress'] as Map<String, dynamic>),
+      nextUnitId: json['nextUnitId'] as String?,
+      nextExerciseId: json['nextExerciseId'] as String?,
+      lastActivityAt: json['lastActivityAt'] == null
+          ? null
+          : DateTime.parse(json['lastActivityAt'] as String),
     );
 
 Map<String, dynamic> _$CourseSummaryToJson(_CourseSummary instance) =>
@@ -68,6 +88,10 @@ Map<String, dynamic> _$CourseSummaryToJson(_CourseSummary instance) =>
       'thumbnailUrl': instance.thumbnailUrl,
       'isEnrolled': instance.isEnrolled,
       'enrolledAt': instance.enrolledAt?.toIso8601String(),
+      'progress': instance.progress,
+      'nextUnitId': instance.nextUnitId,
+      'nextExerciseId': instance.nextExerciseId,
+      'lastActivityAt': instance.lastActivityAt?.toIso8601String(),
     };
 
 _UnitSummary _$UnitSummaryFromJson(Map<String, dynamic> json) => _UnitSummary(
@@ -75,6 +99,9 @@ _UnitSummary _$UnitSummaryFromJson(Map<String, dynamic> json) => _UnitSummary(
   name: json['name'] as String,
   orderIndex: (json['orderIndex'] as num).toInt(),
   exerciseCount: (json['exerciseCount'] as num).toInt(),
+  progress: json['progress'] == null
+      ? null
+      : Progress.fromJson(json['progress'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$UnitSummaryToJson(_UnitSummary instance) =>
@@ -83,6 +110,7 @@ Map<String, dynamic> _$UnitSummaryToJson(_UnitSummary instance) =>
       'name': instance.name,
       'orderIndex': instance.orderIndex,
       'exerciseCount': instance.exerciseCount,
+      'progress': instance.progress,
     };
 
 _CourseDetail _$CourseDetailFromJson(Map<String, dynamic> json) =>
@@ -113,6 +141,12 @@ _ExerciseSummary _$ExerciseSummaryFromJson(Map<String, dynamic> json) =>
               )
               .toList() ??
           const <QuestionType>[],
+      status: $enumDecodeNullable(
+        _$ExerciseStatusEnumMap,
+        json['status'],
+        unknownValue: ExerciseStatus.notStarted,
+      ),
+      bestPercent: (json['bestPercent'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$ExerciseSummaryToJson(_ExerciseSummary instance) =>
@@ -124,6 +158,8 @@ Map<String, dynamic> _$ExerciseSummaryToJson(_ExerciseSummary instance) =>
       'questionTypes': instance.questionTypes
           .map((e) => _$QuestionTypeEnumMap[e]!)
           .toList(),
+      'status': _$ExerciseStatusEnumMap[instance.status],
+      'bestPercent': instance.bestPercent,
     };
 
 const _$QuestionTypeEnumMap = {
@@ -138,6 +174,11 @@ const _$QuestionTypeEnumMap = {
   QuestionType.unknown: 'unknown',
 };
 
+const _$ExerciseStatusEnumMap = {
+  ExerciseStatus.notStarted: 'not_started',
+  ExerciseStatus.completed: 'completed',
+};
+
 _UnitDetail _$UnitDetailFromJson(Map<String, dynamic> json) => _UnitDetail(
   id: json['_id'] as String,
   courseId: json['courseId'] as String,
@@ -147,6 +188,10 @@ _UnitDetail _$UnitDetailFromJson(Map<String, dynamic> json) => _UnitDetail(
   exercises: (json['exercises'] as List<dynamic>)
       .map((e) => ExerciseSummary.fromJson(e as Map<String, dynamic>))
       .toList(),
+  progress: json['progress'] == null
+      ? null
+      : Progress.fromJson(json['progress'] as Map<String, dynamic>),
+  nextExerciseId: json['nextExerciseId'] as String?,
 );
 
 Map<String, dynamic> _$UnitDetailToJson(_UnitDetail instance) =>
@@ -157,4 +202,6 @@ Map<String, dynamic> _$UnitDetailToJson(_UnitDetail instance) =>
       'name': instance.name,
       'orderIndex': instance.orderIndex,
       'exercises': instance.exercises,
+      'progress': instance.progress,
+      'nextExerciseId': instance.nextExerciseId,
     };

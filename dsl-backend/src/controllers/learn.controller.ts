@@ -89,7 +89,7 @@ export const course = async (request: Request, response: Response): Promise<void
 
 export const unit = async (request: Request, response: Response): Promise<void> => {
   const unitId = getRouteObjectId(request.params.id, "Unit");
-  response.status(200).json({ data: await getUnitDetail(unitId) });
+  response.status(200).json({ data: await getUnitDetail(unitId, viewerOf(request)) });
 };
 
 export const enroll = async (request: Request, response: Response): Promise<void> => {

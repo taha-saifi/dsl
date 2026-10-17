@@ -8,6 +8,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/dsl_badge.dart';
 import '../../../core/widgets/dsl_button.dart';
 import '../../../core/widgets/dsl_card.dart';
+import '../../../core/widgets/dsl_progress_bar.dart';
+import '../../../core/widgets/progress_line.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../learn/data/language_names.dart';
 import '../../learn/data/learn_models.dart';
@@ -15,9 +17,8 @@ import '../data/catalog_providers.dart';
 import 'course_card.dart';
 
 /// Figma 06 "Course Details" (`87:5`): about, counts, the unit list, and
-/// Enroll Now, or Continue Learning and Leave course. Until progress exists
-/// (slice 8), Continue Learning opens the first unit. XP and locks arrive
-/// with their slices.
+/// Enroll Now, or progress, Continue Learning (the next exercise) and Leave
+/// course. XP and locks arrive with their slices.
 class CourseDetailsScreen extends ConsumerStatefulWidget {
   const CourseDetailsScreen({required this.courseId, super.key});
 
@@ -156,6 +157,13 @@ class _Body extends StatelessWidget {
           style: type.body.copyWith(color: tone),
         ),
         const SizedBox(height: AppSpacing.lg),
+        if (course.progress != null) ...[
+          ProgressLine(
+            percent: course.progress!.percent,
+            caption: progressCaption(course.progress!),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+        ],
         Row(
           children: [
             _Stat(
@@ -173,9 +181,14 @@ class _Body extends StatelessWidget {
         if (course.isEnrolled) ...[
           if (detail.units.isNotEmpty)
             DslButton(
-              label: 'Continue Learning',
-              onPressed: () =>
-                  context.go(Routes.unit(course.id, detail.units.first.id)),
+              label: course.progress?.isComplete ?? false
+                  ? 'Review course'
+                  : 'Continue Learning',
+              onPressed: () => context.go(
+                course.nextExerciseId != null
+                    ? continueRoute(course)
+                    : Routes.unit(course.id, detail.units.first.id),
+              ),
             ),
           Align(
             alignment: Alignment.centerLeft,
@@ -314,14 +327,27 @@ class _UnitRow extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    Text(
-                      countLabel(unit.exerciseCount, 'exercise'),
-                      style: type.caption.copyWith(color: colors.muted),
-                    ),
+                    if (unit.progress == null)
+                      Text(
+                        countLabel(unit.exerciseCount, 'exercise'),
+                        style: type.caption.copyWith(color: colors.muted),
+                      )
+                    else ...[
+                      const SizedBox(height: AppSpacing.xs),
+                      ProgressLine(
+                        percent: unit.progress!.percent,
+                        size: DslProgressSize.small,
+                        caption: progressCaption(unit.progress!),
+                      ),
+                    ],
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: colors.muted),
+              const SizedBox(width: AppSpacing.sm),
+              if (unit.progress?.isComplete ?? false)
+                Icon(Icons.check_circle_rounded, color: colors.success)
+              else
+                Icon(Icons.chevron_right_rounded, color: colors.muted),
             ],
           ),
         ),

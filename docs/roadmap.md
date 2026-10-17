@@ -18,6 +18,7 @@ updated: 2026-10-17
 - **Mobile Slice 5** (2026-10-16): unit overview. `questionTypes` on unit exercises; app Unit Details and Exercise Intro ([[feat-unit-and-exercise-overview]]).
 - **Mobile Slice 6** (2026-10-16): exercise player. `GET /learn/exercises/:id/play` (answer-free, reshuffled, opaque ids); app player for all 8 types with audio and Pause ([[feat-exercise-player]]).
 - **Mobile Slice 7** (2026-10-17): answer checking and sessions. `exerciseSessions`, server-side verdicts (correct / almost / wrong, [[adr-answer-normalization]]), first-attempt scoring; app feedback, Try Again / Skip, Exercise Complete ([[feat-answer-checking-and-sessions]]).
+- **Mobile Slice 8** (2026-10-17): learning progress computed on read from sessions; app progress bars, Done badges, Continue to the next exercise ([[feat-learning-progress]]).
 - **Monorepo**: compose stack (Mongo, MinIO, backend, frontend); knowledge vault (this folder).
 
 ## Outstanding

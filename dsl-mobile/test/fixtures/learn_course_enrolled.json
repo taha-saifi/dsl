@@ -11,13 +11,25 @@
     "unitCount": 1,
     "exerciseCount": 3,
     "isEnrolled": true,
-    "enrolledAt": "2026-10-16T21:22:35.348Z",
+    "enrolledAt": "2026-10-17T00:08:29.188Z",
+    "progress": {
+      "completedExercises": 1,
+      "totalExercises": 3,
+      "percent": 33
+    },
+    "nextUnitId": "6ad28f21dcbfbc7ecf3f1a96",
+    "nextExerciseId": "6ad28f21dcbfbc7ecf3f1a98",
     "units": [
       {
         "_id": "6ad28f21dcbfbc7ecf3f1a96",
         "name": "A1 Published unit",
         "orderIndex": 0,
-        "exerciseCount": 3
+        "exerciseCount": 3,
+        "progress": {
+          "completedExercises": 1,
+          "totalExercises": 3,
+          "percent": 33
+        }
       }
     ]
   }

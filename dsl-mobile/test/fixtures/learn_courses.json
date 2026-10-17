@@ -11,7 +11,14 @@
       "thumbnailUrl": "http://localhost:9000/dsl-media/8ea82f09-12d2-42eb-b037-03d8322054aa.png",
       "unitCount": 1,
       "exerciseCount": 3,
-      "isEnrolled": false
+      "isEnrolled": false,
+      "progress": {
+        "completedExercises": 1,
+        "totalExercises": 3,
+        "percent": 33
+      },
+      "nextUnitId": "6ad28f21dcbfbc7ecf3f1a96",
+      "nextExerciseId": "6ad28f21dcbfbc7ecf3f1a98"
     }
   ]
 }

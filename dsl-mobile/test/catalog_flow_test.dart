@@ -11,6 +11,7 @@ import 'helpers/test_api.dart';
 
 const _e2eDomain = '6aa872d4a40b68f11a965014'; // Sara's onboarding domain
 const _s3Course = '6ad28f21dcbfbc7ecf3f1a95';
+const _s3Unit = '6ad28f21dcbfbc7ecf3f1a96';
 
 /// The real app, signed in as Sara (onboarded: E2E Languages, French). The
 /// fake server remembers whether she's enrolled in the S3 course.
@@ -43,6 +44,7 @@ class _Server {
     'GET /learn/courses/$_s3Course': (_) => fixtureResponse(
       enrolled ? 'learn_course_enrolled.json' : 'learn_course.json',
     ),
+    'GET /learn/units/$_s3Unit': respondWith('learn_unit.json'),
     'POST /learn/courses/$_s3Course/enroll': (_) {
       enrolled = true;
       return fixtureResponse('learn_enroll.json', status: 201);
@@ -156,10 +158,12 @@ void main() {
     expect(find.text('CURRENT COURSE'), findsOneWidget);
     expect(find.text('S3 Full Course 4zjs'), findsWidgets);
 
+    // Progress: 1 of 3 done (the mixed exercise); Continue opens the next.
+    expect(find.text('1 of 3 exercises done'), findsOneWidget);
+    expect(find.text('33%'), findsWidgets);
     await tester.tap(find.text('Continue Learning'));
     await tester.pumpAndSettle();
-    expect(find.text('Course Details'), findsOneWidget);
-    expect(find.text('A1 Published unit'), findsOneWidget);
+    expect(find.text('A1 Published unit · Exercise 1'), findsOneWidget);
   });
 
   testWidgets('course details: enroll, then leave with confirmation', (

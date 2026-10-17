@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/router/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/dsl_badge.dart';
 import '../../../core/widgets/dsl_button.dart';
+import '../../../core/widgets/dsl_progress_bar.dart';
+import '../../../core/widgets/progress_line.dart';
 import '../../learn/data/learn_models.dart';
 
 /// Accent for a domain, stable across screens (Figma `62:5` colours each
@@ -15,20 +18,41 @@ Color domainTone(BuildContext context, String specializationId) {
 
 String countLabel(int n, String noun) => n == 1 ? '1 $noun' : '$n ${noun}s';
 
-/// Figma "Course Card" (`52:289`) as used in the catalog (`62:5`). Level,
-/// duration and the progress bar arrive with their features.
+/// Where "Continue" goes for an enrolled course: the next exercise's intro,
+/// or the course itself once everything is done.
+String continueRoute(CourseSummary course) =>
+    course.nextExerciseId != null && course.nextUnitId != null
+    ? Routes.exerciseIntro(
+        course.id,
+        course.nextUnitId!,
+        course.nextExerciseId!,
+      )
+    : Routes.course(course.id);
+
+/// "3 of 8 exercises done".
+String progressCaption(Progress progress) =>
+    '${progress.completedExercises} of '
+    '${countLabel(progress.totalExercises, 'exercise')} done';
+
+/// Figma "Course Card" (`52:289`) as used in the catalog (`62:5`), with the
+/// progress bar for enrolled courses. Level and duration arrive with
+/// feat-course-metadata.
 class CourseCard extends StatelessWidget {
   const CourseCard({
     required this.course,
     required this.onOpen,
     required this.onEnroll,
     super.key,
+    this.onContinue,
     this.enrolling = false,
   });
 
   final CourseSummary course;
   final VoidCallback onOpen;
   final VoidCallback onEnroll;
+
+  /// Enrolled: opens the next exercise (defaults to [onOpen]).
+  final VoidCallback? onContinue;
   final bool enrolling;
 
   @override
@@ -98,15 +122,28 @@ class CourseCard extends StatelessWidget {
                         '${countLabel(course.exerciseCount, 'exercise')}',
                         style: type.caption.copyWith(color: colors.muted),
                       ),
+                      if (course.isEnrolled && course.progress != null) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        ProgressLine(
+                          percent: course.progress!.percent,
+                          size: DslProgressSize.small,
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.md),
                       DslButton(
-                        label: course.isEnrolled ? 'Continue' : 'Enroll Now',
+                        label: course.isEnrolled
+                            ? (course.progress?.isComplete ?? false
+                                  ? 'Review'
+                                  : 'Continue')
+                            : 'Enroll Now',
                         size: DslButtonSize.small,
                         variant: course.isEnrolled
                             ? DslButtonVariant.primary
                             : DslButtonVariant.secondary,
                         loading: enrolling,
-                        onPressed: course.isEnrolled ? onOpen : onEnroll,
+                        onPressed: course.isEnrolled
+                            ? (onContinue ?? onOpen)
+                            : onEnroll,
                       ),
                     ],
                   ),

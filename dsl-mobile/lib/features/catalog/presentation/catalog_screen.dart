@@ -201,6 +201,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                           course: items[i],
                           enrolling: _enrollingId == items[i].id,
                           onOpen: () => context.go(Routes.course(items[i].id)),
+                          onContinue: () => context.go(continueRoute(items[i])),
                           onEnroll: () => _enroll(items[i]),
                         ),
                       ),

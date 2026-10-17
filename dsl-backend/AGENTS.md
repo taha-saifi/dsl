@@ -330,6 +330,7 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
 - [x] Unit overview (mobile Slice 5, 2026-10-16): `/learn/units/:id` exercises add `questionTypes` (distinct, by question `orderIndex`).
 - [x] Exercise player payload (mobile Slice 6, 2026-10-16): `GET /api/learn/exercises/:id/play` (enrolled students; teachers/admins preview). `services/questionContent.service.ts` resolves question content (shared with answer checking next); `services/playPayload.service.ts` builds the answer-free payload (shuffled, HMAC ids keyed with `JWT_SECRET`).
 - [x] Answer checking and sessions (mobile Slice 7, 2026-10-17): `models/ExerciseSession.ts` (question snapshot, embedded attempts, one active per student+exercise), `services/exerciseSession.service.ts`, `services/answerChecking.service.ts`, `services/answerNormalization.ts` (the rule in docs/decisions/adr-answer-normalization.md). Student-only `POST /api/learn/exercises/:id/sessions`, `/api/learn/sessions/:id/answers|complete|abandon`.
+- [x] Learning progress (mobile Slice 8, 2026-10-17): computed on read in `services/learnerProgress.service.ts` (best completed session per exercise, last activity per course); `/learn` course/unit responses add `progress`, `nextUnitId`/`nextExerciseId`, per-exercise `status` + best score, for students only. `/learn/me/courses` is ordered by last activity. `unitProgress` stays unbuilt until content locking.
 
 ### Phase 0 definition of done
 

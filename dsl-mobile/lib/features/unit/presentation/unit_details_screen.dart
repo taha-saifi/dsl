@@ -6,16 +6,17 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/dsl_badge.dart';
 import '../../../core/widgets/dsl_button.dart';
+import '../../../core/widgets/progress_line.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../catalog/presentation/course_card.dart';
 import '../../learn/data/learn_models.dart';
 import '../../learn/data/question_type.dart';
 import '../data/unit_providers.dart';
 
-/// Figma 07 "Unit Details" (`87:104`): the unit's playable exercises in
-/// order. Progress, Done/Locked, difficulty, minutes and XP arrive with
-/// their features; until progress exists, "Start Next Exercise" opens the
-/// first one.
+/// Figma 07 "Unit Details" (`87:104`): progress, then the unit's playable
+/// exercises in order with Done and best score. "Start Next Exercise" opens
+/// the first one not done. Locked, difficulty, minutes and XP arrive with
+/// their features.
 class UnitDetailsScreen extends ConsumerWidget {
   const UnitDetailsScreen({
     required this.courseId,
@@ -78,6 +79,13 @@ class _Body extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               Text(unit.name, style: type.h1.copyWith(color: colors.white)),
+              if (unit.progress != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                ProgressLine(
+                  percent: unit.progress!.percent,
+                  caption: progressCaption(unit.progress!),
+                ),
+              ],
               const SizedBox(height: AppSpacing.xl),
               Row(
                 children: [
@@ -114,8 +122,16 @@ class _Body extends StatelessWidget {
               AppSpacing.lg,
             ),
             child: DslButton(
-              label: 'Start Next Exercise',
-              onPressed: () => _open(context, unit.exercises.first),
+              label: unit.progress?.isComplete ?? false
+                  ? 'Practice again'
+                  : 'Start Next Exercise',
+              onPressed: () => _open(
+                context,
+                unit.exercises.firstWhere(
+                  (e) => e.id == unit.nextExerciseId,
+                  orElse: () => unit.exercises.first,
+                ),
+              ),
             ),
           ),
       ],
@@ -188,7 +204,15 @@ class _ExerciseRow extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: colors.muted),
+              if (exercise.status == ExerciseStatus.completed)
+                DslBadge(
+                  label: 'Done · ${exercise.bestPercent ?? 0}%',
+                  tone: DslBadgeTone.success,
+                  style: DslBadgeStyle.soft,
+                  icon: Icons.check_rounded,
+                )
+              else
+                Icon(Icons.chevron_right_rounded, color: colors.muted),
             ],
           ),
         ),

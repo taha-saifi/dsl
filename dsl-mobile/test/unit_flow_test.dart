@@ -1,5 +1,7 @@
 import 'package:dsl/app.dart';
 import 'package:dsl/core/api/api_providers.dart';
+import 'package:dsl/core/router/app_router.dart';
+import 'package:dsl/core/router/routes.dart';
 import 'package:dsl/core/widgets/dsl_bottom_nav.dart';
 import 'package:dsl/core/widgets/dsl_button.dart';
 import 'package:flutter/material.dart';
@@ -37,12 +39,15 @@ Future<TestApi> _launch(WidgetTester tester, {Responder? unit}) async {
   return api;
 }
 
-/// Home → Continue Learning → Course Details → Continue Learning → Unit.
+/// Courses tab → course → its unit row.
 Future<void> _openUnit(WidgetTester tester) async {
-  await tester.tap(find.text('Continue Learning'));
+  final container = ProviderScope.containerOf(
+    tester.element(find.byType(DslApp)),
+  );
+  container.read(appRouterProvider).go(Routes.course(_course));
   await tester.pumpAndSettle();
   expect(find.text('Course Details'), findsOneWidget);
-  await tester.tap(find.text('Continue Learning'));
+  await tester.tap(find.text('A1 Published unit'));
   await tester.pumpAndSettle();
 }
 
@@ -106,9 +111,15 @@ void main() {
     expect(find.text('Unit Details'), findsOneWidget);
   });
 
-  testWidgets('Start Next Exercise opens the first one', (tester) async {
+  testWidgets('progress, Done badge, and Start Next opens the first not done', (
+    tester,
+  ) async {
     await _launch(tester);
     await _openUnit(tester);
+
+    // Recorded: the mixed exercise was completed at 29%.
+    expect(find.text('1 of 3 exercises done'), findsOneWidget);
+    expect(find.text('Done · 29%'), findsOneWidget);
     await tester.tap(find.text('Start Next Exercise'));
     await tester.pumpAndSettle();
 

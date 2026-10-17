@@ -6,7 +6,7 @@ updated: 2026-10-17
 ---
 # Mobile (`dsl-mobile/`)
 
-A Flutter (Android) student app. **Slices 0–2 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]), onboarding (domain, language, goal/target/level saved to `User.preferences`; see [[user]]), the published-content API with its app repository (Slice 3), catalog and enrollment: Courses tab, Course Details, Home with My Courses (Slice 4, [[enrollment]]), Unit Details and Exercise Intro with the type mix (Slice 5), the exercise player with all 8 question types and audio, on an answer-free payload (Slice 6), and server-side answer checking with sessions, feedback and Exercise Complete (Slice 7, [[exercise-session]]). Next is Slice 8, progress ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
+A Flutter (Android) student app. **Slices 0–2 are done**: scaffold, theme from the Figma tokens, API client with the 401 rule, a 4-tab shell, student accounts (Welcome, Sign In, Sign Up, session restore, "students only" screen, logout; see [[auth-and-roles]]), onboarding (domain, language, goal/target/level saved to `User.preferences`; see [[user]]), the published-content API with its app repository (Slice 3), catalog and enrollment: Courses tab, Course Details, Home with My Courses (Slice 4, [[enrollment]]), Unit Details and Exercise Intro with the type mix (Slice 5), the exercise player with all 8 question types and audio, on an answer-free payload (Slice 6), server-side answer checking with sessions, feedback and Exercise Complete (Slice 7, [[exercise-session]]), and progress bars, Done badges and real Continue targets computed from sessions (Slice 8). Next is Slice 9, the static screens that complete the MVP ([[mobile-roadmap]]). Package rules: `dsl-mobile/CLAUDE.md`. It follows [[api-contract]] and keeps its notes in this folder.
 
 ## Endpoints the app uses
 Students may call only these; every authoring route answers them 403 ([[auth-and-roles]]).
@@ -21,7 +21,7 @@ Students may call only these; every authoring route answers them 403 ([[auth-and
 
 ## Gaps the backend must fill next
 1. ~~Published-only reads~~ and ~~student accounts~~: done (Slices 1 and 3).
-3. **Progress, XP, hearts** (enrollment and sessions are done): designed but not built ([[student-progress-planned]]).
+3. **XP, hearts, streaks** (enrollment, sessions and progress are done): designed but not built ([[student-progress-planned]]).
 4. ~~Bulk payloads~~: one play request per exercise since Slice 6.
 5. ~~Answer checking~~: server-side since Slice 7 ([[adr-answer-normalization]]).
 6. ~~Media URLs~~: built from the current `MINIO_PUBLIC_ENDPOINT` on every response since Slice 3 ([[media-storage-minio]]).

@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../catalog/data/catalog_providers.dart';
+import '../../unit/data/unit_providers.dart';
+
 import 'play_models.dart';
 import 'player_answer.dart';
 import 'session_models.dart';
@@ -133,6 +136,13 @@ class PlayerController extends AsyncNotifier<PlayerState> {
     state = AsyncData(s.copyWith(checking: true, clearError: true));
     try {
       final result = await _repo.complete(s.session.id);
+      // Progress is computed by the server from completed sessions:
+      // refetch everything that shows it.
+      ref
+        ..invalidate(myCoursesProvider)
+        ..invalidate(catalogCoursesProvider)
+        ..invalidate(courseDetailProvider(s.session.courseId))
+        ..invalidate(unitDetailProvider(s.session.unitId));
       state = AsyncData(_current.copyWith(result: result, checking: false));
     } on Object catch (error) {
       state = AsyncData(_current.copyWith(checking: false, error: error));

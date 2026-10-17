@@ -6,6 +6,12 @@ import Course, { type ICourse } from "../models/Course";
 import Enrollment from "../models/Enrollment";
 import Exercise from "../models/Exercise";
 import Media from "../models/Media";
+import {
+  loadExerciseBests,
+  loadLastActivity,
+  progressOf,
+  type ExerciseBest,
+} from "./learnerProgress.service";
 import Question from "../models/Question";
 import Specialization from "../models/Specialization";
 import Unit from "../models/Unit";
@@ -147,15 +153,51 @@ interface SummaryContext {
   thumbnails: Map<string, string>;
   domainNames: Map<string, string>;
   enrolled: Map<string, Date>;
+  /** Best completed session per exercise; undefined when the viewer isn't a student. */
+  bests: Map<string, ExerciseBest> | undefined;
 }
 
+const allExerciseIds = (courses: VisibleCourse[]): Types.ObjectId[] =>
+  courses.flatMap(({ units }) => units.flatMap((unit) => unit.exercises.map((e) => e._id)));
+
 const loadSummaryContext = async (viewer: Viewer, courses: VisibleCourse[]): Promise<SummaryContext> => {
-  const [thumbnails, domainNames, enrolled] = await Promise.all([
+  const [thumbnails, domainNames, enrolled, bests] = await Promise.all([
     thumbnailUrls(courses),
     specializationNames(courses),
     enrolledCourseIds(viewer, courses),
+    viewer.studentId ? loadExerciseBests(viewer.studentId, allExerciseIds(courses)) : undefined,
   ]);
-  return { thumbnails, domainNames, enrolled };
+  return { thumbnails, domainNames, enrolled, bests };
+};
+
+/** The first exercise (in unit, then exercise order) the student hasn't completed. */
+const nextExercise = (
+  units: VisibleUnit[],
+  bests: Map<string, ExerciseBest>,
+): { unitId: Types.ObjectId; exerciseId: Types.ObjectId } | undefined => {
+  for (const unit of units) {
+    const exercise = unit.exercises.find((e) => !bests.has(e._id.toString()));
+    if (exercise) {
+      return { unitId: unit._id, exerciseId: exercise._id };
+    }
+  }
+  return undefined;
+};
+
+/** Students only: `progress` and where Continue goes (null when everything is done). */
+const progressFields = (units: VisibleUnit[], bests: Map<string, ExerciseBest> | undefined): Record<string, unknown> => {
+  if (!bests) {
+    return {};
+  }
+  const next = nextExercise(units, bests);
+  return {
+    progress: progressOf(
+      units.flatMap((unit) => unit.exercises.map((e) => e._id)),
+      bests,
+    ),
+    nextUnitId: next?.unitId ?? null,
+    nextExerciseId: next?.exerciseId ?? null,
+  };
 };
 
 const thumbnailUrls = async (courses: VisibleCourse[]): Promise<Map<string, string>> => {
@@ -170,7 +212,7 @@ const thumbnailUrls = async (courses: VisibleCourse[]): Promise<Map<string, stri
 /** The course fields a student sees. No authoring fields (`isPublished`, ids of drafts). */
 const courseSummary = (
   { course, units }: VisibleCourse,
-  { thumbnails, domainNames, enrolled }: SummaryContext,
+  { thumbnails, domainNames, enrolled, bests }: SummaryContext,
 ): Record<string, unknown> => {
   const thumbnailUrl = course.thumbnailMediaId ? thumbnails.get(course.thumbnailMediaId.toString()) : undefined;
   const enrolledAt = enrolled.get(course._id.toString());
@@ -187,6 +229,7 @@ const courseSummary = (
     exerciseCount: units.reduce((sum, unit) => sum + unit.exercises.length, 0),
     isEnrolled: enrolledAt !== undefined,
     ...(enrolledAt ? { enrolledAt } : {}),
+    ...progressFields(units, bests),
   };
 };
 
@@ -228,45 +271,84 @@ export const getCourseDetail = async (
       name: unit.name,
       orderIndex: unit.orderIndex,
       exerciseCount: unit.exercises.length,
+      ...(context.bests
+        ? { progress: progressOf(unit.exercises.map((e) => e._id), context.bests) }
+        : {}),
     })),
   };
 };
 
-/** A visible unit with its playable exercises (each with `questionCount`). */
-export const getUnitDetail = async (unitId: Types.ObjectId): Promise<Record<string, unknown>> => {
+/**
+ * A visible unit with its playable exercises (each with `questionCount`).
+ * For students: unit `progress`, `nextExerciseId`, and per exercise
+ * `status` (`not_started` | `completed`) with the best score.
+ */
+export const getUnitDetail = async (unitId: Types.ObjectId, viewer: Viewer): Promise<Record<string, unknown>> => {
   const unit = await Unit.findById(unitId).select("courseId").lean();
   const [visible] = unit ? await loadVisibleCourses({ _id: unit.courseId }) : [];
   const visibleUnit = visible?.units.find((candidate) => candidate._id.equals(unitId));
   if (!visible || !visibleUnit) {
     throw new ApiError(404, "Unit not found.", "UNIT_NOT_FOUND");
   }
+  const bests = viewer.studentId
+    ? await loadExerciseBests(
+        viewer.studentId,
+        visibleUnit.exercises.map((e) => e._id),
+      )
+    : undefined;
   return {
     _id: visibleUnit._id,
     courseId: visible.course._id,
     courseName: visible.course.name,
     name: visibleUnit.name,
     orderIndex: visibleUnit.orderIndex,
-    exercises: visibleUnit.exercises,
+    exercises: visibleUnit.exercises.map((exercise) => {
+      const best = bests?.get(exercise._id.toString());
+      return {
+        ...exercise,
+        ...(bests ? { status: best ? "completed" : "not_started" } : {}),
+        ...(best ? { bestScore: best.bestScore, bestMaxScore: best.bestMaxScore, bestPercent: best.bestPercent } : {}),
+      };
+    }),
+    ...(bests
+      ? {
+          progress: progressOf(
+            visibleUnit.exercises.map((e) => e._id),
+            bests,
+          ),
+          nextExerciseId: visibleUnit.exercises.find((e) => !bests.has(e._id.toString()))?._id ?? null,
+        }
+      : {}),
   };
 };
 
 /**
  * The student's enrolled courses that are still visible, most recently
- * enrolled first. Courses that stopped being visible drop out (Q5); their
- * enrollment is kept. `progress` arrives with feat-learning-progress.
+ * active first (last exercise started, else enrollment date). Courses that
+ * stopped being visible drop out (Q5); their enrollment is kept.
  */
 export const listEnrolledCourses = async (studentId: Types.ObjectId): Promise<Record<string, unknown>[]> => {
-  const enrollments = await Enrollment.find({ studentId }).sort({ enrolledAt: -1 }).select("courseId").lean();
+  const enrollments = await Enrollment.find({ studentId }).sort({ enrolledAt: -1 }).select("courseId enrolledAt").lean();
   if (enrollments.length === 0) {
     return [];
   }
   const visible = await loadVisibleCourses({ _id: { $in: enrollments.map((e) => e.courseId) } });
   const byId = new Map(visible.map((entry) => [entry.course._id.toString(), entry]));
-  const context = await loadSummaryContext({ studentId }, visible);
-  return enrollments.flatMap((enrollment) => {
+  const [context, lastActivity] = await Promise.all([
+    loadSummaryContext({ studentId }, visible),
+    loadLastActivity(
+      studentId,
+      visible.map((entry) => entry.course._id),
+    ),
+  ]);
+  const rows = enrollments.flatMap((enrollment) => {
     const entry = byId.get(enrollment.courseId.toString());
-    return entry ? [{ ...courseSummary(entry, context), progress: null }] : [];
+    if (!entry) return [];
+    const key = entry.course._id.toString();
+    const lastActivityAt = lastActivity.get(key) ?? enrollment.enrolledAt;
+    return [{ ...courseSummary(entry, context), lastActivityAt }];
   });
+  return rows.sort((a, b) => b.lastActivityAt.getTime() - a.lastActivityAt.getTime());
 };
 
 export interface PlayableExercise {

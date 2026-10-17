@@ -143,6 +143,24 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
   - `DslButton` merged into its parent's accessibility node, so TalkBack couldn't focus buttons inside the feedback panel (or Home's current-course card). It is now `Semantics(container: true)`, covered by a test that fails without the fix; not yet re-checked on the device.
   - A failed check showed a snackbar that covered the Check button; the error now shows inline above it.
 
+## Slice 8: learning progress ✅ done 2026-10-17
+**Gates passed.**
+- curl, 20/20:
+  - 0 of 3 → one completion → 1 of 3 = 33%, and Continue moves to the next exercise;
+  - a replay at 0% **keeps the best score** (100%) and doesn't count twice;
+  - any score completes (the mixed exercise skipped through counts as done at 0%);
+  - **unpublishing** an exercise turns 2 of 3 into 2 of 2 = 100% with nothing next, and republishing restores 2 of 3;
+  - all done → 100% and `nextExerciseId: null`;
+  - My Courses is ordered by last activity and carries progress, as do catalog summaries;
+  - teachers get no progress fields.
+- Emulator (Yasmine):
+  - Home shows 33%, and Continue Learning opens Exercise 1, the first not done; playing it scores 100%;
+  - the unit then shows 67%, "2 of 3 exercises done", "Done · 100%" and "Done · 71%";
+  - Home shows 67%, and Continue opens Exercise 2.
+- 94 tests pass, including a refetch check after completion. Figma: 0 calls.
+- Also confirmed on the device: buttons are their own accessibility nodes now (the Slice 7 fix).
+- Polish: the progress % label is excluded from accessibility, since the bar already says "N% complete".
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
@@ -153,7 +171,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 | 5 ✅ | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
 | 6 ✅ | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
 | 7 ✅ | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
-| 8 | [[feat-learning-progress]] | 📜 | progress, `nextExerciseId`, per-exercise status and best score, computed from sessions | — | progress bars and rings, Done badges, Continue targets |
+| 8 ✅ | [[feat-learning-progress]] | 📜 | progress, `nextExerciseId`, per-exercise status and best score, computed from sessions | — | progress bars and rings, Done badges, Continue targets |
 | 9 | [[feat-static-screens]] | — | — | — | static Certificates, Leaderboard, achievements, Settings rows; real Profile header and logout |
 
 ### Vault notes per slice
@@ -164,7 +182,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - **5:** contract, endpoints.
 - **6:** contract, endpoints, [[question-types]] (derivation now in a backend service), [[question-preview]] (note the shared logic).
 - **7:** contract, endpoints, error codes, [[question-types]], new [[exercise-session]] model note, new [[adr-answer-normalization]]. Done.
-- **8:** contract, endpoints, [[student-progress-planned]].
+- **8:** contract, endpoints, [[student-progress-planned]]. Done.
 - **9:** [[mobile-index]] only.
 
 ### Gates per slice (on top of the standing gates)

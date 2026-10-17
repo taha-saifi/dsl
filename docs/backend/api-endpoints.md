@@ -27,7 +27,7 @@ Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** =
 | POST | `/learn/sessions/:id/answers` | S | `{questionId, answer, timeTakenMs?}` | 200 `AnswerResult` |
 | POST | `/learn/sessions/:id/complete` | S | — | 200 `SessionSummary` + `correctCount`, `durationMs` |
 | POST | `/learn/sessions/:id/abandon` | S | — | 200 `SessionSummary` |
-| GET | `/learn/me/courses` | S | — (visible enrolled courses, most recently enrolled first) | 200 `EnrolledCourse[]` |
+| GET | `/learn/me/courses` | S | — (visible enrolled courses, most recently active first) | 200 `EnrolledCourse[]` |
 | GET | `/admin/users` | A | `?role=teacher,admin` (comma list; omitted = every role; newest first) | 200 `User[]` |
 | POST | `/admin/users` | A | `{email,password (≥8),firstName,lastName,role:"teacher"\|"admin"}` | 201 `User` |
 | PATCH | `/admin/users/:id/password` | A | `{password (≥8)}` | 200 `User` |
@@ -68,6 +68,6 @@ Route order matters: `/reorder` (and `/questions/text-defaults`) are registered 
 
 Every question response includes `displayText` (a virtual: `questionText` or the type's default), see [[adr-question-text]].
 
-**Since Slice 3 every authoring route, GETs included, is teacher/admin only**; students read published content through `/api/learn`, which shows only content published all the way down ([[publish-readiness]]). Not implemented yet: progress views (Slice 8). See [[student-progress-planned]] and [[mobile-index]].
+**Since Slice 3 every authoring route, GETs included, is teacher/admin only**; students read published content through `/api/learn`, which shows only content published all the way down ([[publish-readiness]]). Progress fields (`progress`, `nextExerciseId`, per-exercise `status`) are added to `/learn` course and unit responses for students (Slice 8). See [[student-progress-planned]] and [[mobile-index]].
 
 Errors: [[error-codes]]. Related: [[routing-and-pages]] (which page calls what). Back to [[backend-index]].

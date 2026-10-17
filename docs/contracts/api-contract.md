@@ -1,7 +1,7 @@
 ---
 type: contract
 scope: cross-cutting
-sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/services/enrollment.service.ts, dsl-backend/src/services/playPayload.service.ts, dsl-backend/src/services/questionContent.service.ts, dsl-backend/src/services/exerciseSession.service.ts, dsl-backend/src/services/answerChecking.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
+sources: [dsl-backend/src/app.ts, dsl-backend/src/controllers/adminUsers.controller.ts, dsl-backend/src/services/userAccount.service.ts, dsl-backend/src/services/learnerPreferences.service.ts, dsl-backend/src/services/studentCatalog.service.ts, dsl-backend/src/services/enrollment.service.ts, dsl-backend/src/services/playPayload.service.ts, dsl-backend/src/services/questionContent.service.ts, dsl-backend/src/services/exerciseSession.service.ts, dsl-backend/src/services/answerChecking.service.ts, dsl-backend/src/services/learnerProgress.service.ts, dsl-backend/src/middleware/error.middleware.ts, dsl-backend/src/middleware/auth.middleware.ts, dsl-backend/src/models, dsl-backend/src/controllers, dsl-teacher-dashboard/src/types/index.ts, dsl-teacher-dashboard/src/lib/api.ts, dsl-backend/src/models/Question.ts]
 updated: 2026-10-17
 ---
 # API contract
@@ -34,8 +34,11 @@ interface LanguageSummary { code: string; publishedCourseCount: number }
 interface CourseSummary { _id: string; specializationId: string; specializationName: string; name: string; description?: string;
   sourceLanguage: string; targetLanguage: string; thumbnailUrl?: string; unitCount: number; exerciseCount: number;
   isEnrolled: boolean;      // always false for teachers/admins
-  enrolledAt?: string }
-interface EnrolledCourse extends CourseSummary { progress: null }   // GET /learn/me/courses; progress arrives with feat-learning-progress
+  enrolledAt?: string;
+  // students only (absent for teachers/admins):
+  progress?: Progress; nextUnitId?: string | null; nextExerciseId?: string | null }   // next = first exercise not completed; null when all done
+interface Progress { completedExercises: number; totalExercises: number; percent: number }   // completed ÷ visible exercises (Q15)
+interface EnrolledCourse extends CourseSummary { lastActivityAt: string }   // GET /learn/me/courses, most recently active first
 // GET /learn/exercises/:id/play — never contains an answer
 interface PlayPayload { exercise: { _id; name; unitId; unitName; courseId; courseName; questionCount: number };
   questions: PlayQuestion[] }   // by question orderIndex
@@ -61,10 +64,14 @@ interface AnswerResult { verdict: "correct" | "almost" | "wrong"; isCorrect: boo
 // POST /learn/sessions/:id/complete → SessionSummary & { correctCount: number; durationMs: number }
 // POST /learn/sessions/:id/abandon → SessionSummary
 interface Enrollment { _id: string; studentId: string; courseId: string; enrolledAt: string; completedAt?: string; __v: number }
-interface CourseDetail extends CourseSummary { units: { _id: string; name: string; orderIndex: number; exerciseCount: number }[] }  // by orderIndex
+interface CourseDetail extends CourseSummary { units: { _id: string; name: string; orderIndex: number; exerciseCount: number;
+  progress?: Progress }[] }  // by orderIndex
 interface UnitDetail { _id: string; courseId: string; courseName: string; name: string; orderIndex: number;
   exercises: { _id: string; name: string; orderIndex: number; questionCount: number;
-    questionTypes: QuestionType[] }[] }  // by orderIndex; questionTypes distinct, in order of first appearance (exercises are mixed-type)
+    questionTypes: QuestionType[];   // distinct, in order of first appearance (exercises are mixed-type)
+    // students only:
+    status?: "not_started" | "completed"; bestScore?: number; bestMaxScore?: number; bestPercent?: number }[];
+  progress?: Progress; nextExerciseId?: string | null }  // students only
 interface Specialization { name: string; slug: string; iconUrl?: string; createdAt }
 interface Course { specializationId: string; thumbnailMediaId?: string; name: string;
   sourceLanguage: string; targetLanguage: string; description?: string; isPublished: boolean; createdAt; updatedAt }
@@ -97,6 +104,7 @@ interface QuestionTextDefaults { maxLength: number; defaults: Record<QuestionTyp
 - **Student visibility (`/learn`):** an exercise is visible when it's published and has ≥1 question; a unit when it's published and has a visible exercise; a course when it's published and has a visible unit; a domain when it has a visible course. Anything else is **404** (`COURSE_NOT_FOUND` / `UNIT_NOT_FOUND`), never 403. `/learn` responses never contain `isPublished`, `Unit.learningItems` or anything that reveals answers. Logic: `dsl-backend/src/services/studentCatalog.service.ts`.
 - **Access:** authoring routes (`/specializations`, `/courses`, `/units`, `/exercises`, `/questions`, `/learning-items`, `/media`) are teacher/admin only for **every** method, GETs included (403 `FORBIDDEN_ROLE` for students).
 - **Media URLs** (`Media.url`, `thumbnailUrl`) are built when responding from `storageKey` and the **current** `MINIO_PUBLIC_ENDPOINT`; the `url` stored at upload is not used ([[media-storage-minio]]).
+- **Progress** (students only) is computed on every read from completed sessions against the exercises visible now: nothing is stored, so unpublishing changes totals at once. An exercise is completed at any score (Q13); `bestPercent` is its best session (score ÷ maxScore). `nextExerciseId` is the first not-completed exercise in unit then exercise order ([[student-progress-planned]]).
 - **Sessions:** starting abandons the student's active session for the exercise. The server checks every answer with the rule in [[adr-answer-normalization]]. Retries are unlimited and only a question's first attempt scores. Errors: another student's or a missing session → 404 `SESSION_NOT_FOUND`; answering, completing or abandoning a finished session → 409 `SESSION_NOT_ACTIVE`; a question outside the session's snapshot → 409 `QUESTION_NOT_IN_SESSION`; its content gone → 409 `QUESTION_UNAVAILABLE`; no playable questions at start → 409 `EXERCISE_EMPTY`; a malformed answer → 400 ([[exercise-session]]).
 - **Play payload:** choices are reshuffled on every request (Q10); none is marked correct; ids are HMACs of question + item (keyed with `JWT_SECRET`), stable across plays, and a matching pair's left and right ids differ. `hint` is the target's `promptLanguage` translation. A question whose content is broken (deleted item, translation or media) is left out and `questionCount` counts what is sent. Students must be enrolled (403 `NOT_ENROLLED`); teachers and admins can open it without enrolling. Hidden exercise → 404 `EXERCISE_NOT_FOUND`.
 - **Enrollment** (students only, 403 otherwise): `POST /learn/courses/:id/enroll` is idempotent (201 created, 200 existing) and needs a visible course (404); `DELETE` is idempotent and returns `{id: courseId}`. A course that stops being visible drops out of `/learn/me/courses` but the enrollment is kept ([[enrollment]]).

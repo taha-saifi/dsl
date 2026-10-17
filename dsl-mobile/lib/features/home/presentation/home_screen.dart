@@ -7,6 +7,8 @@ import '../../../core/auth/auth_controller.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/dsl_button.dart';
+import '../../../core/widgets/dsl_progress_bar.dart';
+import '../../../core/widgets/progress_line.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../catalog/data/catalog_providers.dart';
 import '../../catalog/presentation/course_card.dart';
@@ -123,8 +125,8 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-/// "CURRENT COURSE": the most recently enrolled one until progress
-/// (slice 8) can tell which was played last.
+/// "CURRENT COURSE": the one played most recently (the server orders My
+/// Courses by last activity). Continue Learning opens the next exercise.
 class _CurrentCourseCard extends StatelessWidget {
   const _CurrentCourseCard({required this.course});
 
@@ -156,14 +158,22 @@ class _CurrentCourseCard extends StatelessWidget {
           Text(course.name, style: type.h2.copyWith(color: colors.white)),
           Text(
             '${course.specializationName} · '
-            '${countLabel(course.unitCount, 'unit')} · '
-            '${countLabel(course.exerciseCount, 'exercise')}',
+            '${countLabel(course.unitCount, 'unit')}',
             style: type.caption.copyWith(color: colors.muted),
           ),
+          if (course.progress != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            ProgressLine(
+              percent: course.progress!.percent,
+              caption: progressCaption(course.progress!),
+            ),
+          ],
           const SizedBox(height: AppSpacing.lg),
           DslButton(
-            label: 'Continue Learning',
-            onPressed: () => context.go(Routes.course(course.id)),
+            label: course.progress?.isComplete ?? false
+                ? 'Review course'
+                : 'Continue Learning',
+            onPressed: () => context.go(continueRoute(course)),
           ),
         ],
       ),
@@ -214,10 +224,17 @@ class _MyCourseRow extends StatelessWidget {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        countLabel(course.unitCount, 'unit'),
-                        style: type.caption.copyWith(color: colors.muted),
-                      ),
+                      if (course.progress != null) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        ProgressLine(
+                          percent: course.progress!.percent,
+                          size: DslProgressSize.small,
+                        ),
+                      ] else
+                        Text(
+                          countLabel(course.unitCount, 'unit'),
+                          style: type.caption.copyWith(color: colors.muted),
+                        ),
                     ],
                   ),
                 ),

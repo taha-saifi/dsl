@@ -2,7 +2,7 @@
 type: feature
 scope: cross-cutting
 sources: [docs/data-model/student-progress-planned.md]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Feature: learning progress (MVP)
 
@@ -30,6 +30,19 @@ None beyond `exerciseSessions` indexes. The designed `unitProgress` collection i
 
 ## Dashboard changes
 None.
+
+## Built (2026-10-17)
+- **Backend:** `learnerProgress.service.ts` runs 2 aggregations per request: the best completed session per exercise, and the last activity per course. `studentCatalog.service.ts` adds:
+  - `progress`, `nextUnitId` and `nextExerciseId` to course summaries and details;
+  - `progress` to each unit in a course;
+  - `status`, `bestScore`, `bestMaxScore` and `bestPercent` per exercise, plus unit `progress` and `nextExerciseId`;
+  - teachers get none of these.
+- My Courses is now ordered by **last activity** (the last session started, else the enrollment date), so Home's current course is the one played last.
+- **App:**
+  - `ProgressLine` (bar + %, green at 100) on catalog cards (enrolled), Home's current course and My Courses rows, Course Details (course and each unit, with a check when done) and Unit Details.
+  - Exercise rows show "Done · best %".
+  - Every Continue opens the **next exercise's intro**: "Review course" or "Practice again" once all are done.
+  - After a session completes, the player invalidates My Courses, the catalog, the course and the unit; Riverpod refetches each when it's next shown.
 
 ## Decisions (2026-10-16)
 - Q15 → Course % = completed exercises ÷ all published exercises in the course.
