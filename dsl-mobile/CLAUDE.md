@@ -5,7 +5,7 @@ client of the one DSL API. Inside this folder, this file takes precedence for
 Flutter-specific rules; the root `CLAUDE.md` still applies (API contract,
 vertical slices, never read `.env`/credential files, commit only when asked).
 
-**Status:** Slices 0–8 done (scaffold, student accounts, onboarding, published-content repository, catalog and enrollment, unit overview, exercise player, answer checking and sessions, learning progress). Build order, per-slice tasks and gates:
+**Status:** MVP complete: Slices 0–9 done (scaffold, student accounts, onboarding, published-content repository, catalog and enrollment, unit overview, exercise player, answer checking and sessions, learning progress, static screens). Later features follow the roadmap. Build order, per-slice tasks and gates:
 `docs/mobile/mobile-roadmap.md`. Features and decisions:
 `docs/mobile/features/00-feature-catalog.md`. Architecture and the reasons
 behind every choice below: `docs/decisions/mobile-architecture.md`.
@@ -34,7 +34,8 @@ lib/
     storage/    TokenStorage
     theme/      AppColors / AppTypography (ThemeExtensions), AppTheme, AppSpacing, AppRadii
     widgets/    DslButton, DslTextField, DslProgressBar, DslBadge, DslCard,
-                DslBottomNav, Loading/Empty/ErrorView, PlaceholderScreen
+                DslBottomNav, Loading/Empty/ErrorView, ProgressLine,
+                ComingSoonBanner / SoonBadge (sample content)
   features/<feature>/
     data/          repositories + models (talk to ApiClient)
     presentation/  screens and feature widgets
@@ -84,6 +85,7 @@ flutter run --dart-define-from-file=env/device.json        # physical phone on t
 ```
 - Without `API_BASE_URL` the app stops at startup with a message naming the
   missing define.
+- Debug builds log every API request as `DSL api → METHOD /path` (logcat tag `flutter`; no bodies or headers).
 - Debug builds allow cleartext HTTP (`android/app/src/debug/res/xml/network_security_config.xml`);
   release builds don't.
 - Images and audio come from MinIO URLs built with the backend's

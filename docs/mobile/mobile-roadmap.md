@@ -161,6 +161,16 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - Also confirmed on the device: buttons are their own accessibility nodes now (the Slice 7 fix).
 - Polish: the progress % label is excluded from accessibility, since the bar already says "N% complete".
 
+## Slice 9: static screens ✅ done 2026-10-17 (MVP complete)
+**Gates passed.**
+- Emulator: after sign-in (2 requests), Certs → sample certificate → Profile → Leaderboard → Settings made **0 API requests**, checked in the new debug request log. Every static screen shows a Coming soon banner or Soon badges.
+- Tests (97): static screens make no requests; Settings sends `PATCH /auth/me` for daily target and level; Profile logs out.
+- Not checked on the device: a Settings edit that changes a value (the picked value matched the stored one). Covered by tests.
+- Fixed while building:
+  - a snackbar covered the bottom of the Settings pickers (now dismissed first);
+  - the achievement tiles merged into one accessibility node;
+  - the sample certificate didn't span the width.
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
@@ -172,7 +182,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 | 6 ✅ | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
 | 7 ✅ | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
 | 8 ✅ | [[feat-learning-progress]] | 📜 | progress, `nextExerciseId`, per-exercise status and best score, computed from sessions | — | progress bars and rings, Done badges, Continue targets |
-| 9 | [[feat-static-screens]] | — | — | — | static Certificates, Leaderboard, achievements, Settings rows; real Profile header and logout |
+| 9 ✅ | [[feat-static-screens]] | — | — | — | static Certificates, Leaderboard, achievements, Settings rows; real Profile header and logout |
 
 ### Vault notes per slice
 - **1:** [[auth-and-roles]], [[user]], [[api-contract]], [[api-endpoints]], [[error-codes]]. Deleted the old known-mismatch entry for the teacher default. Also [[routing-and-pages]] (Users page).

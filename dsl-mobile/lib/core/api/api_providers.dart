@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/app_config.dart';
@@ -27,6 +28,8 @@ final apiClientProvider = Provider<ApiClient>((ref) {
     tokenStorage: ref.watch(tokenStorageProvider),
     onUnauthorized: () =>
         ref.read(sessionExpiredEventsProvider.notifier).signal(),
+    // Debug builds log each request's method and path (logcat "flutter").
+    logRequest: kDebugMode ? debugPrint : null,
   );
   ref.onDispose(dio.close);
   return ApiClient(dio);

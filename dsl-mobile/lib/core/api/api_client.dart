@@ -165,6 +165,7 @@ Dio createDio({
   required String baseUrl,
   required TokenStorage tokenStorage,
   required void Function() onUnauthorized,
+  void Function(String line)? logRequest,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -180,5 +181,17 @@ Dio createDio({
   dio.interceptors.add(
     AuthInterceptor(tokenStorage: tokenStorage, onUnauthorized: onUnauthorized),
   );
+  if (logRequest != null) {
+    // One line per request ("DSL api → GET /learn/courses"); no bodies or
+    // headers, so tokens and answers never reach the log.
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          logRequest('DSL api → ${options.method} ${options.path}');
+          handler.next(options);
+        },
+      ),
+    );
+  }
   return dio;
 }

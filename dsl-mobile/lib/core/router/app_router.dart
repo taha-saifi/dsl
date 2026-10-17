@@ -11,19 +11,22 @@ import '../../features/auth/presentation/students_only_screen.dart';
 import '../../features/auth/presentation/welcome_screen.dart';
 import '../../features/catalog/presentation/catalog_screen.dart';
 import '../../features/catalog/presentation/course_details_screen.dart';
+import '../../features/certificates/presentation/certificate_detail_screen.dart';
+import '../../features/certificates/presentation/certificates_screen.dart';
 import '../../features/dev/presentation/design_system_screen.dart';
 import '../../features/dev/presentation/system_check_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/leaderboard/presentation/leaderboard_screen.dart';
 import '../../features/onboarding/presentation/domain_step_screen.dart';
 import '../../features/onboarding/presentation/language_step_screen.dart';
 import '../../features/onboarding/presentation/profile_step_screen.dart';
 import '../../features/player/presentation/player_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/profile/presentation/settings_screen.dart';
 import '../../features/unit/presentation/exercise_intro_screen.dart';
 import '../../features/unit/presentation/unit_details_screen.dart';
 import '../auth/auth_controller.dart';
 import '../widgets/dsl_bottom_nav.dart';
-import '../widgets/placeholder_screen.dart';
 import 'auth_redirect.dart';
 import 'routes.dart';
 
@@ -138,10 +141,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: Routes.certificates,
-                builder: (_, _) => const PlaceholderScreen(
-                  title: 'Certificates',
-                  message: 'Certificates you earn will be listed here.',
-                ),
+                builder: (_, _) => const CertificatesScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'sample',
+                    builder: (_, _) => const CertificateDetailScreen(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -150,6 +156,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: Routes.profile,
                 builder: (_, _) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'settings',
+                    builder: (_, _) => const SettingsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'leaderboard',
+                    builder: (_, _) => const LeaderboardScreen(),
+                  ),
+                ],
               ),
             ],
           ),

@@ -20,6 +20,9 @@ abstract final class Routes {
   static const courses = '/courses';
   static const certificates = '/certificates';
   static const profile = '/profile';
+  static const settings = '/profile/settings';
+  static const leaderboard = '/profile/leaderboard';
+  static const sampleCertificate = '/certificates/sample';
 
   /// Course Details, inside the Courses tab.
   static String course(String id) => '$courses/$id';

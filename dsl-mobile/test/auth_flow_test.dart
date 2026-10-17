@@ -200,7 +200,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Sara Lee'), findsOneWidget);
-    await tester.tap(find.text('Log out'));
+    await tester.ensureVisible(find.text('Log Out'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Log Out'));
     await tester.pumpAndSettle();
 
     expect(find.text('DOMAIN SPECIFIC LANGUAGE'), findsOneWidget);
