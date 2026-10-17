@@ -2,7 +2,7 @@
 type: feature
 scope: cross-cutting
 sources: [dsl-backend/src/models/Question.ts, docs/data-model/student-progress-planned.md]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Feature: answer checking and exercise sessions (MVP)
 
@@ -54,6 +54,27 @@ New collection **`exerciseSessions`** (the designed shape in [[student-progress-
 
 ## Dashboard changes
 None in the MVP.
+
+## Built (2026-10-17)
+- **Backend:**
+  - Model note: [[exercise-session]]. Normalization rule: [[adr-answer-normalization]].
+  - `answerChecking.service.ts` reuses Slice 6's resolution and recomputes the opaque choice ids, so nothing answer-related is stored per session.
+  - Starting needs an enrollment and abandons any active session (enforced by a partial unique index).
+  - `correctAnswer` comes back with every verdict: `{optionId, text?}`, `{text}`, or matching `{pairs:[{leftId, rightId, left, right}]}`.
+  - Extra error codes beyond the plan: `QUESTION_UNAVAILABLE` (content deleted mid-session) and `EXERCISE_EMPTY`.
+  - `QUESTION_ALREADY_ANSWERED` wasn't needed, since retries are unlimited (Q12).
+- **App:**
+  - The player starts a session (`POST …/sessions`) instead of the plain play payload. "Check Answer" sends the answer with `timeTakenMs`.
+  - Feedback panel:
+    - **Correct!** → Continue;
+    - **Almost!** "Watch the accents: “cœur”. This still counts as right." → Continue;
+    - **Incorrect** with the right answer (green picture or option, the expected text, or the list of pairs) → Try Again / Skip & Continue.
+    - Retries note "Only first tries count toward your score".
+  - Input locks while a verdict is shown. Matching pairs turn green or red per pair.
+  - A failed check keeps the answer and shows the error above the button.
+  - Exercise Complete shows score %, score/max, accuracy, right-first-try and time, then "Next: <exercise>" (if any) and Back to the unit.
+  - Quit abandons the session (best effort; the next start abandons it anyway).
+- The explanation line in the feedback waits for definitions ([[feat-item-definitions-and-flashcards]]). XP and hearts are hidden until their features.
 
 ## Decisions (2026-10-16)
 - Q11 → **Three verdicts:** `correct`, `almost`, `wrong`.

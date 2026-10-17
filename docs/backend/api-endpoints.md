@@ -2,7 +2,7 @@
 type: component
 scope: backend
 sources: [dsl-backend/src/app.ts, dsl-backend/src/routes/auth.routes.ts, dsl-backend/src/routes/adminUsers.routes.ts, dsl-backend/src/routes/learn.routes.ts, dsl-backend/src/routes/specializations.routes.ts, dsl-backend/src/routes/courses.routes.ts, dsl-backend/src/routes/units.routes.ts, dsl-backend/src/routes/media.routes.ts, dsl-backend/src/routes/learningItem.routes.ts, dsl-backend/src/routes/exercise.routes.ts, dsl-backend/src/routes/question.routes.ts, dsl-backend/src/routes/health.routes.ts]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # API endpoints
 
@@ -23,6 +23,10 @@ Base path `/api`. Roles: **P** = public, **R** = any authenticated user, **T** =
 | GET | `/learn/exercises/:id/play` | R (students must be enrolled) | — (404 unless visible; 403 `NOT_ENROLLED`) | 200 `PlayPayload` |
 | POST | `/learn/courses/:id/enroll` | S | — (404 unless visible; idempotent) | **201** new / 200 existing `Enrollment` |
 | DELETE | `/learn/courses/:id/enroll` | S | — (idempotent) | 200 `{id: courseId}` |
+| POST | `/learn/exercises/:id/sessions` | S | — (enrolled; abandons an active one) | **201** `{session, play}` |
+| POST | `/learn/sessions/:id/answers` | S | `{questionId, answer, timeTakenMs?}` | 200 `AnswerResult` |
+| POST | `/learn/sessions/:id/complete` | S | — | 200 `SessionSummary` + `correctCount`, `durationMs` |
+| POST | `/learn/sessions/:id/abandon` | S | — | 200 `SessionSummary` |
 | GET | `/learn/me/courses` | S | — (visible enrolled courses, most recently enrolled first) | 200 `EnrolledCourse[]` |
 | GET | `/admin/users` | A | `?role=teacher,admin` (comma list; omitted = every role; newest first) | 200 `User[]` |
 | POST | `/admin/users` | A | `{email,password (≥8),firstName,lastName,role:"teacher"\|"admin"}` | 201 `User` |
@@ -64,6 +68,6 @@ Route order matters: `/reorder` (and `/questions/text-defaults`) are registered 
 
 Every question response includes `displayText` (a virtual: `questionText` or the type's default), see [[adr-question-text]].
 
-**Since Slice 3 every authoring route, GETs included, is teacher/admin only**; students read published content through `/api/learn`, which shows only content published all the way down ([[publish-readiness]]). Not implemented yet: progress and sessions. See [[student-progress-planned]] and [[mobile-index]].
+**Since Slice 3 every authoring route, GETs included, is teacher/admin only**; students read published content through `/api/learn`, which shows only content published all the way down ([[publish-readiness]]). Not implemented yet: progress views (Slice 8). See [[student-progress-planned]] and [[mobile-index]].
 
 Errors: [[error-codes]]. Related: [[routing-and-pages]] (which page calls what). Back to [[backend-index]].

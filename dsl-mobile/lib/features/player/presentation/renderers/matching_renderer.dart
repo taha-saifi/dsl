@@ -4,23 +4,27 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../learn/data/language_names.dart';
 import '../../data/play_models.dart';
 import '../../data/player_answer.dart';
+import '../../data/session_models.dart';
 import '../lesson_widgets.dart';
 
 /// matching (Figma `5:3`): tap a left card, then a right card to pair them;
-/// tap a paired card to undo. Pairs share a colour and number. Whether they
-/// are right is only known after checking (slice 7), so nothing turns green
-/// here.
+/// tap a paired card to undo. Pairs share a colour and number; only after
+/// checking does each pair turn green (right) or red (wrong).
 class MatchingRenderer extends StatefulWidget {
   const MatchingRenderer({
     required this.question,
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final MatchingQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   State<MatchingRenderer> createState() => _MatchingRendererState();
@@ -34,6 +38,7 @@ class _MatchingRendererState extends State<MatchingRenderer> {
       : const {};
 
   void _tapLeft(String id) {
+    if (widget.feedback != null) return;
     if (_pairs.containsKey(id)) {
       widget.onAnswer(PairsAnswer({..._pairs}..remove(id)));
       return;
@@ -42,6 +47,7 @@ class _MatchingRendererState extends State<MatchingRenderer> {
   }
 
   void _tapRight(String id) {
+    if (widget.feedback != null) return;
     final pairedLeft = _pairs.entries
         .where((e) => e.value == id)
         .map((e) => e.key)
@@ -81,9 +87,23 @@ class _MatchingRendererState extends State<MatchingRenderer> {
       colors.ink,
       colors.muted,
     ];
-    Color? toneOf(String id) => pairNumber[id] == null
-        ? null
-        : tones[(pairNumber[id]! - 1) % tones.length];
+    // After checking: each pair the student made is green if right, red if
+    // wrong.
+    final rightPairs =
+        widget.feedback?.correctPairs ?? const <String, String>{};
+    final leftOfRight = {for (final e in pairs.entries) e.value: e.key};
+    Color? verdictOf(String id) {
+      if (widget.feedback == null) return null;
+      final left = pairs.containsKey(id) ? id : leftOfRight[id];
+      if (left == null) return null;
+      return rightPairs[left] == pairs[left] ? colors.success : colors.error;
+    }
+
+    Color? toneOf(String id) =>
+        verdictOf(id) ??
+        (pairNumber[id] == null
+            ? null
+            : tones[(pairNumber[id]! - 1) % tones.length]);
 
     Widget card(PlayChoice choice, {required bool left}) {
       final tone = toneOf(choice.id);

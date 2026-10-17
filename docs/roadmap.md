@@ -2,7 +2,7 @@
 type: roadmap
 scope: cross-cutting
 sources: [dsl-backend/AGENTS.md, dsl-backend/CLAUDE.md, dsl-teacher-dashboard/CLAUDE.md]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Roadmap
 
@@ -17,6 +17,7 @@ updated: 2026-10-16
 - **Mobile Slice 4** (2026-10-16): catalog and enrollment. `enrollments` collection, enroll/unenroll and `/learn/me/courses`; app Courses tab, Course Details and Home ([[feat-catalog-and-enrollment]]).
 - **Mobile Slice 5** (2026-10-16): unit overview. `questionTypes` on unit exercises; app Unit Details and Exercise Intro ([[feat-unit-and-exercise-overview]]).
 - **Mobile Slice 6** (2026-10-16): exercise player. `GET /learn/exercises/:id/play` (answer-free, reshuffled, opaque ids); app player for all 8 types with audio and Pause ([[feat-exercise-player]]).
+- **Mobile Slice 7** (2026-10-17): answer checking and sessions. `exerciseSessions`, server-side verdicts (correct / almost / wrong, [[adr-answer-normalization]]), first-attempt scoring; app feedback, Try Again / Skip, Exercise Complete ([[feat-answer-checking-and-sessions]]).
 - **Monorepo**: compose stack (Mongo, MinIO, backend, frontend); knowledge vault (this folder).
 
 ## Outstanding

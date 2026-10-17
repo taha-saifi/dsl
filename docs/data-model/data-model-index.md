@@ -2,7 +2,7 @@
 type: index
 scope: cross-cutting
 sources: [dsl-backend/src/models, dsl-backend/AGENTS.md, docs/assets/dsl_full_erd.html]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Data model
 
@@ -20,6 +20,7 @@ MongoDB via Mongoose, one file per model in `dsl-backend/src/models/`. The desig
 | [[exercise]] | `Exercise` | — |
 | [[question]] | `Question` | `items[]` (replaces `question_items`) |
 | [[enrollment]] | `Enrollment` | — (student ↔ course, unique pair) |
+| [[exercise-session]] | `ExerciseSession` | `questions[]` snapshot, `attempts[]` |
 
 Question payloads: [[question-types]]. Planned student-side collections (progress, sessions): [[student-progress-planned]].
 

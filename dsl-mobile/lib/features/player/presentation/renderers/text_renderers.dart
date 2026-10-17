@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../learn/data/language_names.dart';
 import '../../data/play_models.dart';
 import '../../data/player_answer.dart';
+import '../../data/session_models.dart';
 import '../lesson_widgets.dart';
 
 String _typed(PlayerAnswer? answer) => answer is TextAnswer ? answer.text : '';
@@ -15,11 +16,15 @@ class TypingRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final TypingQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -62,6 +67,7 @@ class TypingRenderer extends StatelessWidget {
           hint: 'Your answer',
           initial: _typed(answer),
           onChanged: (text) => onAnswer(TextAnswer(text)),
+          feedback: feedback,
         ),
       ],
     );
@@ -75,11 +81,15 @@ class ListeningTranscribeRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final ListeningTranscribeQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -96,6 +106,7 @@ class ListeningTranscribeRenderer extends StatelessWidget {
         hint: 'What you heard',
         initial: _typed(answer),
         onChanged: (text) => onAnswer(TextAnswer(text)),
+        feedback: feedback,
       ),
     ],
   );
@@ -109,11 +120,15 @@ class FillBlankRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final FillBlankQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -178,6 +193,7 @@ class FillBlankRenderer extends StatelessWidget {
           hint: 'Type the missing word',
           initial: _typed(answer),
           onChanged: (text) => onAnswer(TextAnswer(text)),
+          feedback: feedback,
         ),
       ],
     );

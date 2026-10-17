@@ -4,6 +4,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../learn/data/language_names.dart';
 import '../../data/play_models.dart';
 import '../../data/player_answer.dart';
+import '../../data/session_models.dart';
 import '../lesson_widgets.dart';
 
 /// multiple_choice (Figma `6:54`): the prompt, then lettered options.
@@ -13,11 +14,15 @@ class MultipleChoiceRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final MultipleChoiceQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +63,7 @@ class MultipleChoiceRenderer extends StatelessWidget {
           options: question.options,
           answer: answer,
           onAnswer: onAnswer,
+          feedback: feedback,
         ),
       ],
     );
@@ -71,11 +77,15 @@ class ListeningSelectRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final ListeningSelectQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -86,7 +96,12 @@ class ListeningSelectRenderer extends StatelessWidget {
       LessonLabel(
         'What did you hear? (${LanguageName.of(question.answerLanguage).english})',
       ),
-      ChoiceList(options: question.options, answer: answer, onAnswer: onAnswer),
+      ChoiceList(
+        options: question.options,
+        answer: answer,
+        onAnswer: onAnswer,
+        feedback: feedback,
+      ),
     ],
   );
 }
@@ -98,11 +113,15 @@ class ChoiceList extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final List<PlayChoice> options;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -116,8 +135,22 @@ class ChoiceList extends StatelessWidget {
         for (final (i, option) in options.indexed) ...[
           SelectableLessonCard(
             selected: option.id == selectedId,
-            onTap: () => onAnswer(ChoiceAnswer(option.id)),
+            onTap: feedback == null
+                ? () => onAnswer(ChoiceAnswer(option.id))
+                : null,
             semanticsLabel: option.text,
+            borderColor: revealColors(
+              context,
+              feedback: feedback,
+              choiceId: option.id,
+              picked: option.id == selectedId,
+            )?.border,
+            fillColor: revealColors(
+              context,
+              feedback: feedback,
+              choiceId: option.id,
+              picked: option.id == selectedId,
+            )?.fill,
             child: Row(
               children: [
                 _Letter(
@@ -221,11 +254,15 @@ class ChoosePictureRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final ChoosePictureQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -252,8 +289,27 @@ class ChoosePictureRenderer extends StatelessWidget {
             for (final (i, option) in question.options.indexed)
               SelectableLessonCard(
                 selected: option.id == selectedId,
-                onTap: () => onAnswer(ChoiceAnswer(option.id)),
-                semanticsLabel: 'Picture ${i + 1}',
+                onTap: feedback == null
+                    ? () => onAnswer(ChoiceAnswer(option.id))
+                    : null,
+                semanticsLabel: [
+                  'Picture ${i + 1}',
+                  if (feedback != null &&
+                      option.id == feedback!.correctOptionId)
+                    'correct answer',
+                ].join(', '),
+                borderColor: revealColors(
+                  context,
+                  feedback: feedback,
+                  choiceId: option.id,
+                  picked: option.id == selectedId,
+                )?.border,
+                fillColor: revealColors(
+                  context,
+                  feedback: feedback,
+                  choiceId: option.id,
+                  picked: option.id == selectedId,
+                )?.fill,
                 padding: const EdgeInsets.all(AppSpacing.sm),
                 child: Stack(
                   children: [

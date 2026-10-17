@@ -1,0 +1,17 @@
+{
+  "data": {
+    "_id": "6ad2b87a7a3075b2672da52f",
+    "exerciseId": "6ad295274c24c8b9343a5c7f",
+    "unitId": "6ad28f21dcbfbc7ecf3f1a96",
+    "courseId": "6ad28f21dcbfbc7ecf3f1a95",
+    "status": "completed",
+    "startedAt": "2026-10-16T23:51:22.667Z",
+    "questionCount": 8,
+    "completedAt": "2026-10-16T23:51:22.719Z",
+    "score": 25,
+    "maxScore": 85,
+    "accuracy": 25,
+    "correctCount": 2,
+    "durationMs": 52
+  }
+}

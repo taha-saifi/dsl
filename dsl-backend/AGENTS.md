@@ -241,7 +241,7 @@ isUnlocked      boolean
 completedAt     Date, nullable
 ```
 
-### exerciseSessions
+### exerciseSessions (built: `models/ExerciseSession.ts`, extended with a question snapshot and verdicts)
 ```
 _id             ObjectId
 studentId       ObjectId → users
@@ -329,6 +329,7 @@ This repo has its own multi-stage `Dockerfile` (builder compiles TypeScript with
   - Student-only `POST`/`DELETE /api/learn/courses/:id/enroll`, `GET /api/learn/me/courses`. `/learn` course summaries add `specializationName`, `isEnrolled`, `enrolledAt`.
 - [x] Unit overview (mobile Slice 5, 2026-10-16): `/learn/units/:id` exercises add `questionTypes` (distinct, by question `orderIndex`).
 - [x] Exercise player payload (mobile Slice 6, 2026-10-16): `GET /api/learn/exercises/:id/play` (enrolled students; teachers/admins preview). `services/questionContent.service.ts` resolves question content (shared with answer checking next); `services/playPayload.service.ts` builds the answer-free payload (shuffled, HMAC ids keyed with `JWT_SECRET`).
+- [x] Answer checking and sessions (mobile Slice 7, 2026-10-17): `models/ExerciseSession.ts` (question snapshot, embedded attempts, one active per student+exercise), `services/exerciseSession.service.ts`, `services/answerChecking.service.ts`, `services/answerNormalization.ts` (the rule in docs/decisions/adr-answer-normalization.md). Student-only `POST /api/learn/exercises/:id/sessions`, `/api/learn/sessions/:id/answers|complete|abandon`.
 
 ### Phase 0 definition of done
 

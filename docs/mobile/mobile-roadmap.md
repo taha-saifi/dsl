@@ -2,7 +2,7 @@
 type: roadmap
 scope: mobile
 sources: [docs/mobile/features/00-feature-catalog.md, docs/decisions/mobile-architecture.md]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Mobile roadmap (build order)
 
@@ -120,6 +120,29 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
   - the status-bar icons were white on Soft Gray (now dark);
   - matching pair colours included green and red, which will mean right and wrong (removed).
 
+## Slice 7: answer checking and sessions ✅ done 2026-10-17
+**Gates passed.**
+- curl, 39/39:
+  - Per type: right → `correct`; accent- or ligature-only miss → `almost` (typing "lüngs", fill_blank "sàng", "coeur" for "cœur"); wrong → `wrong` with `correctAnswer`. Case and trailing punctuation are ignored ("LUNGS.").
+  - Arrange: swapped words or the distractor → wrong. Matching: two swapped pairs → wrong.
+  - Answering, completing or abandoning a finished session → 409; another student's session → 404; a question outside the session → 409; a malformed answer → 400.
+  - Not enrolled → 403; a teacher → 403.
+  - Starting again abandons the active session, and there is never more than one active.
+- Mongo:
+  - attempts are stored with verdict, answer and `timeTakenMs`;
+  - the score counts **first attempts only**: wrong-then-right earns nothing and almost counts, so 20/85 at 25% in the curl run, and on the device 60/85 at 75%, which matches the device play;
+  - Quit on the device left the session `abandoned`.
+- Emulator, all 8 types to the results:
+  - wrong picture → red with the right one green → Try Again → "Correct!" plus the first-tries note;
+  - "coeur" → Almost with the exact spelling;
+  - "lung" → Incorrect, "The correct answer is “lungs”" → Skip;
+  - matching pairs all green;
+  - Exercise Complete: 71%, Score 60/85, 75% accuracy, 6/8, time.
+- 94 tests pass. Figma: 0 calls (cached state frames).
+- Fixed while building:
+  - `DslButton` merged into its parent's accessibility node, so TalkBack couldn't focus buttons inside the feedback panel (or Home's current-course card). It is now `Semantics(container: true)`, covered by a test that fails without the fix; not yet re-checked on the device.
+  - A failed check showed a snackbar that covered the Check button; the error now shows inline above it.
+
 ## MVP slices
 | # | Slice | 📜 | Backend | Dashboard | Mobile |
 |---|---|---|---|---|---|
@@ -129,7 +152,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 | 4 ✅ | [[feat-catalog-and-enrollment]] | 📜 | `enrollments` model and index; enroll, unenroll, `GET /learn/me/courses`; `isEnrolled` | — | Catalog (search, domain chips), Course Details, Home (My Courses, Continue) |
 | 5 ✅ | [[feat-unit-and-exercise-overview]] | 📜 | `questionCount`, `questionTypes` on unit exercises | — | Unit Details, Exercise Intro (type mix chips) |
 | 6 ✅ | [[feat-exercise-player]] | 📜 | play-payload service (derivation moved from the dashboard's `questionPreview.ts`); `GET /learn/exercises/:id/play` | optional: no change | question shell, 8 renderers, audio, Pause |
-| 7 | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
+| 7 ✅ | [[feat-answer-checking-and-sessions]] | 📜 | `exerciseSessions` model; start, answer, complete, abandon; checking service with `correct`/`almost`/`wrong`; new error codes | — | Check → feedback sheet, Try Again / Skip, Exercise Complete (score, accuracy, time) |
 | 8 | [[feat-learning-progress]] | 📜 | progress, `nextExerciseId`, per-exercise status and best score, computed from sessions | — | progress bars and rings, Done badges, Continue targets |
 | 9 | [[feat-static-screens]] | — | — | — | static Certificates, Leaderboard, achievements, Settings rows; real Profile header and logout |
 
@@ -140,7 +163,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - **4:** contract, endpoints, [[student-progress-planned]], new [[enrollment]] model note. Done.
 - **5:** contract, endpoints.
 - **6:** contract, endpoints, [[question-types]] (derivation now in a backend service), [[question-preview]] (note the shared logic).
-- **7:** contract, endpoints, error codes, [[question-types]] (comparison rule), a new `exercise-session` model note, and a new ADR for the answer-normalization rule.
+- **7:** contract, endpoints, error codes, [[question-types]], new [[exercise-session]] model note, new [[adr-answer-normalization]]. Done.
 - **8:** contract, endpoints, [[student-progress-planned]].
 - **9:** [[mobile-index]] only.
 

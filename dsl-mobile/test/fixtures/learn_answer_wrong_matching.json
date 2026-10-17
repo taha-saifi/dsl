@@ -1,0 +1,36 @@
+{
+  "data": {
+    "verdict": "wrong",
+    "correctAnswer": {
+      "pairs": [
+        {
+          "leftId": "KT_NfPBJvHIYW4dn",
+          "rightId": "iCtThhlTOpt3SUqq",
+          "left": "cœur",
+          "right": "heart"
+        },
+        {
+          "leftId": "9mRJV81n8i6ynwK-",
+          "rightId": "HKtLQJbskF8J3p5l",
+          "left": "poumons",
+          "right": "lungs"
+        },
+        {
+          "leftId": "NfP-Oz7j73XFg_ZK",
+          "rightId": "YXA5SNZXKbKRWTvt",
+          "left": "cerveau",
+          "right": "brain"
+        },
+        {
+          "leftId": "7AN-8uEK7AqBHPuc",
+          "rightId": "kB64wv9cdrPr7n9o",
+          "left": "os",
+          "right": "bone"
+        }
+      ]
+    },
+    "isCorrect": false,
+    "attemptNumber": 1,
+    "firstAttempt": true
+  }
+}

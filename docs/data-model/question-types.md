@@ -2,7 +2,7 @@
 type: contract
 scope: cross-cutting
 sources: [dsl-backend/src/models/Question.ts, dsl-backend/src/services/questionContent.service.ts, dsl-backend/src/services/playPayload.service.ts, dsl-backend/src/services/questionValidation.service.ts, dsl-teacher-dashboard/src/components/questions/ReferenceTypeQuestionFields.tsx, dsl-teacher-dashboard/src/components/questions/StructuralTypeQuestionFields.tsx]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Question types
 
@@ -47,6 +47,6 @@ Since Slice 6 the backend derives everything a student sees: `questionContent.se
 - arrange_sentence: the expected order is the target's `sentenceLanguage` text, split into words. The extra blocks are distractors.
 - matching: pair each item's `sourceLanguage` text with its own `targetLanguage` text.
 
-> [!todo] Unverified: how answers are compared (case, punctuation, accents) isn't defined anywhere. The student app will need a rule, and it should live in the backend ([[mobile-index]]).
+How typed answers are compared (case, punctuation, accents → `almost`): [[adr-answer-normalization]], implemented in `dsl-backend/src/services/answerChecking.service.ts`.
 
 Rules in detail: [[question-validation]]. Forms: [[question-builder]]. Back to [[data-model-index]].

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/play_models.dart';
 import '../../data/player_answer.dart';
+import '../../data/session_models.dart';
 import '../lesson_widgets.dart';
 import 'text_renderers.dart';
 
@@ -15,11 +16,15 @@ class ArrangeSentenceRenderer extends StatelessWidget {
     required this.answer,
     required this.onAnswer,
     super.key,
+    this.feedback,
   });
 
   final ArrangeSentenceQuestion question;
   final PlayerAnswer? answer;
   final ValueChanged<PlayerAnswer> onAnswer;
+
+  /// The verdict, once checked; input is locked while it is shown.
+  final AnswerResult? feedback;
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +86,9 @@ class ArrangeSentenceRenderer extends StatelessWidget {
                       text: block.text ?? '',
                       placed: false,
                       semanticsHint: 'Add',
-                      onTap: () => onAnswer(OrderAnswer([...placed, block.id])),
+                      onTap: feedback == null
+                          ? () => onAnswer(OrderAnswer([...placed, block.id]))
+                          : null,
                     ),
           ],
         ),
@@ -106,7 +113,7 @@ class _WordChip extends StatelessWidget {
 
   final String text;
   final bool placed;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final String semanticsHint;
 
   @override

@@ -11,6 +11,12 @@ import {
   unenroll,
   unit,
 } from "../controllers/learn.controller";
+import {
+  abandon,
+  answer,
+  complete,
+  start,
+} from "../controllers/sessions.controller";
 import { authenticate } from "../middleware/auth.middleware";
 import { requireRole } from "../middleware/role.middleware";
 import { asyncHandler } from "../utils/asyncHandler";
@@ -31,5 +37,11 @@ const studentOnly = requireRole("student");
 learnRouter.post("/courses/:id/enroll", studentOnly, asyncHandler(enroll));
 learnRouter.delete("/courses/:id/enroll", studentOnly, asyncHandler(unenroll));
 learnRouter.get("/me/courses", studentOnly, asyncHandler(myCourses));
+
+// Exercise sessions: answers are checked here, never in the app.
+learnRouter.post("/exercises/:id/sessions", studentOnly, asyncHandler(start));
+learnRouter.post("/sessions/:id/answers", studentOnly, asyncHandler(answer));
+learnRouter.post("/sessions/:id/complete", studentOnly, asyncHandler(complete));
+learnRouter.post("/sessions/:id/abandon", studentOnly, asyncHandler(abandon));
 
 export default learnRouter;

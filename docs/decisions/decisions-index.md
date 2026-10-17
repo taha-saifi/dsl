@@ -2,7 +2,7 @@
 type: index
 scope: cross-cutting
 sources: [dsl-backend/AGENTS.md, dsl-teacher-dashboard/AGENTS.md, dsl-teacher-dashboard/CLAUDE.md]
-updated: 2026-10-16
+updated: 2026-10-17
 ---
 # Decisions
 
@@ -17,6 +17,7 @@ Architectural decisions that can be seen in the code or stated in the sub-projec
 | [[adr-minio-over-cloudinary]] | Media moved from Cloudinary to self-hosted MinIO |
 | [[adr-jwt-in-localstorage]] | Dashboard keeps the JWT in localStorage (a deliberate MVP trade-off) |
 | [[adr-vite-api-url-build-arg]] | `VITE_API_URL` is a build arg and must be browser-reachable |
+| [[adr-answer-normalization]] | Typed answers: normalized compare; accent/ligature-only differences are `almost` (counts as correct) |
 | [[adr-question-text]] | Optional teacher-written question text with server-side per-type defaults; question type is immutable |
 | [[mobile-architecture]] | Flutter app structure, Riverpod, go_router, dio, freezed, online-only MVP |
 | [[adr-non-optimistic-publish]] | The publish toggle waits for the server; reorder is optimistic with rollback |

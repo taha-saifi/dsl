@@ -105,7 +105,10 @@ class DslButton extends StatelessWidget {
           : BorderSide(color: outline, width: 1.5),
     );
 
+    // Its own accessibility node, so a button inside a card or panel is
+    // focused and announced separately instead of merging into it.
     return Semantics(
+      container: true,
       button: true,
       enabled: enabled,
       label: loading ? '$label, loading' : null,

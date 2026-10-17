@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../data/session_models.dart';
 
 /// Question screens use the light Soft Gray surface with ink text
 /// (docs/mobile/figma-question-screens.md), unlike the rest of the app.
@@ -263,7 +264,11 @@ class AnswerField extends StatefulWidget {
     required this.initial,
     required this.onChanged,
     super.key,
+    this.feedback,
   });
+
+  /// After checking the field is read-only and outlined by the verdict.
+  final AnswerResult? feedback;
 
   /// A new question gets a fresh field.
   final String questionId;
@@ -285,16 +290,47 @@ class _AnswerFieldState extends State<AnswerField> {
   }
 
   @override
-  Widget build(BuildContext context) => TextField(
-    key: ValueKey('answer-${widget.questionId}'),
-    controller: _controller,
-    onChanged: widget.onChanged,
-    autocorrect: false,
-    enableSuggestions: false,
-    textCapitalization: TextCapitalization.none,
-    style: context.type.bodyLarge.copyWith(color: context.colors.ink),
-    decoration: InputDecoration(hintText: widget.hint),
-  );
+  void didUpdateWidget(AnswerField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Try Again clears the answer.
+    if (widget.initial.isEmpty &&
+        _controller.text.isNotEmpty &&
+        widget.feedback == null) {
+      _controller.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final verdictColor = switch (widget.feedback?.verdict) {
+      null => null,
+      Verdict.wrong => colors.error,
+      Verdict.almost => colors.amber,
+      Verdict.correct => colors.success,
+    };
+    final verdictBorder = verdictColor == null
+        ? null
+        : OutlineInputBorder(
+            borderRadius: BorderRadius.circular(AppRadii.input),
+            borderSide: BorderSide(color: verdictColor, width: 2),
+          );
+    return TextField(
+      key: ValueKey('answer-${widget.questionId}'),
+      controller: _controller,
+      readOnly: widget.feedback != null,
+      onChanged: widget.onChanged,
+      autocorrect: false,
+      enableSuggestions: false,
+      textCapitalization: TextCapitalization.none,
+      style: context.type.bodyLarge.copyWith(color: context.colors.ink),
+      decoration: InputDecoration(
+        hintText: widget.hint,
+        enabledBorder: verdictBorder,
+        focusedBorder: verdictBorder,
+      ),
+    );
+  }
 }
 
 /// Network image with a quiet placeholder while loading or if it fails.
@@ -319,4 +355,26 @@ class LessonImage extends StatelessWidget {
       errorBuilder: (_, _, _) => placeholder(Icons.broken_image_outlined),
     );
   }
+}
+
+/// After checking: the right choice turns green, a wrong pick red
+/// (Figma `87:218` / `87:262`). Before checking: null (normal selection).
+({Color border, Color fill})? revealColors(
+  BuildContext context, {
+  required AnswerResult? feedback,
+  required String choiceId,
+  required bool picked,
+}) {
+  if (feedback == null) return null;
+  final colors = context.colors;
+  if (choiceId == feedback.correctOptionId) {
+    return (
+      border: colors.success,
+      fill: colors.success.withValues(alpha: 0.12),
+    );
+  }
+  if (picked) {
+    return (border: colors.error, fill: colors.error.withValues(alpha: 0.10));
+  }
+  return null;
 }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/api/error_messages.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/dsl_button.dart';
 import '../../../core/widgets/dsl_progress_bar.dart';
@@ -11,15 +12,20 @@ import '../../learn/data/question_type.dart';
 import '../data/play_models.dart';
 import '../data/player_answer.dart';
 import '../data/player_controller.dart';
+import '../data/session_models.dart';
+import 'exercise_complete_view.dart';
+import 'feedback_panel.dart';
 import 'lesson_widgets.dart';
 import 'renderers/arrange_renderer.dart';
 import 'renderers/choice_renderers.dart';
 import 'renderers/matching_renderer.dart';
 import 'renderers/text_renderers.dart';
 
-/// Plays an exercise's questions in order (feat-exercise-player). Full screen,
-/// outside the tab shell. Close or Back opens Pause. Checking answers and
-/// the results screen arrive in slice 7; here "Next" moves on.
+/// Plays an exercise as a server-side session (feat-answer-checking-and-
+/// sessions): Check Answer → the server's verdict → Continue, or Try Again /
+/// Skip & Continue; after the last question, Exercise Complete. Full screen,
+/// outside the tab shell. Close or Back opens Pause; Quit abandons the
+/// session.
 class PlayerScreen extends ConsumerWidget {
   const PlayerScreen({required this.exerciseId, super.key});
 
@@ -27,26 +33,37 @@ class PlayerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final payload = ref.watch(playPayloadProvider(exerciseId));
+    final player = ref.watch(playerControllerProvider(exerciseId));
     // Dark status-bar icons on the light lesson surface.
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: LessonTheme(
         child: Scaffold(
           body: SafeArea(
-            child: payload.when(
-              loading: () => const _OnInk(
-                child: LoadingView(message: 'Loading exercise…'),
-              ),
-              error: (error, _) => _OnInk(
+            child: switch (player) {
+              AsyncData(:final value) =>
+                value.payload.questions.isEmpty
+                    ? _OnInk(
+                        child: EmptyView(
+                          title: 'Nothing to play yet',
+                          message: 'This exercise has no questions right now.',
+                          actionLabel: 'Back',
+                          onAction: () => context.pop(),
+                        ),
+                      )
+                    : value.result != null
+                    ? ExerciseCompleteView(state: value)
+                    : _Player(exerciseId: exerciseId, state: value),
+              AsyncError(:final error) => _OnInk(
                 child: Column(
                   children: [
                     Expanded(
                       child: ErrorView(
                         error: error,
                         title: "Couldn't open this exercise",
-                        onRetry: () =>
-                            ref.invalidate(playPayloadProvider(exerciseId)),
+                        onRetry: () => ref.invalidate(
+                          playerControllerProvider(exerciseId),
+                        ),
                       ),
                     ),
                     TextButton(
@@ -57,17 +74,10 @@ class PlayerScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              data: (data) => data.questions.isEmpty
-                  ? _OnInk(
-                      child: EmptyView(
-                        title: 'Nothing to play yet',
-                        message: 'This exercise has no questions right now.',
-                        actionLabel: 'Back',
-                        onAction: () => context.pop(),
-                      ),
-                    )
-                  : _Player(exerciseId: exerciseId, payload: data),
-            ),
+              _ => const _OnInk(
+                child: LoadingView(message: 'Starting exercise…'),
+              ),
+            },
           ),
         ),
       ),
@@ -87,39 +97,35 @@ class _OnInk extends StatelessWidget {
 }
 
 class _Player extends ConsumerWidget {
-  const _Player({required this.exerciseId, required this.payload});
+  const _Player({required this.exerciseId, required this.state});
 
   final String exerciseId;
-  final PlayPayload payload;
+  final PlayerState state;
 
-  Future<void> _pause(BuildContext context) async {
+  Future<void> _pause(BuildContext context, PlayerController controller) async {
     final quit = await showDialog<bool>(
       context: context,
       builder: (context) => const _PauseDialog(),
     );
-    if ((quit ?? false) && context.mounted) context.pop();
+    if ((quit ?? false) && context.mounted) {
+      controller.abandon();
+      context.pop();
+    }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final provider = playerControllerProvider(exerciseId);
-    final state = ref.watch(provider);
-    final controller = ref.read(provider.notifier);
-    final total = payload.questions.length;
-
-    if (state.finished) {
-      return _Finished(exercise: payload.exercise, total: total);
-    }
-
-    final question = payload.questions[state.index];
+    final controller = ref.read(playerControllerProvider(exerciseId).notifier);
+    final question = state.question;
     final answer = state.answers[question.id];
+    final feedback = state.feedback;
     final complete = answer?.isComplete(question) ?? false;
-    final last = state.index == total - 1;
+    final total = state.payload.questions.length;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _pause(context);
+        if (!didPop) _pause(context, controller);
       },
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -127,7 +133,7 @@ class _Player extends ConsumerWidget {
           _TopBar(
             index: state.index,
             total: total,
-            onClose: () => _pause(context),
+            onClose: () => _pause(context, controller),
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -157,28 +163,57 @@ class _Player extends ConsumerWidget {
                     child: _renderer(
                       question,
                       answer,
-                      (a) => controller.answer(question.id, a),
+                      feedback,
+                      controller.answer,
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.sm,
-              AppSpacing.xl,
-              AppSpacing.lg,
+          if (state.error != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.sm,
+                AppSpacing.xl,
+                0,
+              ),
+              child: Semantics(
+                liveRegion: true,
+                child: Text(
+                  describeError(state.error!),
+                  textAlign: TextAlign.center,
+                  style: context.type.body.copyWith(
+                    color: context.colors.error,
+                  ),
+                ),
+              ),
             ),
-            child: DslButton(
-              onLight: true,
-              label: complete
-                  ? (last ? 'Finish' : 'Next')
-                  : 'Answer to continue',
-              onPressed: complete ? () => controller.next(total) : null,
+          if (feedback == null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.sm,
+                AppSpacing.xl,
+                AppSpacing.lg,
+              ),
+              child: DslButton(
+                onLight: true,
+                label: complete ? 'Check Answer' : 'Answer to continue',
+                loading: state.checking,
+                onPressed: complete ? controller.check : null,
+              ),
+            )
+          else
+            FeedbackPanel(
+              question: question,
+              result: feedback,
+              isLast: state.isLast,
+              busy: state.checking,
+              onContinue: controller.next,
+              onTryAgain: controller.tryAgain,
             ),
-          ),
         ],
       ),
     );
@@ -187,47 +222,56 @@ class _Player extends ConsumerWidget {
   Widget _renderer(
     PlayQuestion question,
     PlayerAnswer? answer,
+    AnswerResult? feedback,
     ValueChanged<PlayerAnswer> onAnswer,
   ) => switch (question) {
     ChoosePictureQuestion() => ChoosePictureRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     MultipleChoiceQuestion() => MultipleChoiceRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     ListeningSelectQuestion() => ListeningSelectRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     TypingQuestion() => TypingRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     ListeningTranscribeQuestion() => ListeningTranscribeRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     FillBlankQuestion() => FillBlankRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     ArrangeSentenceQuestion() => ArrangeSentenceRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     MatchingQuestion() => MatchingRenderer(
       question: question,
       answer: answer,
       onAnswer: onAnswer,
+      feedback: feedback,
     ),
     UnknownQuestion() => const _UnsupportedQuestion(),
   };
@@ -344,7 +388,10 @@ class _PauseDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AlertDialog(
     title: const Text('Paused'),
-    content: const Text("If you quit now, this exercise won't be saved."),
+    content: const Text(
+      "If you quit now, this attempt won't count. You can start the "
+      'exercise again any time.',
+    ),
     actions: [
       TextButton(
         onPressed: () => Navigator.of(context).pop(true),
@@ -356,41 +403,4 @@ class _PauseDialog extends StatelessWidget {
       ),
     ],
   );
-}
-
-/// End of the questions. The score screen (Exercise Complete) is slice 7.
-class _Finished extends StatelessWidget {
-  const _Finished({required this.exercise, required this.total});
-
-  final PlayExercise exercise;
-  final int total;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final type = context.type;
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.flag_rounded, size: 64, color: colors.cyan),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            'End of ${exercise.name}',
-            textAlign: TextAlign.center,
-            style: type.h2.copyWith(color: colors.ink),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            'You answered all $total questions.',
-            textAlign: TextAlign.center,
-            style: type.body.copyWith(color: colors.muted),
-          ),
-          const SizedBox(height: AppSpacing.xxl),
-          DslButton(label: 'Back to the unit', onPressed: () => context.pop()),
-        ],
-      ),
-    );
-  }
 }
