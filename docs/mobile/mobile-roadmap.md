@@ -100,7 +100,7 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
 - Fixed while building: `DslBadge` overflowed with long labels; it now ellipsizes.
 - Start Exercise is shown disabled until the player exists (Slice 6).
 
-## Slice 6: exercise player ✅ done 2026-10-16 (one gate open: physical device)
+## Slice 6: exercise player ✅ done 2026-10-16 (physical device checked 2026-10-17)
 **Gates passed.**
 - **No answer material in the play payload**: a script checks it against the truth loaded through the teacher API, 26/26.
   - No learning-item id appears anywhere, and there are no `config`, `items` or `correct` fields.
@@ -114,7 +114,10 @@ Not a feature; nothing in the API changes. **Gates passed on the emulator:** `/h
   - Next stays disabled until there's an answer; the typed fill_blank word shows in the sentence; arrange leaves the distractor in the bank; matching pairs all 4; Finish shows the end screen.
   - System Back and the close button open Pause; Keep going resumes; Quit returns to the intro.
 - 93 tests pass. Figma: 0 calls (cached question frames).
-- **Not done:** the physical-device run on a LAN IP. No phone was available; it needs `MINIO_PUBLIC_ENDPOINT=http://<LAN IP>:9000` and `env/device.json`.
+- **Physical device (done 2026-10-17):** a Samsung SM-M325F (Android 13) on the phone's own hotspot, with the laptop at `192.168.65.162`, `env/device.json` pointing there and the backend on `MINIO_PUBLIC_ENDPOINT=http://192.168.65.162:9000`.
+  - Sign-in, Home progress and the course thumbnail worked.
+  - The 8-type exercise played to 85/85: every image loaded, and the audio played (ExoPlayer and the Android audio track started).
+  - The best score updated from 71% to 100%, and the static screens rendered.
 - Fixed after the device run:
   - the disabled button was Ink on the light lesson surface (now white with muted text, as in Figma);
   - the status-bar icons were white on Soft Gray (now dark);
