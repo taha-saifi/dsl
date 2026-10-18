@@ -10,4 +10,6 @@
 .idea/
 **/.claude/settings.local.json
 docs/.obsidian/workspace*.json
-docs/.obsidian/cachegraphify-out/
+docs/.obsidian/cache
+graphify-out/
+.dryrun-data/

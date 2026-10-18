@@ -17,6 +17,11 @@ import unitsRouter from "./routes/units.routes";
 
 const app = express();
 
+// One proxy hop (Traefik) in front of the app: trust exactly that one, so
+// req.ip and req.protocol come from it but a client can't spoof X-Forwarded-For.
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+
 app.use(cors({ origin: config.frontendUrl }));
 app.use(express.json());
 app.use("/api/health", healthRouter);

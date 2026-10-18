@@ -16,6 +16,7 @@ const parsePort = (value: string | undefined): number => {
 };
 
 export const config = {
+  nodeEnv: process.env.NODE_ENV ?? "development",
   port: parsePort(process.env.PORT),
   mongoDbUri: process.env.MONGODB_URI ?? "",
   jwtSecret: process.env.JWT_SECRET ?? "",
@@ -27,3 +28,30 @@ export const config = {
   minioBucket: process.env.MINIO_BUCKET ?? "",
   minioRegion: process.env.MINIO_REGION ?? "us-east-1",
 } as const;
+
+const requiredInProduction = [
+  ["MONGODB_URI", config.mongoDbUri],
+  ["JWT_SECRET", config.jwtSecret],
+  ["FRONTEND_URL", config.frontendUrl],
+  ["MINIO_INTERNAL_ENDPOINT", config.minioInternalEndpoint],
+  ["MINIO_PUBLIC_ENDPOINT", config.minioPublicEndpoint],
+  ["MINIO_ACCESS_KEY", config.minioAccessKey],
+  ["MINIO_SECRET_KEY", config.minioSecretKey],
+  ["MINIO_BUCKET", config.minioBucket],
+] as const;
+
+/**
+ * In production an empty variable must stop startup instead of degrading
+ * silently (an empty JWT_SECRET would answer 401 to every request).
+ */
+export const assertProductionConfig = (): void => {
+  if (config.nodeEnv !== "production") {
+    return;
+  }
+
+  const missing = requiredInProduction.filter(([, value]) => value === "").map(([name]) => name);
+  if (missing.length > 0) {
+    console.error(`Missing required environment variables: ${missing.join(", ")}.`);
+    process.exit(1);
+  }
+};
