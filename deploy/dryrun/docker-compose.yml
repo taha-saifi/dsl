@@ -1,0 +1,33 @@
+# LOCAL DRY RUN ONLY. Never run this on the server, which has its own Traefik.
+#
+# A throwaway Traefik that mirrors the server's: entrypoints `http` and
+# `https`, Docker network `traefik`, opt-in labels. TLS uses Traefik's
+# self-signed default certificate on *.localhost. See deploy/DEPLOY.md
+# ("Local dry run").
+
+name: dsl-dryrun-traefik
+
+services:
+  traefik:
+    image: traefik:v3.7.15
+    command:
+      - --entrypoints.http.address=:80
+      - --entrypoints.http.http.redirections.entrypoint.to=https
+      - --entrypoints.http.http.redirections.entrypoint.scheme=https
+      - --entrypoints.https.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=traefik
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Acceptable for a local throwaway; the server's Traefik is yours.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [traefik]
+
+networks:
+  traefik:
+    name: traefik

@@ -1,0 +1,321 @@
+# Production stack: backend + teacher dashboard behind an existing Traefik.
+#
+# Deployed as a Portainer "Git repository" stack tracking the `deploy` branch.
+# Every value comes from the stack's environment variables (see
+# deploy/.env.prod.example); required ones fail the deploy when missing.
+# Runbook: deploy/DEPLOY.md
+#
+# Portainer CE resolves relative bind mounts inside its own data folder, not
+# on the host, so all data lives under the absolute ${DSL_DATA_DIR} and the
+# one-shot setup jobs are inline commands instead of mounted scripts.
+#
+# Service names carry a dsl- prefix because the shared `traefik` network is
+# visible to other stacks too: a plain `minio` or `backend` could resolve to
+# another stack's container.
+
+name: dsl
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  dsl-mongo:
+    image: mongo:7.0.45
+    restart: unless-stopped
+    user: "${DSL_UID:-1000}:${DSL_GID:-1000}"
+    command: ["mongod", "--wiredTigerCacheSizeGB", "0.5"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?set MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD}
+    volumes:
+      - ${DSL_DATA_DIR:?set DSL_DATA_DIR}/mongo:/data/db
+    networks: [internal]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    stop_grace_period: 20s
+    mem_limit: 1g
+    logging: *logging
+    labels:
+      - traefik.enable=false
+
+  # Creates (or updates the password of) the app user, which may only
+  # read/write the `dsl` database. Runs on every deploy; idempotent.
+  dsl-mongo-init:
+    image: mongo:7.0.45
+    restart: "no"
+    depends_on:
+      dsl-mongo:
+        condition: service_healthy
+    environment:
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER:?set MONGO_ROOT_USER}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD}
+      MONGO_APP_USER: ${MONGO_APP_USER:?set MONGO_APP_USER}
+      MONGO_APP_PASSWORD: ${MONGO_APP_PASSWORD:?set MONGO_APP_PASSWORD}
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        mongosh --quiet --host dsl-mongo --authenticationDatabase admin \
+          --username "$$MONGO_ROOT_USER" --password "$$MONGO_ROOT_PASSWORD" --eval '
+          const appDb = db.getSiblingDB("dsl");
+          const user = process.env.MONGO_APP_USER;
+          const spec = { pwd: process.env.MONGO_APP_PASSWORD, roles: [{ role: "readWrite", db: "dsl" }] };
+          if (appDb.getUser(user)) { appDb.updateUser(user, spec); print("Updated app user " + user); }
+          else { appDb.createUser({ user, ...spec }); print("Created app user " + user); }
+        '
+    networks: [internal]
+    logging: *logging
+    labels:
+      - traefik.enable=false
+
+  dsl-minio:
+    # The official MinIO images are no longer published (quay.io/minio/minio
+    # and Docker Hub minio/minio both refuse pulls). pgsty/minio is a
+    # community rebuild of the same source: same binary, env vars and data
+    # format. The S3 client in the backend is generic, so swapping the store
+    # later is a config change.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    user: "${DSL_UID:-1000}:${DSL_GID:-1000}"
+    command: ["server", "/data"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+      MINIO_BROWSER: "off"
+    volumes:
+      - ${DSL_DATA_DIR:?set DSL_DATA_DIR}/minio:/data
+    networks: [internal, traefik]
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    mem_limit: 1g
+    logging: *logging
+    labels:
+      # Public, read-only media: GET/HEAD on object keys in the bucket only (a
+      # bare bucket path would be a listing). Uploads go through the API with
+      # the backend's own credentials.
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.dsl-media.rule=Host(`${MEDIA_HOST:?set MEDIA_HOST}`) && PathRegexp(`^/${MINIO_BUCKET:-dsl-media}/[^/?]+$`) && (Method(`GET`) || Method(`HEAD`))
+      - traefik.http.routers.dsl-media.entrypoints=https
+      - traefik.http.routers.dsl-media.tls=true
+      - traefik.http.routers.dsl-media.middlewares=dsl-sec-headers@docker,dsl-media-cache@docker
+      - traefik.http.routers.dsl-media.service=dsl-media
+      - traefik.http.services.dsl-media.loadbalancer.server.port=9000
+      # Object keys are random UUIDs that are never reused.
+      - traefik.http.middlewares.dsl-media-cache.headers.customresponseheaders.Cache-Control=public, max-age=86400
+
+  # Bucket with anonymous download, plus a backend user limited to that
+  # bucket. Runs on every deploy; idempotent.
+  dsl-minio-init:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: "no"
+    depends_on:
+      dsl-minio:
+        condition: service_healthy
+    environment:
+      MC_CONFIG_DIR: /tmp/.mc
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?set MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?set MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-dsl-media}
+    entrypoint: ["sh", "-ec"]
+    command:
+      - |
+        mc alias set dsl http://dsl-minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" > /dev/null
+        mc mb --ignore-existing "dsl/$$MINIO_BUCKET"
+        # Anonymous GetObject only. `mc anonymous set download` would also
+        # allow ListBucket, letting anyone enumerate every object.
+        cat > /tmp/dsl-public-policy.json <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            { "Effect": "Allow", "Principal": { "AWS": ["*"] }, "Action": ["s3:GetObject"], "Resource": ["arn:aws:s3:::$$MINIO_BUCKET/*"] }
+          ]
+        }
+        EOF
+        mc anonymous set-json /tmp/dsl-public-policy.json "dsl/$$MINIO_BUCKET"
+        cat > /tmp/dsl-backend-policy.json <<EOF
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            { "Effect": "Allow", "Action": ["s3:GetBucketLocation", "s3:ListBucket"], "Resource": ["arn:aws:s3:::$$MINIO_BUCKET"] },
+            { "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"], "Resource": ["arn:aws:s3:::$$MINIO_BUCKET/*"] }
+          ]
+        }
+        EOF
+        mc admin policy create dsl dsl-backend /tmp/dsl-backend-policy.json
+        mc admin user add dsl "$$MINIO_ACCESS_KEY" "$$MINIO_SECRET_KEY"
+        mc admin policy attach dsl dsl-backend --user "$$MINIO_ACCESS_KEY" 2>/dev/null || echo "Policy already attached."
+        echo "MinIO bucket and backend user are ready."
+    networks: [internal]
+    logging: *logging
+    labels:
+      - traefik.enable=false
+
+  dsl-backend:
+    build:
+      context: ./dsl-backend
+      dockerfile: Dockerfile
+    image: dsl-backend:prod
+    restart: unless-stopped
+    depends_on:
+      dsl-mongo-init:
+        condition: service_completed_successfully
+      dsl-minio-init:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      MONGODB_URI: mongodb://${MONGO_APP_USER:?set MONGO_APP_USER}:${MONGO_APP_PASSWORD:?set MONGO_APP_PASSWORD}@dsl-mongo:27017/dsl?authSource=dsl
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      FRONTEND_URL: https://${DASHBOARD_HOST:?set DASHBOARD_HOST}
+      MINIO_INTERNAL_ENDPOINT: http://dsl-minio:9000
+      MINIO_PUBLIC_ENDPOINT: https://${MEDIA_HOST:?set MEDIA_HOST}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?set MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?set MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-dsl-media}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+    networks: [internal, traefik]
+    stop_grace_period: 20s
+    mem_limit: 512m
+    logging: *logging
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.services.dsl-api.loadbalancer.server.port=5000
+      # All API traffic, with a generous per-IP limit.
+      - traefik.http.routers.dsl-api.rule=Host(`${API_HOST:?set API_HOST}`)
+      - traefik.http.routers.dsl-api.entrypoints=https
+      - traefik.http.routers.dsl-api.tls=true
+      - traefik.http.routers.dsl-api.service=dsl-api
+      - traefik.http.routers.dsl-api.middlewares=dsl-sec-headers@docker,dsl-api-ratelimit@docker
+      # Login and register only (bcrypt is CPU-heavy): a strict per-IP limit.
+      # /api/auth/me is called on every dashboard load, so it stays on dsl-api.
+      - traefik.http.routers.dsl-api-auth.rule=Host(`${API_HOST:?set API_HOST}`) && (Path(`/api/auth/login`) || Path(`/api/auth/register`))
+      - traefik.http.routers.dsl-api-auth.entrypoints=https
+      - traefik.http.routers.dsl-api-auth.tls=true
+      - traefik.http.routers.dsl-api-auth.service=dsl-api
+      - traefik.http.routers.dsl-api-auth.middlewares=dsl-sec-headers@docker,dsl-auth-ratelimit@docker
+      - traefik.http.middlewares.dsl-api-ratelimit.ratelimit.average=50
+      - traefik.http.middlewares.dsl-api-ratelimit.ratelimit.burst=100
+      - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.average=10
+      - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.period=1m
+      - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.burst=5
+      # Shared security headers. HSTS stays on these hosts only, so other
+      # ssuniverse.dev services aren't forced onto HTTPS by this stack.
+      - traefik.http.middlewares.dsl-sec-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.dsl-sec-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.dsl-sec-headers.headers.frameDeny=true
+      - traefik.http.middlewares.dsl-sec-headers.headers.referrerPolicy=strict-origin-when-cross-origin
+
+  dsl-frontend:
+    build:
+      context: ./dsl-teacher-dashboard
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://${API_HOST:?set API_HOST}/api
+    image: dsl-dashboard:prod
+    restart: unless-stopped
+    depends_on:
+      - dsl-backend
+    networks: [traefik]
+    mem_limit: 64m
+    logging: *logging
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.dsl-dashboard.rule=Host(`${DASHBOARD_HOST:?set DASHBOARD_HOST}`)
+      - traefik.http.routers.dsl-dashboard.entrypoints=https
+      - traefik.http.routers.dsl-dashboard.tls=true
+      - traefik.http.routers.dsl-dashboard.middlewares=dsl-sec-headers@docker,dsl-dashboard-csp@docker
+      - traefik.http.services.dsl-dashboard.loadbalancer.server.port=8080
+      # The JWT lives in localStorage, so a strict CSP is the main XSS defence.
+      # style-src needs 'unsafe-inline' for the UI libraries' runtime styles.
+      - "traefik.http.middlewares.dsl-dashboard-csp.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://${MEDIA_HOST:?set MEDIA_HOST}; media-src 'self' blob: https://${MEDIA_HOST:?set MEDIA_HOST}; connect-src 'self' https://${API_HOST:?set API_HOST}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+
+  # Nightly gzip'd mongodump (also once at every deploy), kept 14 days.
+  dsl-backup-mongo:
+    image: mongo:7.0.45
+    restart: unless-stopped
+    user: "${DSL_UID:-1000}:${DSL_GID:-1000}"
+    depends_on:
+      dsl-mongo:
+        condition: service_healthy
+    environment:
+      MONGO_ROOT_USER: ${MONGO_ROOT_USER:?set MONGO_ROOT_USER}
+      MONGO_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?set MONGO_ROOT_PASSWORD}
+    volumes:
+      - ${DSL_DATA_DIR:?set DSL_DATA_DIR}/backups/mongo:/backups
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        while true; do
+          file="/backups/dsl-$$(date -u +%Y%m%d-%H%M%S).archive.gz"
+          if mongodump --quiet --host dsl-mongo --authenticationDatabase admin \
+               --username "$$MONGO_ROOT_USER" --password "$$MONGO_ROOT_PASSWORD" \
+               --db dsl --archive="$$file" --gzip; then
+            echo "Backup written: $$file"
+          else
+            echo "Backup FAILED" >&2; rm -f "$$file"
+          fi
+          find /backups -name 'dsl-*.archive.gz' -mtime +14 -delete
+          sleep 86400
+        done
+    networks: [internal]
+    mem_limit: 256m
+    logging: *logging
+    labels:
+      - traefik.enable=false
+
+  # Nightly portable copy of the media bucket (plain files, unlike MinIO's
+  # own data folder). Deleted media stay in the copy.
+  dsl-backup-media:
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
+    restart: unless-stopped
+    user: "${DSL_UID:-1000}:${DSL_GID:-1000}"
+    depends_on:
+      dsl-minio:
+        condition: service_healthy
+    environment:
+      MC_CONFIG_DIR: /tmp/.mc
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET:-dsl-media}
+    volumes:
+      - ${DSL_DATA_DIR:?set DSL_DATA_DIR}/backups/minio:/backups
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        mc alias set dsl http://dsl-minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" > /dev/null
+        while true; do
+          if mc mirror --quiet --overwrite "dsl/$$MINIO_BUCKET" "/backups/$$MINIO_BUCKET"; then
+            echo "Media mirrored at $$(date -u +%FT%TZ)"
+          else
+            echo "Media mirror FAILED" >&2
+          fi
+          sleep 86400
+        done
+    networks: [internal]
+    mem_limit: 256m
+    logging: *logging
+    labels:
+      - traefik.enable=false
+
+networks:
+  # Your existing Traefik's network, created outside this stack.
+  traefik:
+    external: true
+  # Database and object store only; no internet egress.
+  internal:
+    internal: true

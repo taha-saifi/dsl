@@ -1,6 +1,7 @@
 **/.env
 **/.env.*
 !**/.env.example
+!deploy/.env.prod.example
 **/atlas-credentials.env
 **/node_modules/
 **/dist/
