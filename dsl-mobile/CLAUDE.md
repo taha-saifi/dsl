@@ -96,7 +96,9 @@ flutter run --dart-define-from-file=env/device.json        # physical phone on t
   (`cd android && ./gradlew --stop`). The emulator `dsl_pixel_api34` runs fine
   with `-memory 1536`.
 - Launcher icon and splash: `dart run flutter_launcher_icons && dart run flutter_native_splash:create`
-  (sources in `assets/branding/`, from the Figma logo).
+  (sources in `assets/branding/`, from the Figma logo). Android 12+ crops the
+  splash icon to a circle (2/3 of the canvas), so the splash uses
+  `splash_android12.png`, a padded copy that keeps the whole logo inside it.
 - Code generation: `dart run build_runner build -d`. Generated `*.g.dart` /
   `*.freezed.dart` files are committed.
 

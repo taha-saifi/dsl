@@ -69,6 +69,8 @@ flutter_native_splash:
   web: false
   color: "#1E1B4B"
   image: assets/branding/logo.png
+  # Android 12+ masks the splash icon to a circle (2/3 of the canvas), so it
+  # uses a padded copy that keeps the whole logo inside it.
   android_12:
     color: "#1E1B4B"
-    image: assets/branding/logo.png
+    image: assets/branding/splash_android12.png
