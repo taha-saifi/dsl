@@ -35,7 +35,8 @@ the branch but never built or run.
 - **Docker provider:** watches the external network **`traefik`**, with `exposedByDefault=false`. Every non-public service also sets `traefik.enable=false`.
 - **Certificate:** the `*.ssuniverse.dev` wildcard comes from the cert resolver `letsencrypt` (Cloudflare DNS challenge). Every `dsl-*` router sets `tls.certresolver=${TRAEFIK_CERTRESOLVER}` and `tls.domains[0]` = `${TLS_DOMAIN}` + `*.${TLS_DOMAIN}`, so Traefik reuses the wildcard, or issues it if it's missing.
 - **HTTP to HTTPS:** the `http` entrypoint already redirects to `https`. The stack has no `http` routers.
-- **Client IPs:** Traefik sees real client IPs, needed by the rate limits. If something like a Cloudflare Tunnel or proxy sits in front, configure Traefik's `forwardedHeaders.trustedIPs`. Otherwise every user shares one login rate limit.
+- **Cloudflare:** the `*.ssuniverse.dev` record is proxied (orange cloud), so Traefik sees Cloudflare's IPs. The rate limits key on the `CF-Connecting-IP` header instead. If the proxy is ever turned off, remove the two `sourcecriterion` labels, or every user shares one bucket.
+- **Cloudflare SSL/TLS mode:** must be **Full (strict)**. With **Flexible**, Cloudflare talks HTTP to Traefik, which redirects to HTTPS: an endless redirect loop.
 
 ---
 

@@ -264,6 +264,10 @@ services:
       - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.average=10
       - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.period=1m
       - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.burst=5
+      # The hosts are proxied by Cloudflare, so the peer IP is a Cloudflare
+      # edge: key the limits on the visitor IP that Cloudflare forwards.
+      - traefik.http.middlewares.dsl-api-ratelimit.ratelimit.sourcecriterion.requestheadername=CF-Connecting-IP
+      - traefik.http.middlewares.dsl-auth-ratelimit.ratelimit.sourcecriterion.requestheadername=CF-Connecting-IP
       # Shared security headers. HSTS stays on these hosts only, so other
       # ssuniverse.dev services aren't forced onto HTTPS by this stack.
       - traefik.http.middlewares.dsl-sec-headers.headers.stsSeconds=31536000
