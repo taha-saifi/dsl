@@ -1,7 +1,8 @@
 # Deploying DSL (backend + teacher dashboard)
 
 Production runs `docker-compose.prod.yml` from the **`deploy` branch** as a
-Portainer stack, behind the server's existing Traefik. Only `dsl-backend/` and
+Portainer stack, behind the server's existing Traefik. **Everything below is
+done from the Portainer UI; no shell access to the server is needed.** Only `dsl-backend/` and
 `dsl-teacher-dashboard/` are built. `dsl-mobile/` and `docs/` are cloned with
 the branch but never built or run.
 
@@ -15,6 +16,7 @@ the branch but never built or run.
 
 | Service | Purpose | Networks |
 |---|---|---|
+| `dsl-data-init` | one-shot, root: creates the data folders under `${DSL_DATA_DIR}`, owned by `DSL_UID:DSL_GID` | none |
 | `dsl-mongo` | MongoDB 7.0, auth on, data in `${DSL_DATA_DIR}/mongo` | internal |
 | `dsl-mongo-init` | one-shot: creates or updates the app user (`readWrite` on `dsl` only) | internal |
 | `dsl-minio` | S3 store (`pgsty/minio`, a rebuild of MinIO; the official images are no longer published), data in `${DSL_DATA_DIR}/minio` | internal, traefik |
@@ -40,17 +42,14 @@ the branch but never built or run.
 
 ## First-time setup
 
-### 1. On the server: data folders
+### 1. In Portainer: check what the stack relies on
 
-```bash
-sudo install -d -o 1000 -g 1000 -m 750 \
-  /srv/dsl /srv/dsl/mongo /srv/dsl/minio /srv/dsl/backups /srv/dsl/backups/mongo /srv/dsl/backups/minio
-docker network inspect traefik > /dev/null && echo "traefik network OK"
-```
+- **Networks:** a network named `traefik` exists.
+- **Containers → your Traefik → Inspect:** in `Args` (or its `Labels`/config file), the Docker provider has `exposedByDefault=false`, the `http` entrypoint redirects to `https`, and the wildcard is the default certificate (see the assumptions above).
 
-Use the same UID and GID as `DSL_UID` and `DSL_GID`. Mongo and MinIO run as that user, so the files stay readable and easy to copy.
+**Data folders:** nothing to do. `dsl-data-init` creates `${DSL_DATA_DIR}` (default `/srv/dsl`) and its subfolders on the host at every deploy, owned by `DSL_UID:DSL_GID`. Mongo and MinIO run as that user, so the files stay plain and easy to copy. The UID doesn't need to exist on the host.
 
-### 2. Generate secrets (on the server, or locally)
+### 2. Generate secrets (on your own machine)
 
 ```bash
 for v in MONGO_ROOT_PASSWORD MONGO_APP_PASSWORD MINIO_ROOT_PASSWORD MINIO_SECRET_KEY; do
@@ -81,7 +80,7 @@ echo "JWT_SECRET=$(openssl rand -base64 48)"
 | Compose path | `docker-compose.prod.yml` |
 | Authentication | on: your GitHub username + the PAT |
 | GitOps updates | on: polling (5 min) or webhook; turn on **Force redeployment** so pushes rebuild the images |
-| Environment variables | every variable in `deploy/.env.prod.example`, filled in (or "Load variables from .env file") |
+| Environment variables | **Advanced mode**, then paste every line of `deploy/.env.prod.example` with the secrets filled in (or "Load variables from .env file") |
 
 Click **Deploy the stack**. The first deploy builds both images on the server, which takes a few minutes.
 
@@ -104,18 +103,17 @@ Click **Deploy the stack**. The first deploy builds both images on the server, w
    curl -sI http://dsl.ssuniverse.dev | head -1               # redirect to https
    ```
 
-4. **No new ports on the host:** `ss -tlnp` is unchanged.
+4. **No published ports:** Portainer → Containers shows no `Published Ports` on any `dsl-*` container.
 
 ### 6. First admin
 
-Use Portainer → `dsl-backend` → **Console** (`/bin/sh`), or SSH:
+Portainer → Containers → `dsl-dsl-backend-1` → **Console** → command `/bin/sh` → **Connect**, then:
 
-```bash
-docker exec -it dsl-dsl-backend-1 node dist/scripts/createAdmin.js \
-  --email you@example.com --first-name Ada --last-name Admin --password 'choose-a-strong-one'
+```sh
+node dist/scripts/createAdmin.js --email you@example.com --first-name Ada --last-name Admin --password 'choose-a-strong-one'
 ```
 
-Prefix the command with a space so it stays out of shell history. Then log in at `https://dsl.ssuniverse.dev`, create a course, upload an image, and confirm it loads from `dsl-media.ssuniverse.dev`.
+The console keeps no shell history. Then log in at `https://dsl.ssuniverse.dev`, create a course, upload an image, and confirm it loads from `dsl-media.ssuniverse.dev`.
 
 ---
 
@@ -133,32 +131,29 @@ Portainer picks up the push (polling or webhook) and rebuilds. Only `deploy` is 
 
 **Changing a hostname.** Change it in the stack's environment variables and redeploy. The dashboard bakes `API_HOST` in at build time, so its image is rebuilt anyway. Hostnames are compiled into the mobile release build, so avoid changing `API_HOST` and `MEDIA_HOST`.
 
-**Logs.** Portainer → container → Logs, or `docker logs -f dsl-dsl-backend-1`. They rotate at 10 MB × 3 per container.
+**Logs.** Portainer → container → Logs. They rotate at 10 MB × 3 per container.
 
 ## Backups and restore
 
 - **Database:** `${DSL_DATA_DIR}/backups/mongo/dsl-<UTC time>.archive.gz`, written at every deploy and every 24 h, kept 14 days.
 - **Media:** `${DSL_DATA_DIR}/backups/minio/dsl-media/` holds plain files, refreshed every 24 h.
-- **Off the box:** copy `${DSL_DATA_DIR}/backups` to a NAS or off-site (restic or rsync cron on the host). Backups on the same disk don't survive a disk failure.
+- **Off the box:** `${DSL_DATA_DIR}/backups` should also be copied to a NAS or off-site by whoever has host access (restic or rsync cron). Backups on the same disk don't survive a disk failure.
 
-**Restore the database** into the running stack. This replaces existing documents.
+Both restores run from a Portainer **Console** (`/bin/sh`) on the backup containers. They already have the backup folder mounted and the root credentials in their environment, so no password is typed.
 
-```bash
-docker exec -i dsl-dsl-mongo-1 mongorestore --drop --gzip --archive \
-  --authenticationDatabase admin -u root -p "$MONGO_ROOT_PASSWORD" \
-  < /srv/dsl/backups/mongo/dsl-YYYYmmdd-HHMMSS.archive.gz
+**Restore the database** (replaces existing documents). Console on `dsl-dsl-backup-mongo-1`:
+
+```sh
+ls /backups
+mongorestore --host dsl-mongo --authenticationDatabase admin \
+  -u "$MONGO_ROOT_USER" -p "$MONGO_ROOT_PASSWORD" \
+  --drop --gzip --archive=/backups/dsl-YYYYmmdd-HHMMSS.archive.gz
 ```
 
-In both commands, set `MONGO_ROOT_PASSWORD` and `MINIO_ROOT_PASSWORD` in your shell first (read them from your password manager). Start the line with a space so it stays out of shell history.
+**Restore media** from the mirror (adds and overwrites, never deletes). Console on `dsl-dsl-backup-media-1`:
 
-**Restore media** from the mirror into the running bucket (adds and overwrites, never deletes):
-
-```bash
-docker run --rm --network dsl_internal -e MC_CONFIG_DIR=/tmp/.mc \
-  -v /srv/dsl/backups/minio:/backups:ro --entrypoint sh \
-  pgsty/minio:RELEASE.2026-08-04T00-00-00Z -c \
-  "mc alias set dsl http://dsl-minio:9000 dsl-minio-root '$MINIO_ROOT_PASSWORD' && \
-   mc mirror --overwrite /backups/dsl-media dsl/dsl-media"
+```sh
+mc mirror --overwrite "/backups/$MINIO_BUCKET" "dsl/$MINIO_BUCKET"
 ```
 
 Test a restore once before relying on the backups.
@@ -166,7 +161,7 @@ Test a restore once before relying on the backups.
 ## Migrating to another server
 
 1. **Stop the stack** in Portainer.
-2. **Copy the data:** `sudo rsync -aHAX /srv/dsl/ newhost:/srv/dsl/`.
+2. **Copy the data** (needs host access): `sudo rsync -aHAX /srv/dsl/ newhost:/srv/dsl/`. Without host access, deploy the stack fresh on the new host and restore the latest backups as above.
 3. **Create the stack again** on the new host: same Git settings, same environment variables.
 4. **Point DNS** at the new host, if it changed.
 
@@ -179,7 +174,7 @@ The Mongo and MinIO data folders are bind mounts, so nothing lives inside Docker
 | `MONGO_APP_PASSWORD` | change it in Portainer and redeploy. `dsl-mongo-init` updates the user before the backend starts |
 | `MINIO_SECRET_KEY` | change it and redeploy. `dsl-minio-init` updates the user |
 | `JWT_SECRET` | change it and redeploy. Every user is logged out |
-| `MONGO_ROOT_PASSWORD` | **the env var only applies to an empty data folder.** Change it inside Mongo first, then in Portainer, then redeploy: `docker exec -it dsl-dsl-mongo-1 mongosh -u root -p --authenticationDatabase admin --eval 'db.getSiblingDB("admin").changeUserPassword("root", "<new>")'` |
+| `MONGO_ROOT_PASSWORD` | **the env var only applies to an empty data folder.** Change it inside Mongo first (Console on `dsl-dsl-mongo-1`: `mongosh -u root -p --authenticationDatabase admin --eval 'db.getSiblingDB("admin").changeUserPassword("root", "<new>")'`), then in Portainer, then redeploy |
 | `MINIO_ROOT_PASSWORD` | change it in Portainer and redeploy |
 
 ## Local dry run (before touching the server)

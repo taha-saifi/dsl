@@ -22,10 +22,43 @@ x-logging: &logging
     max-file: "3"
 
 services:
+  # Creates the data folders on the host, owned by DSL_UID:DSL_GID, so the
+  # stack can be deployed from Portainer without shell access to the server.
+  # Runs as root on every deploy; idempotent, and only touches the folders
+  # themselves, never their contents.
+  dsl-data-init:
+    # Any image with sh works; this one is pulled for the backend build anyway
+    # and, unlike mongo/minio, declares no VOLUME that would leave stray
+    # folders in the bind mount.
+    image: node:22.23.3-alpine3.24
+    restart: "no"
+    user: "0:0"
+    network_mode: none
+    environment:
+      DSL_UID: ${DSL_UID:-1000}
+      DSL_GID: ${DSL_GID:-1000}
+    volumes:
+      - ${DSL_DATA_DIR:?set DSL_DATA_DIR}:/target
+    entrypoint: ["sh", "-ec"]
+    command:
+      - |
+        for d in . mongo minio backups backups/mongo backups/minio; do
+          mkdir -p "/target/$$d"
+          chown "$$DSL_UID:$$DSL_GID" "/target/$$d"
+          chmod 750 "/target/$$d"
+        done
+        echo "Data folders are ready."
+    logging: *logging
+    labels:
+      - traefik.enable=false
+
   dsl-mongo:
     image: mongo:7.0.45
     restart: unless-stopped
     user: "${DSL_UID:-1000}:${DSL_GID:-1000}"
+    depends_on:
+      dsl-data-init:
+        condition: service_completed_successfully
     command: ["mongod", "--wiredTigerCacheSizeGB", "0.5"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:?set MONGO_ROOT_USER}
@@ -83,6 +116,9 @@ services:
     image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     restart: unless-stopped
     user: "${DSL_UID:-1000}:${DSL_GID:-1000}"
+    depends_on:
+      dsl-data-init:
+        condition: service_completed_successfully
     command: ["server", "/data"]
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER}
