@@ -33,8 +33,7 @@ the branch but never built or run.
 
 - **Entrypoints:** `http` and `https`.
 - **Docker provider:** watches the external network **`traefik`**, with `exposedByDefault=false`. Every non-public service also sets `traefik.enable=false`.
-- **Certificate:** the `*.ssuniverse.dev` wildcard is in Traefik's certificate store. Routers only set `tls=true`; they don't name a resolver.
-  - If your wildcard is only issued through a resolver on one router, add `traefik.http.routers.<name>.tls.certresolver=<resolver>` to each `dsl-*` router.
+- **Certificate:** the `*.ssuniverse.dev` wildcard comes from the cert resolver `letsencrypt` (Cloudflare DNS challenge). Every `dsl-*` router sets `tls.certresolver=${TRAEFIK_CERTRESOLVER}` and `tls.domains[0]` = `${TLS_DOMAIN}` + `*.${TLS_DOMAIN}`, so Traefik reuses the wildcard, or issues it if it's missing.
 - **HTTP to HTTPS:** the `http` entrypoint already redirects to `https`. The stack has no `http` routers.
 - **Client IPs:** Traefik sees real client IPs, needed by the rate limits. If something like a Cloudflare Tunnel or proxy sits in front, configure Traefik's `forwardedHeaders.trustedIPs`. Otherwise every user shares one login rate limit.
 

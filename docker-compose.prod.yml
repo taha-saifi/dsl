@@ -144,11 +144,21 @@ services:
       - traefik.http.routers.dsl-media.rule=Host(`${MEDIA_HOST:?set MEDIA_HOST}`) && PathRegexp(`^/${MINIO_BUCKET:-dsl-media}/[^/?]+$`) && (Method(`GET`) || Method(`HEAD`))
       - traefik.http.routers.dsl-media.entrypoints=https
       - traefik.http.routers.dsl-media.tls=true
-      - traefik.http.routers.dsl-media.middlewares=dsl-sec-headers@docker,dsl-media-cache@docker
+      - traefik.http.routers.dsl-media.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsl-media.tls.domains[0].main=${TLS_DOMAIN:-ssuniverse.dev}
+      - traefik.http.routers.dsl-media.tls.domains[0].sans=*.${TLS_DOMAIN:-ssuniverse.dev}
+      - traefik.http.routers.dsl-media.middlewares=dsl-media-headers@docker
       - traefik.http.routers.dsl-media.service=dsl-media
       - traefik.http.services.dsl-media.loadbalancer.server.port=9000
-      # Object keys are random UUIDs that are never reused.
-      - traefik.http.middlewares.dsl-media-cache.headers.customresponseheaders.Cache-Control=public, max-age=86400
+      # Security headers are repeated here and on the dashboard rather than
+      # shared from dsl-backend: Traefik ignores a container until it's
+      # healthy, so a shared middleware would take these routers down with it.
+      # Object keys are random UUIDs that are never reused, hence the cache.
+      - traefik.http.middlewares.dsl-media-headers.headers.customresponseheaders.Cache-Control=public, max-age=86400
+      - traefik.http.middlewares.dsl-media-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.dsl-media-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.dsl-media-headers.headers.frameDeny=true
+      - traefik.http.middlewares.dsl-media-headers.headers.referrerPolicy=strict-origin-when-cross-origin
 
   # Bucket with anonymous download, plus a backend user limited to that
   # bucket. Runs on every deploy; idempotent.
@@ -234,6 +244,9 @@ services:
       - traefik.http.routers.dsl-api.rule=Host(`${API_HOST:?set API_HOST}`)
       - traefik.http.routers.dsl-api.entrypoints=https
       - traefik.http.routers.dsl-api.tls=true
+      - traefik.http.routers.dsl-api.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsl-api.tls.domains[0].main=${TLS_DOMAIN:-ssuniverse.dev}
+      - traefik.http.routers.dsl-api.tls.domains[0].sans=*.${TLS_DOMAIN:-ssuniverse.dev}
       - traefik.http.routers.dsl-api.service=dsl-api
       - traefik.http.routers.dsl-api.middlewares=dsl-sec-headers@docker,dsl-api-ratelimit@docker
       # Login and register only (bcrypt is CPU-heavy): a strict per-IP limit.
@@ -241,6 +254,9 @@ services:
       - traefik.http.routers.dsl-api-auth.rule=Host(`${API_HOST:?set API_HOST}`) && (Path(`/api/auth/login`) || Path(`/api/auth/register`))
       - traefik.http.routers.dsl-api-auth.entrypoints=https
       - traefik.http.routers.dsl-api-auth.tls=true
+      - traefik.http.routers.dsl-api-auth.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsl-api-auth.tls.domains[0].main=${TLS_DOMAIN:-ssuniverse.dev}
+      - traefik.http.routers.dsl-api-auth.tls.domains[0].sans=*.${TLS_DOMAIN:-ssuniverse.dev}
       - traefik.http.routers.dsl-api-auth.service=dsl-api
       - traefik.http.routers.dsl-api-auth.middlewares=dsl-sec-headers@docker,dsl-auth-ratelimit@docker
       - traefik.http.middlewares.dsl-api-ratelimit.ratelimit.average=50
@@ -274,11 +290,19 @@ services:
       - traefik.http.routers.dsl-dashboard.rule=Host(`${DASHBOARD_HOST:?set DASHBOARD_HOST}`)
       - traefik.http.routers.dsl-dashboard.entrypoints=https
       - traefik.http.routers.dsl-dashboard.tls=true
-      - traefik.http.routers.dsl-dashboard.middlewares=dsl-sec-headers@docker,dsl-dashboard-csp@docker
+      - traefik.http.routers.dsl-dashboard.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      - traefik.http.routers.dsl-dashboard.tls.domains[0].main=${TLS_DOMAIN:-ssuniverse.dev}
+      - traefik.http.routers.dsl-dashboard.tls.domains[0].sans=*.${TLS_DOMAIN:-ssuniverse.dev}
+      - traefik.http.routers.dsl-dashboard.middlewares=dsl-dashboard-headers@docker
       - traefik.http.services.dsl-dashboard.loadbalancer.server.port=8080
+      # Same security headers as dsl-sec-headers (see dsl-minio for why they're repeated).
       # The JWT lives in localStorage, so a strict CSP is the main XSS defence.
       # style-src needs 'unsafe-inline' for the UI libraries' runtime styles.
-      - "traefik.http.middlewares.dsl-dashboard-csp.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://${MEDIA_HOST:?set MEDIA_HOST}; media-src 'self' blob: https://${MEDIA_HOST:?set MEDIA_HOST}; connect-src 'self' https://${API_HOST:?set API_HOST}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - "traefik.http.middlewares.dsl-dashboard-headers.headers.contentSecurityPolicy=default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://${MEDIA_HOST:?set MEDIA_HOST}; media-src 'self' blob: https://${MEDIA_HOST:?set MEDIA_HOST}; connect-src 'self' https://${API_HOST:?set API_HOST}; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+      - traefik.http.middlewares.dsl-dashboard-headers.headers.stsSeconds=31536000
+      - traefik.http.middlewares.dsl-dashboard-headers.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.dsl-dashboard-headers.headers.frameDeny=true
+      - traefik.http.middlewares.dsl-dashboard-headers.headers.referrerPolicy=strict-origin-when-cross-origin
 
   # Nightly gzip'd mongodump (also once at every deploy), kept 14 days.
   dsl-backup-mongo:
